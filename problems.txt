@@ -1,0 +1,1 @@
+overlapping "hidden" portion of a masked item interferes with underlying text
