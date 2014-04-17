@@ -1,0 +1,140 @@
+<html>
+	<head>
+		<title>Barn Door Image Mask/Clip Experiments</title>
+
+		<style>
+			/*
+			img{
+				-webkit-clip-path: url(#clipping); 
+				clip-path: url(#clipping); 
+				clip-path: circle(245px, 140px, 50px);
+			}
+			*/
+			#lake2 {
+				-webkit-clip-path: circle(245px, 140px, 50px);
+			}
+
+		</style>
+
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+		<script language="JavaScript">
+			// see http://www.html5rocks.com/en/tutorials/masking/adobe/
+			// https://developer.mozilla.org/en-US/docs/Web/SVG/Element/clipPath#Browser_compatibility
+			// http://ned.highline.edu/~ryan-j/200/final/
+			// lake is 566x331 pixels
+
+			var leftPoly = [
+				[0, 0],
+				[300, 0],
+				[260, 331],
+				[0, 331]
+			];
+
+			var rightPoly = [
+				[301, 0],
+				[566, 0],
+				[566, 331],
+				[261, 331]
+			];
+
+			function drawPolyIntoCanvas(points, canvasId) {
+				var canvas = document.getElementById(canvasId);
+				var ctx = canvas.getContext('2d');
+				ctx.clearRect(0,0,canvas.width,canvas.height);
+				ctx.fillStyle = '#f00';
+				for (var i = 0 ; i < points.length ; i++) {
+					var p = points[i];
+					if (i == 0) {
+						ctx.beginPath();
+						ctx.moveTo(p[0], p[1]);
+					} else {
+						ctx.lineTo(p[0], p[1]);
+					}
+				}
+				ctx.closePath();
+				ctx.fill();
+			}
+
+			function translatePointsFromArrayToString(points) {
+				var rv = "polygon(";
+				for (var i = 0 ; i < points.length ; i++) {
+					var p = points[i];
+					rv += (i == 0 ? "" : ", ") + p[0] + "px " + p[1] + "px";
+				}
+				rv += ")";
+				return rv;
+			}
+
+			function clearClip(imageId) {
+				var imgToClip = $("#" + imageId);
+				imgToClip.css("position", "");
+				imgToClip.css("clip", "");
+				imgToClip.css("-webkit-clip-path", "");
+			}
+
+			function clipImage(points, imageId, method) {
+				var imgToClip = $("#" + imageId);
+				if (imgToClip.length == 0) {
+					console.log("NO image with id [" + imageId + "]");
+				} else {
+					console.log("image is [" + imgToClip + "]...");
+					var path = translatePointsFromArrayToString(points);
+					console.log("path is [" + path + "]");
+
+					if (method == "1") {
+						console.log("simple: abs position, rectangular");
+						imgToClip.css("position", "absolute"); // MUST BE ABSOLUTE TO WORK!!!
+						imgToClip.css("clip", "rect(120px, 290px, 240px, 175px");
+					} else if (method == "2") {
+						console.log("circular clip path");
+						// imgToClip.css("-webkit-clip-path", "circle(245px, 140px, 50px)");
+						// imgToClip.css("position", "absolute"); // NOT necessary
+						imgToClip.css("-webkit-clip-path", path);
+					}
+					// imgToClip.css("-webkit-clip-path", path);
+					// imgToClip.css("clip-path", path);
+				}
+			}
+			
+			function moveImages() {
+				console.log("let's move...");
+			}
+
+			function startup() {
+				console.log("running startup stuff...");
+				// clipImage(leftPoly, "lake");
+			}
+
+		</script>
+	</head>
+
+	<body onLoad="startup();">
+		<a href="index.html">Back</a>
+		<hr>
+		Demo Canvas:<br>
+		<canvas style="background:url(lake.jpg)" id="myCanvas" width="566" height="331">No Canvas Support: <img src="lake.jpg"></canvas><br>
+		<input type="button" value="Show poly on image" onClick="drawPolyIntoCanvas(leftPoly, 'myCanvas');">
+
+		<hr>
+
+		<!--
+		<svg width="566" height="331">
+			<defs>
+				<clipPath id="clipping">
+					<circle cx="50" cy="50" r="30"/>
+				</clipPath>
+			</defs>
+			<image width="566" height="331" src="lake.jpg" id="lake"><br>
+		</svg>
+		-->
+		<img src="lake.jpg" id="lake">
+		<img src="scoville.jpg" id="scoville">
+		<br>
+		<input type="button" value="clip image - simple" onClick="clipImage(leftPoly, 'lake', '1');">
+		<input type="button" value="clip image - path" onClick="clipImage(leftPoly, 'lake', '2'); clipImage(rightPoly, 'scoville', '2'); moveImages();">
+		<input type="button" value="clear clip" onClick="clearClip('lake');">
+	
+	</body>
+</html>

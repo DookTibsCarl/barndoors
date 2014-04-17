@@ -1,0 +1,181 @@
+
+
+<html>
+	<head>
+		<title>Barn Door Image Combo Experiments</title>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.js"></script>
+
+		<script language="JavaScript">
+			var imageWidth = 204;
+			var divWidth = 600;
+
+			var leftPoly = [
+				[0, 0],
+				// [350, 0],
+				// [300, 304],
+				// [0, 304]
+				[150, 0],
+				[100, 204],
+				[0, 204]
+			];
+
+			var rightPoly = [
+				[150, 0],
+				[204, 0],
+				[204, 204],
+				[100, 204]
+			];
+
+			function translatePointsFromArrayToString(points) {
+				var rv = "polygon(";
+				for (var i = 0 ; i < points.length ; i++) {
+					var p = points[i];
+					rv += (i == 0 ? "" : ", ") + p[0] + "px " + p[1] + "px";
+				}
+				rv += ")";
+				return rv;
+			}
+
+			function clipImage(points, imageId) {
+				var imgToClip = $("#" + imageId);
+				if (imgToClip.length > 0) {
+					var path = translatePointsFromArrayToString(points);
+
+					imgToClip.css("-webkit-clip-path", path);
+				}
+			}
+
+			function setup() {
+				console.log("setting up scene...");
+				var doorLeft = $("#doorLeft");
+				var doorRight = $("#doorRight");
+
+				clipImage(leftPoly, "imageLeft");
+				clipImage(rightPoly, "imageRight");
+
+				doorLeft.css({
+							"position": "inherit",
+							"left": (-1 * imageWidth) + "px",
+							"top": "100px"
+						});
+				doorRight.css({
+							"position": "inherit",
+							"left": divWidth + "px",
+							"top": "100px"
+						});
+
+				if (true) {
+				var labelLeft = $("#labelLeft");
+				labelLeft.css({
+							"position": "absolute",
+							"right": "110px",
+							"bottom": "20px",
+							"color": "red",
+							"letter-spacing": "-1px",
+							"font": "bold 12px/8px Helvetica, Sans-Serif"
+						});
+				}
+				var labelRight = $("#labelRight");
+				labelRight.css({
+							"position": "absolute",
+							"bottom": "20px",
+							"left": "150px",
+							"color": "green",
+							"letter-spacing": "-1px",
+							"font": "bold 12px/8px Helvetica, Sans-Serif"
+						});
+
+
+				setTimeout("slamShut()", 1000);
+			}
+
+			function slamShut() {
+				console.log("start animating!");
+				var doorLeft = $("#doorLeft");
+				var doorRight = $("#doorRight");
+				// see http://api.jqueryui.com/easings/
+				var easeFxn;
+				// easeFxn = "easeOutBounce";
+				easeFxn = "swing";
+
+				var animLength = 900; // in ms
+
+
+				/*
+					imagine 2 rectangular images clipped like so:
+
+					In the above example, t is 150, b is 100.
+					width of the entire thing is 204
+
+					slantAdjustment is half the difference between t and b; this basically finds
+					us the x coordinate of the midpoint of the "hypotenuse"; this is marked "#"
+					on the diagram below.
+
+					We want to animate these two pieces in place and need them to match up. Left dstination
+					and right Destination show us how
+
+				+------- t -----------------+
+				|					/		|
+				|				   /		|
+				|				  /			|
+				|				 /			|
+				|				#			|
+				|			   /			|
+				|			  /				|
+				|			 /				|
+				|		    /				|
+				+---- b ---/------------------
+				*/
+
+				var t = 150;
+				var b = 100;
+
+				var slantAdjustment = (t - b) / 2;
+				var leftDestination = ((divWidth/2) - imageWidth) + slantAdjustment + (imageWidth-t);;
+				var rightDestination = (divWidth/2) - slantAdjustment - b;
+
+				// leftDestination -= 1;
+				// rightDestination += 1;
+
+				console.log("moving to [" + leftDestination + "]/[" + rightDestination + "]...");
+				doorLeft.animate({
+								// "left": "200px",
+								"left": leftDestination + "px"
+								}, animLength, easeFxn, function() {
+								animateDone("1");
+							});
+
+				doorRight.animate({
+								// "left": "201px",
+								"left": rightDestination + "px"
+								}, animLength, easeFxn, function() {
+								animateDone("2");
+							});
+			}
+
+			function animateDone(whoFinished) {
+				console.log("animation for door [" + whoFinished + "] completed...");
+			}
+
+
+		</script>
+	</head>
+
+	<body onLoad="setup();">
+		<a href="index.html">Back</a>
+		<hr>
+		Possible problem - parent div is positioned absolute...
+		<div style="overflow: hidden; position: absolute; left:150px; top: 100px; width:600px; height:410px; background-color:gray" id="barn">
+			<div id="doorLeft">
+				<img id="imageLeft" src="car1.jpeg">
+				<span id="labelLeft">sample text on left!</span>
+			</div>
+			<div id="doorRight">
+				<img id="imageRight" src="car2.jpeg">
+				<span id="labelRight">more dummy copy on right</span>
+			</div>
+		</div>
+	</body>
+</html>

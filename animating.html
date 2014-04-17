@@ -1,0 +1,75 @@
+
+<html>
+	<head>
+		<title>Barn Door Image Animation Experiments</title>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.js"></script>
+
+		<script language="JavaScript">
+			var imageWidth = 204;
+			var divWidth = 600;
+
+			function setup() {
+				console.log("setting up scene...");
+				var car1 = $("#car1");
+				var car2 = $("#car2");
+
+				// take 1
+				car1.css({
+							"position": "inherit",
+							"left": (-1 * imageWidth) + "px",
+							"top": "100px"
+						});
+				car2.css({
+							"position": "inherit",
+							// "left": (divWidth - imageWidth) + "px",
+							"left": divWidth + "px",
+							"top": "100px"
+						});
+
+				setTimeout("drive()", 1000);
+			}
+
+			function drive() {
+				console.log("start animating!");
+				var car1 = $("#car1");
+				var car2 = $("#car2");
+				// see http://api.jqueryui.com/easings/
+				var easeFxn;
+				easeFxn = "easeOutBounce";
+				// easeFxn = "swing";
+
+				var animLength = 500; // in ms
+
+				car1.animate({
+								"left": ((divWidth/2) - imageWidth) + "px",
+								}, animLength, easeFxn, function() {
+								animateDone("1");
+							});
+
+				car2.animate({
+								"left": (divWidth/2) + "px",
+								}, animLength, easeFxn, function() {
+								animateDone("2");
+							});
+			}
+
+			function animateDone(whoFinished) {
+				console.log("animation for car [" + whoFinished + "] completed...");
+			}
+
+
+		</script>
+	</head>
+
+	<body onLoad="setup();">
+		<a href="index.html">Back</a>
+		<hr>
+		<!-- take 1 - requires absolutely positioned div... -->
+		<div style="overflow: hidden; position: absolute; left:150px; top: 100px; width:600px; height:410px; background-color:gray" id="barn">
+			<img src="car1.jpeg" id="car1">
+			<img src="car2.jpeg" id="car2">
+		</div>
+	</body>
+</html>

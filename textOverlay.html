@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>Barn Door Image Text Overlay Experiments</title>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.js"></script>
+
+		<script language="JavaScript">
+			function setup() {
+				var someLabel = $("#picLabel");
+				someLabel.css({
+							"position": "absolute",
+							"bottom": "20px",
+							"right": "20px",
+							"color": "red",
+							"letter-spacing": "-1px",
+							"font": "bold 24px/24px Helvetica, Sans-Serif"
+						});
+			}
+
+		</script>
+	</head>
+
+	<body onLoad="setup();">
+		<a href="index.html">Back</a>
+		<hr>
+
+		<div id="lake" style="background-color:grey; position:relative; width:566px">
+			<img src="lake.jpg">
+			<span id="picLabel">This is sample text<br>with a newline</span>
+		</div>
+	</body>
+</html>
