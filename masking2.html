@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<title>Barn Door Image Mask/Clip Experiments</title>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+		<script language="JavaScript">
+
+			function changeUp() {
+				console.log("running startup stuff...");
+				$("#demo").css("background-color", "red");
+
+				$("#lake").css("clip-path", "url('#clipPolygon')");
+				$("#lake").css("-webkit-clip-path", "polygon(161px 252px, 400px 100px, 271px -18px, 0px 0px)");
+			}
+
+			function delay() {
+				setTimeout(changeUp, 1000);
+			}
+
+		</script>
+	</head>
+
+	<body onLoad="delay();">
+		<a href="index.html">Back</a>
+		<hr>
+
+<div>
+<svg width="0" height="0">
+  <clipPath id="clipPolygon">
+    <polygon points="161 252,400 100,271 -18,0 0">
+    </polygon>
+  </clipPath>
+</svg>
+</div>
+
+		<!-- <img style='clip-path: url("#clipPolygon");' src="lake.jpg" id="lake"> -->
+		<img src="lake.jpg" id="lake">
+
+<div id="demo" style="width:500px; height:100px; background-color:green"></div>
+	
+	</body>
+</html>
