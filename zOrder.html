@@ -1,0 +1,56 @@
+
+
+<html>
+	<head>
+		<title>Barn Door Z-Order Experiments</title>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.js"></script>
+
+		<script language="JavaScript">
+			var topItem = "doorRight";
+
+			function setup() {
+				setTimeout("swap()", 500);
+			}
+
+			function swap() {
+
+				var doorLeft = $("#doorLeft");
+				var doorRight = $("#doorRight");
+
+				var topIdx = Math.max(doorLeft.zIndex(), doorRight.zIndex())
+				var bottomIdx = Math.min(doorLeft.zIndex(), doorRight.zIndex())
+				if (topIdx == bottomIdx) { topIdx++; }
+				console.log("ABS left=[" + doorLeft.zIndex() + "], right=[" + doorRight.zIndex() + "]");
+
+				if (topItem == "doorLeft") {
+					doorLeft.zIndex(topIdx);
+					doorRight.zIndex(bottomIdx);
+				} else if (topItem == "doorRight") {
+					doorLeft.zIndex(bottomIdx);
+					doorRight.zIndex(topIdx);
+				}
+
+				topItem = (topItem == "doorLeft") ? "doorRight" : "doorLeft";
+
+				setTimeout("swap()", 1000);
+			}
+		</script>
+	</head>
+
+	<body onLoad="setup();">
+		<a href="index.html">Back</a>
+		<hr>
+		<div style="xoverflow: hidden; position: absolute; left:150px; top: 100px; width:600px; height:410px; background-color:gray" id="barn">
+			<div id="doorLeft" style="position:inherit; top: 0px; left: 0px">
+				<img id="imageLeft" src="images/sayles.jpg">
+				<span id="labelLeft">sample text on left!</span>
+			</div>
+			<div id="doorRight" style="position:inherit; top: 100px; left: 200px">
+				<img id="imageRight" src="images/weitz.jpg">
+				<span id="labelRight">more dummy copy on right</span>
+			</div>
+		</div>
+	</body>
+</html>
