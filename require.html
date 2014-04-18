@@ -1,0 +1,60 @@
+<html>
+	<head>
+		<title>RequireJS Test Page</title>
+
+		<script language="javascript" src="js/lib/require.js"></script>
+
+		<script language="Javascript">
+			var bd;
+
+			function runFxn() {
+				require.config({ urlArgs: "bust=" +  (new Date()).getTime() });
+
+				require(["js/lib/jquery", "js/app/controller"], function(invalidJqueryReference, BarnDoorController) {
+					// console.log("requireJS finished loading [" + foo + "]/[" + BarnDoorController + "]...[" + jQuery + "]");
+
+					var configObj = {
+						imageDimensions: {
+							width: 566,
+							height: 331
+						},
+						pairs: [
+							{
+								left: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg", label: "Many Geese", fontColor: "red" },
+								right: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/recCenter.jpg", label: "Few Unicorns", fontColor: "white" }
+							},
+							{
+								left: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/weitz.jpg", label: "Open Courtyard", fontColor: "blue" },
+								right: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/scoville.jpg", label: "Closed Book Exams", fontColor: "orange" }
+							},
+							{
+								left: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/sayles.jpg", label: "Snowy Days", fontColor: "black" },
+								right: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/evans.jpg", label: "Sunny Dispositions", fontColor: "yellow" }
+							}
+						]
+
+					};
+
+					// var bd = new BarnDoorController("somethingRandom");
+					bd = new BarnDoorController("somethingRandom");
+					// console.log("will this work? [" + BarnDoorController.staticProp + "]...");
+					bd.setup(configObj);
+
+
+					setTimeout("doSomethingElse()", 500);
+				});
+			}
+
+			function doSomethingElse() {
+				bd.slamShut();
+			}
+		</script>
+
+	</head>
+
+	<body bgcolor="lightgray" onLoad="runFxn();">
+		<center>
+			<div id="somethingRandom" style="width:800px; height:400; border-style:none"></div>
+		</center>
+	</body>
+</html>

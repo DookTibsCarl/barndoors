@@ -1,0 +1,3 @@
+all minified
+jquery: 1.11.0
+requireJS: 2.1.11

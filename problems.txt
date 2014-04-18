@@ -1,1 +1,5 @@
 overlapping "hidden" portion of a masked item interferes with underlying text
+
+things to try:
+	clickable/more formatted text
+	swapping z-order
