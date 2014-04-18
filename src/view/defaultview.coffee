@@ -20,12 +20,12 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
 
       @targetDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
-      # [@leftDoorElA, @leftDoorElB, @rightDoorElA, @rightDoorElB] = 
-
       vertPos = (@targetDiv.height()/2) - (@imgHeight/2)
 
       @leftDoors = []
       @rightDoors = []
+
+      # TODO - stop giving things unique id's and select them based on class/hierarchy perhaps? Or if not, at least break "door"/"title"/etc. out into consts
 
       # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
       # we swap the z-order as necessary.
@@ -36,6 +36,7 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@targetDiv)
           imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
           titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
+          detailsEl = $("<span/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
 
           # style things appropriately
           doorStyle = {
@@ -46,24 +47,34 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
           
           titleStyle = {
             position: "absolute",
-            bottom: "20px",
+            bottom: "100px",
             letterSpacing: "1px",
             font: "bold 24px/24px Helvetica, Sans-Serif"
+          }
+
+          detailsStyle = {
+            position: "absolute",
+            bottom: "60px",
+            letterSpacing: "1px",
+            font: "12px/12px Arial"
           }
 
           # a few things are different based on which side door you are...
           textPadding = "140px"
           if (side == "left")
             titleStyle.right = textPadding
+            detailsStyle.right = textPadding
             this.clipImage(@leftPoly, imgEl)
           else
             titleStyle.left = textPadding
+            detailsStyle.left = textPadding
             this.clipImage(@rightPoly, imgEl)
 
           this.putDoorInOpenPosition(doorEl, side)
 
           doorEl.css(doorStyle)
           titleEl.css(titleStyle)
+          detailsEl.css(detailsStyle)
 
           # and finally let's save things
           if (side == "left")
@@ -138,11 +149,13 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
 
         imgEl = $("#image" + suffix)
         titleEl = $("#title" + suffix)
+        detailsEl = $("#details" + suffix)
 
         imgEl.attr("src", slide.imgUrl)
         titleEl.css("color", slide.fontColor)
         # TODO - should sanitize this input; maybe allow a couple of tags but not full blown control...
         titleEl.html(slide.title)
+        detailsEl.html(slide.details)
 
         if doAnimate
           doorEl.animate({
