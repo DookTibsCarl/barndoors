@@ -2,11 +2,11 @@ define([], () ->
   class Slide
     @SIDES = LEFT: "left", RIGHT: "right"
 
-    constructor: (@side, @imgUrl, @label, @fontColor) ->
+    constructor: (@side, @imgUrl, @title, @details, @fontColor) ->
       # necessary to ensure that @side is legal?
 
     toString: ->
-      "{side=#{@side}, url=#{@imgUrl}, label='#{@label}'}"
+      "{side=#{@side}, url=#{@imgUrl}, title='#{@title}'}"
 
   return Slide
 )

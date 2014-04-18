@@ -9,8 +9,8 @@ define(["js/app/slide", "js/app/slidepair"], (Slide, SlidePair) ->
       for pair in configObj.pairs
           leftProps = pair.left
           rightProps = pair.right
-          leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.image, leftProps.label, leftProps.fontColor)
-          rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.image, rightProps.label, rightProps.fontColor)
+          leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.image, leftProps.title, leftProps.details, leftProps.fontColor)
+          rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.image, rightProps.title, rightProps.details, rightProps.fontColor)
           pair = new SlidePair(leftSlide, rightSlide)
           pairs.push pair
 
@@ -28,6 +28,7 @@ define(["js/app/slide", "js/app/slidepair"], (Slide, SlidePair) ->
       @activePairIndex++
       if (@activePairIndex >= @pairs.length)
         @activePairIndex = 0
+      console.log "model advanced to index #{@activePairIndex}"
 
     debug: ->
       console.log "###### model with [#{@pairs.length}] pairs #####"

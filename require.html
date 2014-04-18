@@ -11,25 +11,56 @@
 				require.config({ urlArgs: "bust=" +  (new Date()).getTime() });
 
 				require(["js/lib/jquery", "js/app/controller"], function(invalidJqueryReference, BarnDoorController) {
-					// console.log("requireJS finished loading [" + foo + "]/[" + BarnDoorController + "]...[" + jQuery + "]");
+					console.log("requireJS finished loading !");
 
 					var configObj = {
+						timeBetweenSlides: 5000,
 						imageDimensions: {
 							width: 566,
 							height: 331
 						},
 						pairs: [
 							{
-								left: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg", label: "Many Geese", fontColor: "red" },
-								right: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/recCenter.jpg", label: "Few Unicorns", fontColor: "white" }
+								left: {
+									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg",
+									title: "Many<br><a href='http://google.com?q=geese'>Geese</a>",
+									details: "That is a <i>lot</i> of geese.",
+									fontColor: "red"
+								},
+								right: {
+									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/recCenter.jpg",
+									title: "Few Unicorns",
+									details: "Too bad, as they are <b>delicious</b>!",
+									fontColor: "white"
+								}
 							},
 							{
-								left: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/weitz.jpg", label: "Open Courtyard", fontColor: "blue" },
-								right: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/scoville.jpg", label: "Closed Book Exams", fontColor: "orange" }
+								left: {
+									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/weitz.jpg",
+									title: "Open Courtyard",
+									details: "Great for handball",
+									fontColor: "blue"
+								},
+								right: { 
+									mage: "http://tfeiler57864.acs.carleton.edu/barndoor/images/scoville.jpg",
+									title: "Closed Book Exams",
+									details: "Do your best",
+									fontColor: "orange"
+								}
 							},
 							{
-								left: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/sayles.jpg", label: "Snowy Days", fontColor: "black" },
-								right: { image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/evans.jpg", label: "Sunny Dispositions", fontColor: "yellow" }
+								left: {
+									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/sayles.jpg",
+									title: "Snowy Days",
+									details: "This is no joke",
+									fontColor: "black"
+								},
+								right: {
+									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/evans.jpg",
+									title: "Sunny Dispositions",
+									details: "Summer is great tho",
+									fontColor: "yellow"
+								}
 							}
 						]
 
@@ -41,12 +72,12 @@
 					bd.setup(configObj);
 
 
-					setTimeout("doSomethingElse()", 500);
+					// setTimeout("doSomethingElse()", 500);
 				});
 			}
 
 			function doSomethingElse() {
-				bd.slamShut();
+				bd.startAnimating();
 			}
 		</script>
 

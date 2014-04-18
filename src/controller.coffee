@@ -1,5 +1,5 @@
 # define(["jquery", "js/app/slide", "js/app/slidepair", "js/app/model", "js/app/defaultview"], (jq, Slide, SlidePair, Model, DefaultView) ->
-define(["jquery", "js/app/model", "js/app/defaultview"], (jq, Model, DefaultView) ->
+define(["jquery", "js/app/model", "js/app/abstractview", "js/app/defaultview"], (jq, Model, AbstractView, DefaultView) ->
   class BarnDoorController
     constructor: (@targetDivName) ->
       # set a local alias for jQuery
@@ -18,8 +18,16 @@ define(["jquery", "js/app/model", "js/app/defaultview"], (jq, Model, DefaultView
       @v = new DefaultView(@targetDivName, @appModel.imageWidth, @appModel.imageHeight)
       @v.renderInitialView(@appModel.getActivePair())
 
-    slamShut: () ->
-      @v.doSomethingCool()
+      setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides)
+
+    # startAnimating: () ->
+      # this.continueSlideshow()
+
+    continueSlideshow: ->
+      console.log "continuing slideshow [#{this}]..."
+      @appModel.advanceToNextPair()
+      @v.showNextPair(@appModel.getActivePair())
+      setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides) # fat arrow ensures we bind to proper context (otherwise @ refers to window and not our class instance in the callback)
 
        
   # finally, expose it

@@ -1,7 +1,7 @@
 # different views can do things like slice and dice the image, handle animating, etc.
 # right now this is doing an awful lot...
-define(["jquery"], (jq) ->
-  class DefaultView
+define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
+  class DefaultView extends AbstractView
     # currently hardcoded, and polygons are associated with the overall view
     # and not with individual items. If we allow different polys per pair, 
     # need to rethink this...
@@ -12,101 +12,79 @@ define(["jquery"], (jq) ->
     @ANIMATION_LENGTH_MS = 900
 
     constructor: (@targetDivName, @imgWidth, @imgHeight) ->
-      console.log "building default view..."
+      console.log "building default view a..."
       @targetDiv = $("##{@targetDivName}")
 
-      this.createClippingPolygons()
+      [@leftPoly, @rightPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
       this.calculateCenteredSlidePositions()
 
-      # console.log "left poly [#{@leftPoly}]"
-      # foo = this.translatePointsFromArrayToString(@leftPoly);
-      # console.log "strin rep [#{foo}]"
+      @targetDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
-      targetDivStyling =
-        "background-color": "gray",
-        "overflow": "hidden",
-        "position": "absolute"
-      @targetDiv.css targetDivStyling
-
-      @leftDoorElement = $("<div/>").attr("id", "doorLeft").appendTo(@targetDiv)
-      @rightDoorElement = $("<div/>").attr("id", "doorRight").appendTo(@targetDiv)
+      # [@leftDoorElA, @leftDoorElB, @rightDoorElA, @rightDoorElB] = 
 
       vertPos = (@targetDiv.height()/2) - (@imgHeight/2)
-      console.log "vertPos is #{vertPos}"
 
+      @leftDoors = []
+      @rightDoors = []
+
+      # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
+      # we swap the z-order as necessary.
+      for letter, i in ["A","B"]
+        for side in ["left", "right"]
+          elementSuffix = "_#{side}_#{i}"
+          # add the necessary structure to the DOM
+          doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@targetDiv)
+          imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
+          titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
+
+          # style things appropriately
+          doorStyle = {
+            position: "inherit",
+            top: vertPos + "px",
+            display: (if i == 0 then "block" else "none")
+          }
+          
+          titleStyle = {
+            position: "absolute",
+            bottom: "20px",
+            letterSpacing: "1px",
+            font: "bold 24px/24px Helvetica, Sans-Serif"
+          }
+
+          # a few things are different based on which side door you are...
+          textPadding = "140px"
+          if (side == "left")
+            titleStyle.right = textPadding
+            this.clipImage(@leftPoly, imgEl)
+          else
+            titleStyle.left = textPadding
+            this.clipImage(@rightPoly, imgEl)
+
+          this.putDoorInOpenPosition(doorEl, side)
+
+          doorEl.css(doorStyle)
+          titleEl.css(titleStyle)
+
+          # and finally let's save things
+          if (side == "left")
+            @leftDoors.push(doorEl)
+          else
+            @rightDoors.push(doorEl)
+
+      @activeDoorIndex = 0
+
+    putDoorInOpenPosition: (doorEl, side) ->
+      # set this to adjust how far onscreen (positive number) the starting position for a door should be
       # debugAdjuster = 200
       debugAdjuster = 0
 
-      @leftDoorElement.css(
-        "position": "inherit",
-        "left": ((-1 * @imgWidth) + debugAdjuster) + "px",
-        "top": vertPos + "px"
-      )
+      if (side == "left")
+        leftPos = ((-1 * @imgWidth) + debugAdjuster) + "px"
+      else
+        leftPos = (@targetDiv.width() - debugAdjuster) + "px"
 
-      @rightDoorElement.css(
-        "position": "inherit",
-        "left": (@targetDiv.width() - debugAdjuster) + "px",
-        "top": vertPos + "px"
-      )
-
-      @leftImgElement = $("<img/>").attr("id", "imageLeft").appendTo(@leftDoorElement)
-      @rightImgElement = $("<img/>").attr("id", "imageRight").appendTo(@rightDoorElement)
-
-      # only necessary to clip the image element once; src can change later
-      this.clipImage(@leftPoly, @leftImgElement)
-      this.clipImage(@rightPoly, @rightImgElement)
-
-      @leftLabelElement = $("<span/>").attr("id", "labelLeft").appendTo(@leftDoorElement)
-      @rightLabelElement = $("<span/>").attr("id", "labelRight").appendTo(@rightDoorElement)
-
-      @leftLabelElement.css(
-        "position": "absolute"
-        "right": "110px"
-        "bottom": "20px"
-        "letter-spacing": "-1px"
-        "font": "bold 24px/8px Helvetica, Sans-Serif"
-      )
-
-      @rightLabelElement.css(
-        "position": "absolute"
-        "left": "110px"
-        "bottom": "20px"
-        "letter-spacing": "-1px"
-        "font": "bold 24px/8px Helvetica, Sans-Serif"
-      )
-
-    clipImage: (points, imgToClip) ->
-      if (imgToClip.length > 0)
-        path = this.translatePointsFromArrayToString(points)
-        console.log "clipped [#{imgToClip}] with [#{path}]"
-        imgToClip.css(
-          "-webkit-clip-path": path
-        )
-
-    # this and createClippingPolygons (maybe clipImage to) 
-    # really should be broken out into some kind of utility class
-    translatePointsFromArrayToString: (points) ->
-      rv = "polygon("
-      for p, i in points
-        [x, y] = p
-        rv += (if i == 0 then "" else ", ") + x + "px " + y + "px"
-      rv += ")"
-      rv
-
-    createClippingPolygons: ->
-      @leftPoly = [
-        [0, 0],
-        [@imgWidth - DefaultView.TOP_EDGE_INSET, 0],
-        [@imgWidth - DefaultView.BOTTOM_EDGE_INSET, @imgHeight],
-        [0, @imgHeight],
-      ]
-
-      @rightPoly = [
-        [DefaultView.BOTTOM_EDGE_INSET, 0],
-        [@imgWidth, 0],
-        [@imgWidth, @imgHeight],
-        [DefaultView.TOP_EDGE_INSET, @imgHeight],
-      ]
+      doorEl.css("left", leftPos)
+      
 
     calculateCenteredSlidePositions: ->
       slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
@@ -129,34 +107,49 @@ define(["jquery"], (jq) ->
 
       this.centerSlides(false)
 
-    doSomethingCool: ->
-      # this.centerSlides(true)
+    showNextPair: (pair) ->
+      oldIdx = @activeDoorIndex
+
+      @activeDoorIndex++
+      if (@activeDoorIndex >= @leftDoors.length)
+        @activeDoorIndex = 0
+
+      @leftSlide = pair.leftSlide
+      @rightSlide = pair.rightSlide
+
+      sides = [ "left", "right" ]
+      oldDoors = [@leftDoors[oldIdx], @rightDoors[oldIdx]]
+      for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
+        doorEl.css("display", "block")
+        @putDoorInOpenPosition(doorEl, sides[i])
+        @stackElements(doorEl, oldDoors[i])
+      @centerSlides()
 
     centerSlides: (doAnimate = true) ->
       console.log "do something neat"
       # @leftImgElement.attr("src", "/barndoor/images/sayles.jpg")
 
-      @leftImgElement.attr("src", @leftSlide.imgUrl)
-      @rightImgElement.attr("src", @rightSlide.imgUrl)
+      sides = [ "left", "right" ]
+      slides = [ @leftSlide, @rightSlide ]
+      destinations = [ @leftDoorDestination, @rightDoorDestination ]
+      for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
+        suffix = "_" + sides[i] + "_" + @activeDoorIndex
+        slide = slides[i]
 
-      @leftLabelElement.css("color", @leftSlide.fontColor)
-      @rightLabelElement.css("color", @rightSlide.fontColor)
+        imgEl = $("#image" + suffix)
+        titleEl = $("#title" + suffix)
 
-      @leftLabelElement.text(@leftSlide.label)
-      @rightLabelElement.text(@rightSlide.label)
+        imgEl.attr("src", slide.imgUrl)
+        titleEl.css("color", slide.fontColor)
+        # TODO - should sanitize this input; maybe allow a couple of tags but not full blown control...
+        titleEl.html(slide.title)
 
-      if (doAnimate)
-        @leftDoorElement.animate({
-          "left": @leftDoorDestination + "px",
-        }, @ANIMATION_LENGTH_MS, @EASE_FXN)
-
-        @rightDoorElement.animate({
-          "left": @rightDoorDestination + "px",
-        }, @ANIMATION_LENGTH_MS, @EASE_FXN)
-      else
-        @leftDoorElement.css("left", @leftDoorDestination + "px")
-        @rightDoorElement.css("left", @rightDoorDestination + "px")
-        
+        if doAnimate
+          doorEl.animate({
+            "left": destinations[i] + "px",
+          }, DefaultView.ANIMATION_LENGTH_MS, DefaultView.EASE_FXN)
+        else
+          doorEl.css("left", destinations[i] + "px")
 
   return DefaultView
 )
