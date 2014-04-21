@@ -3,4 +3,6 @@ firefox requires the svg crop elements to be pre-defined in the html -- adding t
 
 next steps:
 	swapping in different versions based on size/ability of browser
+	adding some basic controls (next/prev, pause, etc.)
+  improve namespacing/destination of compiled js, inheritance hierarchy for views (simplify the base abstract, relocate the util code, etc.), figure out jquery load errors, etc.
 

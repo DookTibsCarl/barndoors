@@ -13,21 +13,12 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
     @ANIMATION_LENGTH_MS = 900
 
     constructor: (@targetDivName, @imgWidth, @imgHeight) ->
-      console.log "building default view a..."
+      console.log "constructing default view!"
       @targetDiv = $("##{@targetDivName}")
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
       this.calculateCenteredSlidePositions()
-      this.fleshOutInlineSVG() # some kind of a timing issue here...if I hardcode the svg into the page, it works ok...
-
-      ###
-      console.log "fleshOutInlineSVG done..."
-      for foo in ["", "hc_", "garbage"]
-        bar = foo + "polySVG_left"
-        console.log "query [" + bar + "]"
-        svgEl = $("#" + bar)
-        console.log "svg id is [" + svgEl.attr('id') + "]..."
-      ###
+      this.fleshOutInlineSVG()
 
       @targetDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
@@ -240,6 +231,12 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
         # console.log "ALL DOORS CLOSED!"
       else
         # console.log "NOT DONE YET!"
+
+    pseudoDestructor: ->
+      console.log "cleaning up custom default..."
+      $("##{@targetDivName} > div").remove()
+      @targetDiv.css({ "background-color": "", "overflow": "", "position": "" })
+      super
 
   return DefaultView
 )

@@ -2,20 +2,22 @@
 define([], () ->
   class AbstractView
 
+    renderInitialView: (pair) ->
+      console.log "renderInitialView not implemented for [" + this.constructor.name + "]"
+
+    showNextPair: (pair) ->
+      console.log "showNextPair not implemented for [" + this.constructor.name + "]"
+
+    pseudoDestructor: () ->
+      console.log "pseudoDestructor::[" + this.constructor.name + "]"
+
     # see http://sawyerhollenshead.com/writing/using-svg-clippath/
     
     # points is an array of arrays. Each sub-array is x in slot 0, y in slot 1. imgToClip is a jquery image element
+    # currently works in Firefox, Safari, Chrome on OSX. IE? Mobile?
     clipElement: (points, imgToClip, svgUrlId) ->
       if (imgToClip.length > 0)
-        console.log "really clipping [" + imgToClip.attr('id') + "]/[" + svgUrlId + "]..."
         path = this.translatePointsFromArrayToWebkitString(points)
-        ###
-        imgToClip.css(
-          "clip-path": "url('##{svgUrlId}')",
-          "-webkit-clip-path": path,
-        )
-        ###
-
         imgToClip.css("clip-path", "url('##{svgUrlId}')")
         imgToClip.css("-webkit-clip-path", path)
 
