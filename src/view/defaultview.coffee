@@ -18,10 +18,10 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
       this.calculateCenteredSlidePositions()
-      this.buildInlineSVG() # some kind of a timing issue here...if I hardcode the svg into the page, it works ok...
+      this.fleshOutInlineSVG() # some kind of a timing issue here...if I hardcode the svg into the page, it works ok...
 
       ###
-      console.log "buildInlineSVG done..."
+      console.log "fleshOutInlineSVG done..."
       for foo in ["", "hc_", "garbage"]
         bar = foo + "polySVG_left"
         console.log "query [" + bar + "]"
@@ -139,8 +139,8 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
           else
             this.clipElement(@rightImagePoly, imgEl, "polySVG_right")
 
-    buildInlineSVG: ->
-      # svgEl = $("<svg/>").attr({"width": 0, "height": 0}).appendTo(@targetDiv)
+    fleshOutInlineSVG: ->
+      ### 
       svgEl = $("<svg/>").attr({"width": 0, "height": 0}).appendTo($(document.body))
       for side in ["left","right"]
         pathEl = $("<clipPath/>").attr("id", "imagePolySVG_" + side).appendTo(svgEl)
@@ -148,6 +148,10 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
 
         pathEl = $("<clipPath/>").attr("id", "textPolySVG_" + side).appendTo(svgEl)
         polyEl = $("<polygon/>").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly))).appendTo(pathEl)
+      ###
+      for side in ["left","right"]
+        $("#imagePolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftImagePoly else @rightImagePoly)))
+        $("#textPolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly)))
       
 
     putDoorInOpenPosition: (doorEl, side) ->
