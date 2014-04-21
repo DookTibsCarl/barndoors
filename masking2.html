@@ -10,7 +10,7 @@
 				console.log("running startup stuff...");
 				$("#demo").css("background-color", "red");
 
-				$("#lake").css("clip-path", "url('#clipPolygon')");
+				$("#lake").css("clip-path", "url('#clipPolygonB')");
 				$("#lake").css("-webkit-clip-path", "polygon(161px 252px, 400px 100px, 271px -18px, 0px 0px)");
 			}
 
@@ -27,10 +27,14 @@
 
 <div>
 <svg width="0" height="0">
-  <clipPath id="clipPolygon">
+  <clippath id="clipPolygon">
     <polygon points="161 252,400 100,271 -18,0 0">
     </polygon>
-  </clipPath>
+  </clippath>
+  <clippath id="clipPolygonB">
+		<polygon points="0 0, 100 200, 50 40">
+    </polygon>
+  </clippath>
 </svg>
 </div>
 

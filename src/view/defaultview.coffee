@@ -7,6 +7,7 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
     # need to rethink this...
     @TOP_EDGE_INSET = 50
     @BOTTOM_EDGE_INSET = 90
+    @TEXT_SHADOWBOX_HEIGHT = 100
 
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
@@ -15,8 +16,18 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
       console.log "building default view a..."
       @targetDiv = $("##{@targetDivName}")
 
-      [@leftPoly, @rightPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+      [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
       this.calculateCenteredSlidePositions()
+      this.buildInlineSVG() # some kind of a timing issue here...if I hardcode the svg into the page, it works ok...
+
+      ###
+      console.log "buildInlineSVG done..."
+      for foo in ["", "hc_", "garbage"]
+        bar = foo + "polySVG_left"
+        console.log "query [" + bar + "]"
+        svgEl = $("#" + bar)
+        console.log "svg id is [" + svgEl.attr('id') + "]..."
+      ###
 
       @targetDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
@@ -29,6 +40,7 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
 
       # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
       # we swap the z-order as necessary.
+
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
@@ -36,6 +48,20 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@targetDiv)
           imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
           titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
+
+          bbEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
+          blackBarStyle = {
+            position: "absolute",
+            width: @imgWidth + "px",
+            left: "0px",
+            bottom: "0px",
+            height: "100px",
+            background: "black",
+            opacity: 0.5
+          }
+
+          bbEl.css(blackBarStyle)
+
           detailsEl = $("<span/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
 
           # style things appropriately
@@ -49,14 +75,15 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
             position: "absolute",
             bottom: "100px",
             letterSpacing: "1px",
-            font: "bold 24px/24px Helvetica, Sans-Serif"
+            font: "bold 30px/30px Helvetica, Sans-Serif"
           }
 
           detailsStyle = {
             position: "absolute",
             bottom: "60px",
             letterSpacing: "1px",
-            font: "12px/12px Arial"
+            font: "12px/12px Arial",
+            color: "white"
           }
 
           # a few things are different based on which side door you are...
@@ -64,11 +91,13 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
           if (side == "left")
             titleStyle.right = textPadding
             detailsStyle.right = textPadding
-            this.clipImage(@leftPoly, imgEl)
+            this.clipElement(@leftImagePoly, imgEl, "imagePolySVG_left")
+            this.clipElement(@leftTextPoly, bbEl, "textPolySVG_left")
           else
             titleStyle.left = textPadding
             detailsStyle.left = textPadding
-            this.clipImage(@rightPoly, imgEl)
+            this.clipElement(@rightImagePoly, imgEl, "imagePolySVG_right")
+            this.clipElement(@rightTextPoly, bbEl, "textPolySVG_right")
 
           this.putDoorInOpenPosition(doorEl, side)
 
@@ -83,6 +112,43 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
             @rightDoors.push(doorEl)
 
       @activeDoorIndex = 0
+      # setTimeout((=> @cropImagesDelayed()), 2000)
+      ###
+      blackBarEl = $("<span/>").attr('id', 'blackBarFoo').appendTo(@targetDiv)
+      blackBarStyle = {
+        position: "absolute",
+        width: "100%",
+        left: "0px",
+        bottom: "0px",
+        height: "110px",
+        background: "red",
+        opacity: 0.5
+      }
+      blackBarEl.css(blackBarStyle)
+      ###
+
+    cropImagesDelayed: ->
+      console.log "DELAYED here we go [" + this + "]"
+      for letter, i in ["A","B"]
+        for side in ["left", "right"]
+          elementSuffix = "_#{side}_#{i}"
+          imgEl = $("#image" + elementSuffix);
+          console.log "IMG EL IS [" + imgEl.attr('id') + "]..."
+          if (side == "left")
+            this.clipElement(@leftImagePoly, imgEl, "polySVG_left")
+          else
+            this.clipElement(@rightImagePoly, imgEl, "polySVG_right")
+
+    buildInlineSVG: ->
+      # svgEl = $("<svg/>").attr({"width": 0, "height": 0}).appendTo(@targetDiv)
+      svgEl = $("<svg/>").attr({"width": 0, "height": 0}).appendTo($(document.body))
+      for side in ["left","right"]
+        pathEl = $("<clipPath/>").attr("id", "imagePolySVG_" + side).appendTo(svgEl)
+        polyEl = $("<polygon/>").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftImagePoly else @rightImagePoly))).appendTo(pathEl)
+
+        pathEl = $("<clipPath/>").attr("id", "textPolySVG_" + side).appendTo(svgEl)
+        polyEl = $("<polygon/>").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly))).appendTo(pathEl)
+      
 
     putDoorInOpenPosition: (doorEl, side) ->
       # set this to adjust how far onscreen (positive number) the starting position for a door should be
@@ -119,7 +185,7 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
       this.centerSlides(false)
 
     showNextPair: (pair) ->
-      oldIdx = @activeDoorIndex
+      @inactiveDoorIndex = @activeDoorIndex
 
       @activeDoorIndex++
       if (@activeDoorIndex >= @leftDoors.length)
@@ -129,7 +195,7 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
       @rightSlide = pair.rightSlide
 
       sides = [ "left", "right" ]
-      oldDoors = [@leftDoors[oldIdx], @rightDoors[oldIdx]]
+      oldDoors = [@leftDoors[@inactiveDoorIndex], @rightDoors[@inactiveDoorIndex]]
       for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
         doorEl.css("display", "block")
         @putDoorInOpenPosition(doorEl, sides[i])
@@ -137,12 +203,12 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
       @centerSlides()
 
     centerSlides: (doAnimate = true) ->
-      console.log "do something neat"
       # @leftImgElement.attr("src", "/barndoor/images/sayles.jpg")
 
       sides = [ "left", "right" ]
       slides = [ @leftSlide, @rightSlide ]
       destinations = [ @leftDoorDestination, @rightDoorDestination ]
+      @doorsShut = 0
       for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
         suffix = "_" + sides[i] + "_" + @activeDoorIndex
         slide = slides[i]
@@ -160,9 +226,16 @@ define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
         if doAnimate
           doorEl.animate({
             "left": destinations[i] + "px",
-          }, DefaultView.ANIMATION_LENGTH_MS, DefaultView.EASE_FXN)
+          }, DefaultView.ANIMATION_LENGTH_MS, DefaultView.EASE_FXN, (=> @onAnimationComplete()))
         else
           doorEl.css("left", destinations[i] + "px")
+
+    onAnimationComplete: ->
+      @doorsShut++
+      if @doorsShut == 2
+        # console.log "ALL DOORS CLOSED!"
+      else
+        # console.log "NOT DONE YET!"
 
   return DefaultView
 )

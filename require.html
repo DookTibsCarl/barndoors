@@ -25,13 +25,13 @@
 								left: {
 									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg",
 									title: "Many<br><a href='http://google.com?q=geese'>Geese</a>",
-									details: "That is a <i>lot</i> of geese.",
+									details: "That is a <i>lot</i> of geese.<br>Look at all those crazy birds!<br>Seriously!",
 									fontColor: "red"
 								},
 								right: {
 									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/recCenter.jpg",
 									title: "Few Unicorns",
-									details: "Too bad, as they are <b>delicious</b>!",
+									details: "Too bad, as they are <b>delicious</b>!<br>You'll have to trust me on this.",
 									fontColor: "white"
 								}
 							},
@@ -39,13 +39,13 @@
 								left: {
 									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/weitz.jpg",
 									title: "Open Courtyard",
-									details: "Great for handball",
+									details: "Great for handball, or lawn bowling,<br>or naps. Not all at once.",
 									fontColor: "blue"
 								},
 								right: { 
 									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/scoville.jpg",
 									title: "Closed Book Exams",
-									details: "Do your best",
+									details: "Do your best, study hard, be nice to your<br>classmates and your professors.",
 									fontColor: "orange"
 								}
 							},
@@ -53,13 +53,13 @@
 								left: {
 									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/sayles.jpg",
 									title: "Snowy Days",
-									details: "This is no joke",
+									details: "This is no joke.<br>It's like Game of Thrones up in here sometimes.",
 									fontColor: "black"
 								},
 								right: {
 									image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/evans.jpg",
 									title: "Sunny Dispositions",
-									details: "Summer is great tho",
+									details: "Summer is great tho. All 2 weeks of it.",
 									fontColor: "yellow"
 								}
 							}
@@ -85,6 +85,13 @@
 	</head>
 
 	<body bgcolor="lightgray" onLoad="runFxn();">
+		<svg width="0" height="0">
+			<clippath id="imagePolySVG_left"><polygon points="0 0,516 0,476 331,0 331"></polygon></clippath>
+			<clippath id="imagePolySVG_right"><polygon points="90 0,566 0,566 331,50 331"></polygon></clippath>
+			<clippath id="textPolySVG_left"><polygon points="0 0,488.0845921450151 0,476 100,0 100"></polygon></clippath>
+			<clippath id="textPolySVG_right"><polygon points="62.08459214501511 0,566 0,566 100,50 100"></polygon></clippath>
+		</svg>
+
 		<center>
 			<div id="somethingRandom" style="width:800px; height:400; border-style:none"></div>
 		</center>

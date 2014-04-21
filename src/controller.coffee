@@ -24,7 +24,7 @@ define(["jquery", "js/app/model", "js/app/abstractview", "js/app/defaultview"], 
       # this.continueSlideshow()
 
     continueSlideshow: ->
-      console.log "continuing slideshow [#{this}]..."
+      # console.log "continuing slideshow [#{this}]..."
       @appModel.advanceToNextPair()
       @v.showNextPair(@appModel.getActivePair())
       setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides) # fat arrow ensures we bind to proper context (otherwise @ refers to window and not our class instance in the callback)

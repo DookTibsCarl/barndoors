@@ -28,7 +28,6 @@ define(["js/app/slide", "js/app/slidepair"], (Slide, SlidePair) ->
       @activePairIndex++
       if (@activePairIndex >= @pairs.length)
         @activePairIndex = 0
-      console.log "model advanced to index #{@activePairIndex}"
 
     debug: ->
       console.log "###### model with [#{@pairs.length}] pairs #####"

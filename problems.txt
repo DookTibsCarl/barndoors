@@ -1,4 +1,5 @@
 overlapping "hidden" portion of a masked item interferes with underlying text
+firefox requires the svg crop elements to be pre-defined in the html -- adding them on-the-fly fails
 
 things to try:
 	clickable/more formatted text
