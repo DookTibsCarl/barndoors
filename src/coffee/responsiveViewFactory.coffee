@@ -9,8 +9,7 @@ and does not care about the specifics of the implementation.
 
 ###
 
-# define(["jquery", "dist/js/view/defaultview", "dist/js/view/simpleview"], (jq, DefaultView, SimpleView) ->
-define(["dist/js/view/defaultview", "dist/js/view/simpleview"], (DefaultView, SimpleView) ->
+define(["view/defaultview", "view/simpleview"], (DefaultView, SimpleView) ->
   class ResponsiveViewFactory
     # specify size as a breakpoint. Anything <= a given size falls into that bucket. Final element catches everything regardless
     @BREAKPOINTS = [

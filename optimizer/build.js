@@ -1,10 +1,10 @@
 ({
-    baseUrl: "..",
+    baseUrl: "../compiled/js",
 		/*
     paths: {
         jquery: "some/other/jquery"
     },
 		*/
-    name: "dist/js/controller",
-    out: "../dist/js/barndoors-optimized.js"
+    name: "main",
+    out: "../dist/barndoors-optimized.js"
 })

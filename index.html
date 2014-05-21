@@ -2,93 +2,69 @@
 	<head>
 		<title>RequireJS Test Page</title>
 
-		<script language="javascript" src="lib/js/require.js"></script>
+		<script>
+			var bdConfigObj = {
+				jqueryLoadPath: "/barndoor/lib/js/jquery.js",
+				targetDivName: "somethingRandom",
+				timeBetweenSlides: 5000,
+				imageDimensions: {
+					width: 566,
+					height: 331
+				},
+				pairs: [
+					{
+						// TODO - add some scrubbing of title/details?
+						left: {
+							image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg",
+							title: "Many<br><a href='http://google.com?q=geese'>Geese</a>",
+							details: "That is a <i>lot</i> of geese.<br>Look at all those crazy birds!<br>Seriously!",
+							fontColor: "red"
+						},
+						right: {
+							image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/recCenter.jpg",
+							title: "Few Penguins",
+							details: "Too bad, as they are <b>delicious</b>!<br>You'll have to trust me on this.",
+							fontColor: "white"
+						}
+					},
+					{
+						left: {
+							image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/weitz.jpg",
+							title: "Open Courtyard",
+							details: "Great for handball, or lawn bowling,<br>or naps. Not all at once.",
+							fontColor: "blue"
+						},
+						right: { 
+							image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/scoville.jpg",
+							title: "Closed Book Exams",
+							details: "Do your best, study hard, be nice to your<br>classmates and your professors.",
+							fontColor: "orange"
+						}
+					},
+					{
+						left: {
+							image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/sayles.jpg",
+							title: "Snowy Days",
+							details: "This is no joke.<br>It's like Game of Thrones up in here sometimes.",
+							fontColor: "black"
+						},
+						right: {
+							image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/evans.jpg",
+							title: "Sunny Dispositions",
+							details: "Summer is great tho. All 2 weeks of it.",
+							fontColor: "yellow"
+						}
+					}
+				]
 
-		<script language="Javascript">
-			var bd;
-
-			function runFxn() {
-				require.config({ urlArgs: "bust=" +  (new Date()).getTime() });
-
-				// require(["lib/js/jquery", "dist/js/controller"], function(invalidJqueryReference, BarnDoorController) {
-				require(["lib/js/jquery"], function(invalidJqueryReference) {
-
-					require(["dist/js/controller"], function(BarnDoorController) {
-						console.log("requireJS finished loading !");
-
-						var configObj = {
-							timeBetweenSlides: 5000,
-							imageDimensions: {
-								width: 566,
-								height: 331
-							},
-							pairs: [
-								{
-									// TODO - add some scrubbing of title/details?
-									left: {
-										image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg",
-										title: "Many<br><a href='http://google.com?q=geese'>Geese</a>",
-										details: "That is a <i>lot</i> of geese.<br>Look at all those crazy birds!<br>Seriously!",
-										fontColor: "red"
-									},
-									right: {
-										image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/recCenter.jpg",
-										title: "Few Penguins",
-										details: "Too bad, as they are <b>delicious</b>!<br>You'll have to trust me on this.",
-										fontColor: "white"
-									}
-								},
-								{
-									left: {
-										image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/weitz.jpg",
-										title: "Open Courtyard",
-										details: "Great for handball, or lawn bowling,<br>or naps. Not all at once.",
-										fontColor: "blue"
-									},
-									right: { 
-										image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/scoville.jpg",
-										title: "Closed Book Exams",
-										details: "Do your best, study hard, be nice to your<br>classmates and your professors.",
-										fontColor: "orange"
-									}
-								},
-								{
-									left: {
-										image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/sayles.jpg",
-										title: "Snowy Days",
-										details: "This is no joke.<br>It's like Game of Thrones up in here sometimes.",
-										fontColor: "black"
-									},
-									right: {
-										image: "http://tfeiler57864.acs.carleton.edu/barndoor/images/evans.jpg",
-										title: "Sunny Dispositions",
-										details: "Summer is great tho. All 2 weeks of it.",
-										fontColor: "yellow"
-									}
-								}
-							]
-
-						};
-
-						// var bd = new BarnDoorController("somethingRandom");
-						bd = new BarnDoorController("somethingRandom");
-						// console.log("will this work? [" + BarnDoorController.staticProp + "]...");
-						bd.setup(configObj);
-
-
-						// setTimeout("doSomethingElse()", 500);
-					});
-				});
-			}
-
-			function doSomethingElse() {
-				bd.startAnimating();
-			}
+			};
 		</script>
+		<!-- <script language="javascript" data-main="compiled/js/main" src="lib/js/require.js"></script> -->
+		<script language="javascript" data-main="dist/barndoors-optimized" src="lib/js/require.js"></script>
 
 	</head>
 
-	<body bgcolor="lightgray" onLoad="runFxn();">
+	<body bgcolor="lightgray">
 		<!-- the structure has to be predefined, but the actual polygon points can get filled in on the fly. We can live with this I think. -->
 		<svg width="0" height="0">
 			<clippath id="imagePolySVG_left"><polygon points=""></polygon></clippath>

@@ -1,4 +1,4 @@
-define(["dist/js/model/slide", "dist/js/model/slidepair"], (Slide, SlidePair) ->
+define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
   # will include things like active pair index, pair ordering, etc.
   class Model
     # static convenience method - parses the passed in

@@ -1,13 +1,15 @@
-# define(["jquery", "dist/js/model/model", "dist/js/responsiveViewFactory" ], (jq, Model, ResponsiveViewFactory) ->
-define(["dist/js/model/model", "dist/js/responsiveViewFactory" ], (Model, ResponsiveViewFactory) ->
+define(["model/model", "responsiveViewFactory" ], (Model, ResponsiveViewFactory) ->
   class BarnDoorController
-    constructor: (@targetDivName) ->
+    # constructor: (@targetDivName) ->
+    constructor: () ->
       # set a local alias for jQuery
       # @$ = jq
 
     setup: (@configuration) ->
       # console.log "setup: there are #{@configuration.pairs.length} image pairs. Each image is #{@configuration.imageDimensions.width} pixels wide"
       console.log "setup with view factory..."
+
+      @targetDivName = @configuration.targetDivName
 
       @appModel = Model.buildModelFromConfigurationObject(@configuration)
       # @appModel.debug()
