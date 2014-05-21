@@ -1,6 +1,7 @@
 # different views can do things like slice and dice the image, handle animating, etc.
 # right now this is doing an awful lot...
-define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
+# define(["jquery", "dist/js/view/abstractview"], (jq, AbstractView) ->
+define(["dist/js/view/abstractview"], (AbstractView) ->
   class DefaultView extends AbstractView
     # currently hardcoded, and polygons are associated with the overall view
     # and not with individual items. If we allow different polys per pair, 

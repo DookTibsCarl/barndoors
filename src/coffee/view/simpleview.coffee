@@ -1,9 +1,10 @@
 # super garbagey test view to work out some of the kinks and flow 
 # around switching between view types on screen resize
-define(["jquery", "js/app/abstractview"], (jq, AbstractView) ->
+# define(["jquery", "dist/js/view/abstractview"], (jq, AbstractView) ->
+define(["dist/js/view/abstractview"], (AbstractView) ->
   class SimpleView extends AbstractView
     constructor: (@targetDivName, @imgWidth, @imgHeight) ->
-      @$ = jq
+      # @$ = jq
       @targetDiv = $("##{@targetDivName}")
       console.log "constructing simple view!"
 

@@ -1,5 +1,5 @@
-# define(["jquery", "js/app/slide", "js/app/slidepair", "js/app/model", "js/app/defaultview"], (jq, Slide, SlidePair, Model, DefaultView) ->
-define(["jquery", "js/app/model", "js/app/responsiveViewFactory" ], (jq, Model, ResponsiveViewFactory) ->
+# define(["jquery", "dist/js/model/model", "dist/js/responsiveViewFactory" ], (jq, Model, ResponsiveViewFactory) ->
+define(["dist/js/model/model", "dist/js/responsiveViewFactory" ], (Model, ResponsiveViewFactory) ->
   class BarnDoorController
     constructor: (@targetDivName) ->
       # set a local alias for jQuery
