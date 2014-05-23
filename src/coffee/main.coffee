@@ -21,3 +21,14 @@ define("bootstrapper", ["module"], (module) ->
 require(["bootstrapper"], (bootstrapper) ->
   bootstrapper()
 )
+
+###
+# simpler entry method for testing out sourcemap optimizations
+require(["simpleton"], (Simpleton) ->
+  console.log("sourcemap testing is fun"); console.log("for reals!")
+  s = new Simpleton();
+  s.doSomething()
+  console.log("this variable [" + fake + "] is undeclared!")
+  foo = nonExistentFxn()
+)
+###
