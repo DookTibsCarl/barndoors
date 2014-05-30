@@ -2,4 +2,4 @@
 coffeeTags
 compiled/
 dist/
-
+node_modules/
