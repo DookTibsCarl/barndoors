@@ -3,6 +3,7 @@
 		<title>RequireJS Test Page</title>
 
 		<script>
+
 			var bdConfigObj = {
 				jqueryLoadPath: "/barndoor/lib/js/jquery.js",
 				targetDivName: "somethingRandom",
@@ -67,7 +68,7 @@
 			};
 		</script>
 		<!-- <script language="javascript" data-main="compiled/js/main" src="lib/js/require.js"></script> -->
-		<script language="javascript" data-main="dist/barndoors-optimized" src="lib/js/require.js"></script>
+		<script language="javascript" data-main="dist/barndoors-1.0" src="lib/js/require.js"></script>
 
 	</head>
 
@@ -82,8 +83,8 @@
 
 		Window width=<span id="debugWindowWidth"></span>, height=<span id="debugWindowHeight"></span>...use view [<span id="debugRespView"></span>]<p>
 
-		<center>
+		<div id="someWrapper">
 			<div id="somethingRandom" style="width:800px; height:331; border-style:none"></div>
-		</center>
+		</div>
 	</body>
 </html>

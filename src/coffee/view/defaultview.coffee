@@ -213,7 +213,7 @@ define(["view/abstractview"], (AbstractView) ->
         detailsEl = $("#details" + suffix)
 
         imgEl.attr("src", slide.imgUrl)
-        titleEl.css("color", slide.fontColor)
+        # titleEl.css("color", slide.fontColor)
         # TODO - should sanitize this input; maybe allow a couple of tags but not full blown control...
         titleEl.html(slide.title)
         detailsEl.html(slide.details)
@@ -221,9 +221,34 @@ define(["view/abstractview"], (AbstractView) ->
         if doAnimate
           doorEl.animate({
             "left": destinations[i] + "px",
+          }, {
+            "easing": DefaultView.EASE_FXN
+            "duration": DefaultView.ANIMATION_LENGTH_MS
+            "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
+            "complete": (=> @onAnimationComplete())
+          })
+
+          ###
+          doorEl.animate({
+            "left": destinations[i] + "px",
           }, DefaultView.ANIMATION_LENGTH_MS, DefaultView.EASE_FXN, (=> @onAnimationComplete()))
+          ###
         else
           doorEl.css("left", destinations[i] + "px")
+
+    onAnimationProgress: (anim, prog, remaining) ->
+      # console.log "animating [" + prog + "]/[" + remaining "]"
+      rightDoorEl = @rightDoors[@activeDoorIndex]
+      # console.log "animating [" + prog + "]/[" + remaining + "]...[" + rightDoorEl.width() + "]"
+
+      # very weird bug that manifested when integrating into Reason module - the right slide
+      # had varying width/height as it animated, causing it to appear to "grow" from the right
+      # and slide in from the top. This fixed it.
+
+      if (prog == 0)
+        # console.log "RESETTING HEIGHT/WIDTH"
+        rightDoorEl.width(@imgWidth)
+        rightDoorEl.height(@imgHeight)
 
     onAnimationComplete: ->
       @doorsShut++
