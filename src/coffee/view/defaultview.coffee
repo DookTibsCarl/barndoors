@@ -47,7 +47,7 @@ define(["view/abstractview"], (AbstractView) ->
           imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
           titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
 
-          bbEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
+          bbEl = $("<span/>").attr("id", "bb" + elementSuffix).appendTo(doorEl)
           blackBarStyle = {
             position: "absolute",
             width: @imgWidth + "px",
@@ -267,6 +267,8 @@ define(["view/abstractview"], (AbstractView) ->
         detailsEl = $("#details" + suffix)
 
         imgEl.attr("src", slide.imgUrl)
+        imgEl.css({width:@imgWidth, height:@imgHeight})
+
         # titleEl.css("color", slide.fontColor)
         # TODO - should sanitize this input; maybe allow a couple of tags but not full blown control...
         titleEl.html(slide.title)
@@ -278,7 +280,7 @@ define(["view/abstractview"], (AbstractView) ->
           }, {
             "easing": DefaultView.EASE_FXN
             "duration": DefaultView.ANIMATION_LENGTH_MS
-            "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
+            # "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
             "complete": (=> @onAnimationComplete())
           })
 
@@ -290,19 +292,22 @@ define(["view/abstractview"], (AbstractView) ->
         else
           doorEl.css("left", destinations[i] + "px")
 
-    onAnimationProgress: (anim, prog, remaining) ->
-      # console.log "animating [" + prog + "]/[" + remaining "]"
-      rightDoorEl = @rightDoors[@activeDoorIndex]
-      # console.log "animating [" + prog + "]/[" + remaining + "]...[" + rightDoorEl.width() + "]"
+        @enforceDimensions()
 
+    enforceDimensions: () ->
       # very weird bug that manifested when integrating into Reason module - the right slide
       # had varying width/height as it animated, causing it to appear to "grow" from the right
-      # and slide in from the top. This fixed it.
+      # and slide in from the top. This is part of a fix for that problem
 
-      if (prog == 0)
-        # console.log "RESETTING HEIGHT/WIDTH"
-        rightDoorEl.width(@imgWidth)
-        rightDoorEl.height(@imgHeight)
+      doors = [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
+      for door in doors
+        door.width(@imgWidth)
+        door.height(@imgHeight)
+      
+    ###
+    onAnimationProgress: (anim, prog, remaining) ->
+      console.log "animating [" + prog + "]/[" + remaining "]"
+    ###
 
     onAnimationComplete: ->
       @doorsShut++
