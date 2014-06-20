@@ -5,8 +5,22 @@ define([], () ->
     renderInitialView: (pair) ->
       console.log "renderInitialView not implemented for [" + this.constructor.name + "]"
 
-    showNextPair: (pair) ->
+    togglePlayPause: (index) ->
+      $.event.trigger({
+        type: "toggleAutoplaySlideshow"
+      })
+
+    jumpToIndex: (index) ->
+      $.event.trigger({
+        type: "jumpToSlideIndex"
+        jumpIndex: index
+      })
+
+    showNextPair: (index, pair) ->
       console.log "showNextPair not implemented for [" + this.constructor.name + "]"
+
+    updatePlayPauseStatus: (isPlaying) ->
+      console.log "updatePlayPauseStatus not implemented for [" + this.constructor.name + "]"
 
     pseudoDestructor: () ->
       console.log "pseudoDestructor::[" + this.constructor.name + "]"

@@ -2,7 +2,7 @@
 # around switching between view types on screen resize
 define(["view/abstractview"], (AbstractView) ->
   class SimpleView extends AbstractView
-    constructor: (@targetDivName, @imgWidth, @imgHeight) ->
+    constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       # @$ = jq
       @targetDiv = $("##{@targetDivName}")
       console.log "constructing simple view!"
@@ -27,9 +27,9 @@ define(["view/abstractview"], (AbstractView) ->
         details.css(detailStyle)
 
     renderInitialView: (pair) ->
-      @showNextPair(pair)
+      @showNextPair(0, pair)
 
-    showNextPair: (pair) ->
+    showNextPair: (index, pair) ->
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
       console.log "SHOWING [" + @leftSlide.title + "]/[" + @rightSlide.title + "]"

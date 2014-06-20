@@ -12,17 +12,22 @@ define(["view/abstractview"], (AbstractView) ->
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
 
-    constructor: (@targetDivName, @imgWidth, @imgHeight) ->
-      console.log "constructing default view!"
+    constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
+      console.log "constructing default view..."
       @targetDiv = $("##{@targetDivName}")
+
+      pairCount = @mainController.appModel.getPairCount()
+
+      @slideContainerDiv = $("<div/>").css({"width":@targetDiv.width(), "height":@targetDiv.height()}).attr("id", "slideContainer").appendTo(@targetDiv)
+      @controlContainerDiv = $("<div/>").attr("id", "controlContainer").appendTo(@targetDiv)
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
       this.calculateCenteredSlidePositions()
       this.fleshOutInlineSVG()
 
-      @targetDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
+      @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
-      vertPos = (@targetDiv.height()/2) - (@imgHeight/2)
+      vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
 
       @leftDoors = []
       @rightDoors = []
@@ -32,11 +37,13 @@ define(["view/abstractview"], (AbstractView) ->
       # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
       # we swap the z-order as necessary.
 
+
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
           # add the necessary structure to the DOM
-          doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@targetDiv)
+          # doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@targetDiv)
+          doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
           imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
           titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
 
@@ -102,6 +109,38 @@ define(["view/abstractview"], (AbstractView) ->
           else
             @rightDoors.push(doorEl)
 
+      controlsEl = $("<div/>").css({"position": "relative", "top":@slideContainerDiv.height()}).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
+      # listEl = $("<ul/>").appendTo(controlsEl)
+      # for i in [0..@pairCount-1]
+      for i in [0..pairCount-1]
+        # liEl = $("<li/>").appendTo(listEl)
+        # liEl.html("SLIDE " + (i+1))
+        console.log "need a control for [" + i + "]"
+        jumpEl = $("<span/>").attr("class", "slideJumpControl").appendTo(controlsEl)
+
+        jumpElStyle = {
+          # width: 50
+          # height: 50
+          "background-color": "red"
+          cursor: "hand"
+          margin: 20
+          # padding: 20
+        }
+
+        classHook = this
+        jumpEl.click(() ->
+          classHook.jumpToIndex($(this).index())
+        )
+
+        jumpEl.css(jumpElStyle)
+        jumpEl.html("slide_" + (i+1))
+
+      @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
+      @playPauseEl.click(() ->
+        classHook.togglePlayPause()
+      )
+      @reRenderJumpControls(@mainController.appModel.activePairIndex)
+
       @activeDoorIndex = 0
       # setTimeout((=> @cropImagesDelayed()), 2000)
       ###
@@ -153,7 +192,7 @@ define(["view/abstractview"], (AbstractView) ->
       if (side == "left")
         leftPos = ((-1 * @imgWidth) + debugAdjuster) + "px"
       else
-        leftPos = (@targetDiv.width() - debugAdjuster) + "px"
+        leftPos = (@slideContainerDiv.width() - debugAdjuster) + "px"
 
       doorEl.css("left", leftPos)
       
@@ -161,7 +200,7 @@ define(["view/abstractview"], (AbstractView) ->
     calculateCenteredSlidePositions: ->
       slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
       choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-      centerOfDiv = @targetDiv.width() / 2
+      centerOfDiv = @slideContainerDiv.width() / 2
 
       @leftDoorDestination = centerOfDiv - (@imgWidth - slantAdjustment) + choppedPixels
       @rightDoorDestination = centerOfDiv - slantAdjustment - choppedPixels
@@ -179,7 +218,22 @@ define(["view/abstractview"], (AbstractView) ->
 
       this.centerSlides(false)
 
-    showNextPair: (pair) ->
+    updatePlayPauseStatus: (isPlaying) ->
+      @playPauseEl.html(if isPlaying then "PAUSE" else "PLAY")
+
+    reRenderJumpControls: (index) ->
+      console.log "update jumpers [" + index + "]"
+      # spans = $("#barndoorControls > span")
+      spans = $("#barndoorControls > span.slideJumpControl")
+      console.log spans
+      for i in [0..spans.length-1]
+        span = spans.eq(i)
+        span.css("background-color", if i == index then "green" else "red")
+
+      @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
+
+    showNextPair: (index, pair) ->
+      @reRenderJumpControls(index)
       @inactiveDoorIndex = @activeDoorIndex
 
       @activeDoorIndex++
@@ -260,7 +314,7 @@ define(["view/abstractview"], (AbstractView) ->
     pseudoDestructor: ->
       console.log "cleaning up custom default..."
       $("##{@targetDivName} > div").remove()
-      @targetDiv.css({ "background-color": "", "overflow": "", "position": "" })
+      # @targetDiv.css({ "background-color": "", "overflow": "", "position": "" })
       super
 
   return DefaultView

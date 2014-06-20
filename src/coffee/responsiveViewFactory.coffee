@@ -34,14 +34,14 @@ define(["view/defaultview", "view/simpleview"], (DefaultView, SimpleView) ->
     getActiveViewDescriptor: () ->
       return ResponsiveViewFactory.BREAKPOINTS[@breakPointIndex].descriptor
 
-    constructActiveView: (divName, imgWidth, imgHeight) ->
+    constructActiveView: (mainAppController, divName, imgWidth, imgHeight) ->
       desc = @getActiveViewDescriptor()
       rv = null
 
       if (desc == "small")
-        rv = new SimpleView(divName, imgWidth, imgHeight)
+        rv = new SimpleView(mainAppController, divName, imgWidth, imgHeight)
       else if (desc == "normal")
-        rv = new DefaultView(divName, imgWidth, imgHeight)
+        rv = new DefaultView(mainAppController, divName, imgWidth, imgHeight)
       return rv
 
     windowWasResized: (forceChange = false) ->

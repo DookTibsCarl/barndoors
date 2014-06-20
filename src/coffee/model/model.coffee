@@ -24,6 +24,12 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
     getActivePair: ->
       @pairs[@activePairIndex]
 
+    getPairCount: ->
+      @pairs.length
+
+    advanceToPairIndex: (index) ->
+      @activePairIndex = index
+
     advanceToNextPair: ->
       @activePairIndex++
       if (@activePairIndex >= @pairs.length)
