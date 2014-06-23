@@ -24,6 +24,13 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
     getActivePair: ->
       @pairs[@activePairIndex]
 
+    getLookaheadPair: ->
+      lookaheadIdx = @activePairIndex + 1
+      if (lookaheadIdx >= @pairs.length)
+        lookaheadIdx = 0
+      @pairs[lookaheadIdx]
+      
+
     getPairCount: ->
       @pairs.length
 

@@ -1,4 +1,4 @@
-define(["model/model", "responsiveViewFactory" ], (Model, ResponsiveViewFactory) ->
+define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, ResponsiveViewFactory, ImageLoader) ->
   class BarnDoorController
     # constructor: (@targetDivName) ->
     constructor: () ->
@@ -28,13 +28,20 @@ define(["model/model", "responsiveViewFactory" ], (Model, ResponsiveViewFactory)
 
     handleJump: (evt) ->
       jumpIndex = evt.jumpIndex
+      clearTimeout(@autoplayTimeout) # turn off autoplay in case it finishes before the preload does
 
       if (jumpIndex != @appModel.activePairIndex)
         @appModel.advanceToPairIndex(jumpIndex)
-        @view?.showNextPair(@appModel.activePairIndex, @appModel.getActivePair())
 
-        if not @isSlideshowPaused()
-          @setNextSlideDelay(@configuration.timeBetweenSlides * 2)
+        activePair = @appModel.getActivePair()
+        @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
+          @view?.showNextPair(@appModel.activePairIndex, activePair)
+          @preloadNextPair()
+
+          if not @isSlideshowPaused()
+            @setNextSlideDelay(@configuration.timeBetweenSlides * 2)
+        ))
+
 
     setup: (@configuration) ->
       # console.log "setup: there are #{@configuration.pairs.length} image pairs. Each image is #{@configuration.imageDimensions.width} pixels wide"
@@ -44,6 +51,8 @@ define(["model/model", "responsiveViewFactory" ], (Model, ResponsiveViewFactory)
 
       @appModel = Model.buildModelFromConfigurationObject(@configuration)
       # @appModel.debug()
+
+      @imageLoader = new ImageLoader()
 
       @viewFactory = new ResponsiveViewFactory()
       $(document).bind('screenSizeChanged', ((evt, data) =>
@@ -61,7 +70,30 @@ define(["model/model", "responsiveViewFactory" ], (Model, ResponsiveViewFactory)
         @view = null
 
       @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.imageWidth, @appModel.imageHeight)
-      @view?.renderInitialView(@appModel.getActivePair())
+
+      activePair = @appModel.getActivePair()
+      console.log "new preload approach..."
+      @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
+        console.log "callback firing!"
+        @view?.renderInitialView(@appModel.getActivePair())
+
+        @preloadNextPair()
+      ))
+
+    # loads the next set of images. No callback / fire and forget. If it hasn't finished by the time the n
+    preloadNextPair: () ->
+      peekPair = @appModel.getLookaheadPair()
+      @imageLoader.ensureImagesLoaded([peekPair.leftSlide.imgUrl, peekPair.rightSlide.imgUrl])
+
+      ###
+      # simulate multiple preload requests with competing callbacks - does the cleanup functionality in "setupCallbacks" work right?
+      @imageLoader.ensureImagesLoaded([peekPair.leftSlide.imgUrl, peekPair.rightSlide.imgUrl], ( =>
+        console.log "WE SHOULD NEVER SEE THIS - NEXT CALLBACK SHOULD OVERWRITE IT!"
+      ))
+      @imageLoader.ensureImagesLoaded([peekPair.leftSlide.imgUrl, peekPair.rightSlide.imgUrl], ( =>
+        console.log "FAST FAST!"
+      ))
+      ###
 
     isSlideshowPaused: () ->
       return @autoplayTimeout == null
@@ -82,9 +114,20 @@ define(["model/model", "responsiveViewFactory" ], (Model, ResponsiveViewFactory)
       # console.log "continuing slideshow [#{this}]..."
       @appModel.advanceToNextPair()
       
-      @view?.showNextPair(@appModel.activePairIndex, @appModel.getActivePair())
-      # @autoplayTimeout = setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides) # fat arrow ensures we bind to proper context (otherwise @ refers to window and not our class instance in the callback)
-      @setNextSlideDelay()
+      # old way - tell the view to show the next pair and immediately restart the counter. problem is this was causing
+      # @view?.showNextPair(@appModel.activePairIndex, @appModel.getActivePair())
+      # @setNextSlideDelay()
+
+      console.log "---------------------"
+      console.log "---------------------"
+      console.log "---------------------"
+
+      activePair = @appModel.getActivePair()
+      @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
+        @view?.showNextPair(@appModel.activePairIndex, activePair)
+        @preloadNextPair()
+        @setNextSlideDelay()
+      ))
 
   return BarnDoorController
 )
