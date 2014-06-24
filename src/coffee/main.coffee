@@ -1,3 +1,7 @@
+# IE8/9 don't have console.log defined unless you open F12 dev tools; stub out to avoid errors
+window.console = window.console || { log: () -> }
+
+
 define("bootstrapper", ["module"], (module) ->
   bootstrap = () ->
     kickoff = (cfg) ->
