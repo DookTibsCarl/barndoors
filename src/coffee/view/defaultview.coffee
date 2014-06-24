@@ -22,7 +22,7 @@ define(["view/abstractview"], (AbstractView) ->
       @controlContainerDiv = $("<div/>").attr("id", "controlContainer").appendTo(@targetDiv)
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
-      this.calculateCenteredSlidePositions()
+      this.calculateSlideDestinations()
       this.fleshOutInlineSVG()
 
       @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
@@ -185,30 +185,30 @@ define(["view/abstractview"], (AbstractView) ->
       
 
     putDoorInOpenPosition: (doorEl, side) ->
-      # set this to adjust how far onscreen (positive number) the starting position for a door should be
-      # debugAdjuster = 200
-      debugAdjuster = 0
+      doorEl.css("left", (if side == "left" then @leftDoorOpenDestination else @rightDoorOpenDestination))
 
-      if (side == "left")
-        leftPos = ((-1 * @imgWidth) + debugAdjuster) + "px"
-      else
-        leftPos = (@slideContainerDiv.width() - debugAdjuster) + "px"
+    putDoorInClosedPosition: (doorEl, side) ->
+      doorEl.css("left", (if side == "left" then @leftDoorClosedDestination else @rightDoorClosedDestination))
 
-      doorEl.css("left", leftPos)
-      
-
-    calculateCenteredSlidePositions: ->
+    # do some math to figure out what's the offscreen and centered positions for each side of the show
+    calculateSlideDestinations: ->
       slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
       choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
       centerOfDiv = @slideContainerDiv.width() / 2
 
-      @leftDoorDestination = centerOfDiv - (@imgWidth - slantAdjustment) + choppedPixels
-      @rightDoorDestination = centerOfDiv - slantAdjustment - choppedPixels
+      @leftDoorClosedDestination = centerOfDiv - (@imgWidth - slantAdjustment) + choppedPixels
+      @rightDoorClosedDestination = centerOfDiv - slantAdjustment - choppedPixels
 
       gap = 0
       if gap > 0
-        @leftDoorDestination -= gap
-        @rightDoorDestination += gap
+        @leftDoorClosedDestination -= gap
+        @rightDoorClosedDestination += gap
+
+      # set this to adjust how far onscreen (positive number) the starting position for a door should be
+      # debugAdjuster = 200
+      debugAdjuster = 0
+      @leftDoorOpenDestination = (-1 * @imgWidth) + debugAdjuster
+      @rightDoorOpenDestination = @slideContainerDiv.width() - debugAdjuster
 
 
     renderInitialView: (pair) ->
@@ -216,7 +216,7 @@ define(["view/abstractview"], (AbstractView) ->
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
 
-      this.centerSlides(false)
+      this.positionSlides(false)
 
     updatePlayPauseStatus: (isPlaying) ->
       @playPauseEl.html(if isPlaying then "PAUSE" else "PLAY")
@@ -232,7 +232,8 @@ define(["view/abstractview"], (AbstractView) ->
 
       @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
 
-    showNextPair: (index, pair) ->
+    showNextPair: (index, pair, reversing = false) ->
+      console.log "TJF - reversing? [" + reversing + "]"
       @reRenderJumpControls(index)
       @inactiveDoorIndex = @activeDoorIndex
 
@@ -245,20 +246,33 @@ define(["view/abstractview"], (AbstractView) ->
 
       sides = [ "left", "right" ]
       oldDoors = [@leftDoors[@inactiveDoorIndex], @rightDoors[@inactiveDoorIndex]]
-      for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
-        doorEl.css("display", "block")
-        @putDoorInOpenPosition(doorEl, sides[i])
-        @stackElements(doorEl, oldDoors[i])
-      @centerSlides()
 
-    centerSlides: (doAnimate = true) ->
+      if reversing
+        # put the new slides behind the current ones, in the middle, and "open" the barn doors
+        for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
+          doorEl.css("display", "block")
+          @stackElements(oldDoors[i], doorEl)
+          @putDoorInClosedPosition(doorEl, sides[i])
+        @positionSlides(true, false)
+      else
+        # put the new slides on top of the current ones and offscreen, and "close" the barn doors
+        for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
+          doorEl.css("display", "block")
+          @putDoorInOpenPosition(doorEl, sides[i])
+          @stackElements(doorEl, oldDoors[i])
+        @positionSlides()
+
+    positionSlides: (doAnimate = true, closeSlides = true) ->
       # @leftImgElement.attr("src", "/barndoor/images/sayles.jpg")
 
       sides = [ "left", "right" ]
       slides = [ @leftSlide, @rightSlide ]
-      destinations = [ @leftDoorDestination, @rightDoorDestination ]
-      @doorsShut = 0
-      for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
+      destinations = if closeSlides then [ @leftDoorClosedDestination, @rightDoorClosedDestination ] else [ @leftDoorOpenDestination, @rightDoorOpenDestination ]
+
+      animaters = if closeSlides then [ @leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex] ] else [ @leftDoors[@inactiveDoorIndex], @rightDoors[@inactiveDoorIndex] ]
+
+      @doorsThatFinishedAnimating = 0
+      for doorEl, i in animaters
         suffix = "_" + sides[i] + "_" + @activeDoorIndex
         slide = slides[i]
 
@@ -269,8 +283,7 @@ define(["view/abstractview"], (AbstractView) ->
         imgEl.attr("src", slide.imgUrl)
         imgEl.css({width:@imgWidth, height:@imgHeight})
 
-        # titleEl.css("color", slide.fontColor)
-        # TODO - should sanitize this input; maybe allow a couple of tags but not full blown control...
+        # TODO? - sanitize this input? maybe allow a couple of tags but not full blown control...
         titleEl.html(slide.title)
         detailsEl.html(slide.details)
 
@@ -283,12 +296,6 @@ define(["view/abstractview"], (AbstractView) ->
             # "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
             "complete": (=> @onAnimationComplete())
           })
-
-          ###
-          doorEl.animate({
-            "left": destinations[i] + "px",
-          }, DefaultView.ANIMATION_LENGTH_MS, DefaultView.EASE_FXN, (=> @onAnimationComplete()))
-          ###
         else
           doorEl.css("left", destinations[i] + "px")
 
@@ -310,8 +317,8 @@ define(["view/abstractview"], (AbstractView) ->
     ###
 
     onAnimationComplete: ->
-      @doorsShut++
-      if @doorsShut == 2
+      @doorsThatFinishedAnimating++
+      if @doorsThatFinishedAnimating == 2
         # console.log "ALL DOORS CLOSED!"
       else
         # console.log "NOT DONE YET!"

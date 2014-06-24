@@ -16,7 +16,7 @@ define([], () ->
         jumpIndex: index
       })
 
-    showNextPair: (index, pair) ->
+    showNextPair: (index, pair, reversing = false) ->
       console.log "showNextPair not implemented for [" + this.constructor.name + "]"
 
     updatePlayPauseStatus: (isPlaying) ->

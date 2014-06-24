@@ -29,7 +29,7 @@ define(["view/abstractview"], (AbstractView) ->
     renderInitialView: (pair) ->
       @showNextPair(0, pair)
 
-    showNextPair: (index, pair) ->
+    showNextPair: (index, pair, reversing = false) ->
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
       console.log "SHOWING [" + @leftSlide.title + "]/[" + @rightSlide.title + "]"

@@ -31,11 +31,14 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       clearTimeout(@autoplayTimeout) # turn off autoplay in case it finishes before the preload does
 
       if (jumpIndex != @appModel.activePairIndex)
+        oldIndex = @appModel.activePairIndex
+
         @appModel.advanceToPairIndex(jumpIndex)
 
         activePair = @appModel.getActivePair()
         @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
-          @view?.showNextPair(@appModel.activePairIndex, activePair)
+          updatedIndex = @appModel.activePairIndex
+          @view?.showNextPair(updatedIndex, activePair, updatedIndex < oldIndex)
           @preloadNextPair()
 
           if not @isSlideshowPaused()
