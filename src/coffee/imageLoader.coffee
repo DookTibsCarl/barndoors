@@ -31,8 +31,10 @@ define([""], () ->
 
     imageLazyLoadComplete: (evt) ->
       targetElement = $(evt.target)
+
       elementUrl = targetElement.attr('src')
       delete @activeLoaders[elementUrl]
+      targetElement.remove()
       @loadedImages[elementUrl] = true
 
       console.log "new methodology - loaded: [" + elementUrl + "]"
@@ -134,7 +136,7 @@ define([""], () ->
         for idx in indexesToLoad
           url = urls[idx]
           onLoadHandler = (evt) => ( @imageLazyLoadComplete(evt) )
-          @activeLoaders[url] = $("<img/>").attr("src", url).bind('load', onLoadHandler)
+          @activeLoaders[url] = $("<img/>").css("display","none").attr("src", url).bind('load', onLoadHandler).appendTo($("body"))
 
 
   return ImageLoader
