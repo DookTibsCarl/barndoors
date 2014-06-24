@@ -129,7 +129,10 @@ define(["view/abstractview"], (AbstractView) ->
 
         classHook = this
         jumpEl.click(() ->
-          classHook.jumpToIndex($(this).index())
+          if classHook.currentlyAnimating
+            # console.log "not done with previous animation..."
+          else
+            classHook.jumpToIndex($(this).index())
         )
 
         jumpEl.css(jumpElStyle)
@@ -233,7 +236,6 @@ define(["view/abstractview"], (AbstractView) ->
       @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
 
     showNextPair: (index, pair, reversing = false) ->
-      console.log "TJF - reversing? [" + reversing + "]"
       @reRenderJumpControls(index)
       @inactiveDoorIndex = @activeDoorIndex
 
@@ -271,6 +273,7 @@ define(["view/abstractview"], (AbstractView) ->
 
       animaters = if closeSlides then [ @leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex] ] else [ @leftDoors[@inactiveDoorIndex], @rightDoors[@inactiveDoorIndex] ]
 
+      @currentlyAnimating = doAnimate
       @doorsThatFinishedAnimating = 0
       for doorEl, i in animaters
         suffix = "_" + sides[i] + "_" + @activeDoorIndex
@@ -319,7 +322,8 @@ define(["view/abstractview"], (AbstractView) ->
     onAnimationComplete: ->
       @doorsThatFinishedAnimating++
       if @doorsThatFinishedAnimating == 2
-        # console.log "ALL DOORS CLOSED!"
+        @currentlyAnimating = false
+        # console.log "ALL DOORS FINISHED!"
       else
         # console.log "NOT DONE YET!"
 
