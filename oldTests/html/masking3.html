@@ -1,0 +1,66 @@
+<html>
+	<!--
+
+	This seems to handle masking and animation in IE9+, Safari 5+, older versions of Chrome/Opera, etc. VERY promising.
+	Remaining things:
+	* how to handle IE8?
+	* possible to do it with an on-the-fly polygon instead of a mask image? Not absolutely necessary since we don't vary
+	  the mask dimensions
+
+	-->
+
+	<head>
+		<title>masking new attempt</title>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.js"></script>
+
+		<script language="JavaScript">
+			function doWork() {
+				setTimeout("moveIt()", 1000);
+			}
+
+			function moveIt() {
+				$("#moverA").animate({
+					left: "300px"
+					}, 500, "easeOutBounce", function() {
+					// console.log("animation done!");
+				});
+
+				$("#moverB").animate({
+					left: "0px",
+					top: "0px"
+					}, 500, "easeOutBounce", function() {
+					// console.log("animation done!");
+				});
+			}
+		</script>
+	</head>
+
+
+	<body onLoad="doWork();">
+
+		<!-- thx https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask! -->
+		<div style="xoverflow: hidden; position: absolute; left:150px; top: 100px; width:600px; height:410px; background-color:gray" id="barn">
+			<svg style="position:inherit" id="moverA" width="566" height="331" baseProfile="full" version="1.2">
+				<defs>
+					<mask id="svgmask2" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" transform="scale(1)">
+						<polygon points="0 0, 300 0, 150 331, 0 331" fill="white"/>
+					</mask>
+				</defs>
+				<image id="the-mask" mask="url(#svgmask2)" width="100%" height="331" y="0" x="0" xlink:href="../images/lake.jpg"/>
+			</svg>
+
+			<svg style="position:inherit; left:300px; top:100px" id="moverB" width="566" height="331" baseProfile="full" version="1.2">
+				<defs>
+					<mask id="svgmask3" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" transform="scale(1)">
+						<image width="100%" height="300" xlink:href="../images/mask.png"/>
+					</mask>
+				</defs>
+				<image id="the-mask" mask="url(#svgmask3)" width="100%" height="331" y="0" x="0" xlink:href="../images/scoville.jpg"/>
+			</svg>
+		</div>
+
+	</body>
+</html>

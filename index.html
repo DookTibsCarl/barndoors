@@ -7,7 +7,7 @@
 			var bdConfigObj = {
 				jqueryLoadPath: "/barndoor/lib/js/jquery.js",
 				targetDivName: "somethingRandom",
-				timeBetweenSlides: 3000,
+				timeBetweenSlides: 5000,
 				imageDimensions: {
 					width: 566,
 					height: 331
@@ -60,31 +60,27 @@
 			};
 
 			var requirejs = {
-				config: {
-					bootstrapper: {
-						configObj: bdConfigObj
-					},
+				"config": {
+					"bootstrapper": {
+						"configObj": bdConfigObj
+					}
 				}
 			};
 		</script>
-		<!-- <script language="javascript" data-main="compiled/js/main" src="lib/js/require.js"></script> -->
-		<script language="javascript" data-main="dist/barndoors-1.0" src="lib/js/require.js"></script>
+		<script language="javascript" data-main="compiled/js/main" src="lib/js/require.js"></script>
+		<!-- <script language="javascript" data-main="dist/barndoors-1.0" src="lib/js/require.js"></script> -->
 
 	</head>
 
 	<body bgcolor="lightgray">
-		<!-- the structure has to be predefined, but the actual polygon points can get filled in on the fly. We can live with this I think. -->
-		<svg width="0" height="0">
-			<clippath id="imagePolySVG_left"><polygon points=""></polygon></clippath>
-			<clippath id="imagePolySVG_right"><polygon points=""></polygon></clippath>
-			<clippath id="textPolySVG_left"><polygon points=""></polygon></clippath>
-			<clippath id="textPolySVG_right"><polygon points=""></polygon></clippath>
-		</svg>
-
 		Window width=<span id="debugWindowWidth"></span>, height=<span id="debugWindowHeight"></span>...use view [<span id="debugRespView"></span>]<p>
 
 		<div id="someWrapper">
 			<div id="somethingRandom" style="width:800px; height:331; border-style:none"></div>
 		</div>
+
+	<script language="Javascript">
+	</script>
+
 	</body>
 </html>

@@ -30,6 +30,9 @@ define([], () ->
     # points is an array of arrays. Each sub-array is x in slot 0, y in slot 1. imgToClip is a jquery image element
     # currently works in Firefox, Safari, Chrome on OSX. IE? Mobile?
     clipElement: (points, imgToClip, svgUrlId) ->
+      console.log "CLIP ELEMENT DELAYED!!!!!"
+      return
+
       if (imgToClip.length > 0)
         path = this.translatePointsFromArrayToWebkitString(points)
         imgToClip.css("clip-path", "url('##{svgUrlId}')")

@@ -12,6 +12,9 @@ define(["view/abstractview"], (AbstractView) ->
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
 
+    @SVG_NS = "http://www.w3.org/2000/svg"
+    @XLINK_NS = "http://www.w3.org/1999/xlink"
+
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       console.log "constructing default view..."
       @targetDiv = $("##{@targetDivName}")
@@ -23,7 +26,7 @@ define(["view/abstractview"], (AbstractView) ->
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
       this.calculateSlideDestinations()
-      this.fleshOutInlineSVG()
+      # this.fleshOutInlineSVG()
 
       @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
@@ -37,14 +40,63 @@ define(["view/abstractview"], (AbstractView) ->
       # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
       # we swap the z-order as necessary.
 
+      console.log "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
+
 
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
           # add the necessary structure to the DOM
-          # doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@targetDiv)
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
-          imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
+
+          # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript to construct it all
+          # might want to separate this out to make this more explicit.
+          # also todo - make some convenience functions for setting all these attribs
+          
+          # top level - svg
+          svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
+          svgEl.id = "mover" + elementSuffix
+          svgEl.setAttribute("width", @imgWidth)
+          svgEl.setAttribute("height", @imgHeight)
+          svgEl.setAttribute("baseProfile", "full")
+          svgEl.setAttribute("version", "1.2")
+          (doorEl[0]).appendChild(svgEl)
+
+          # svgEl contains a "defs" element...
+          defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
+          svgEl.appendChild(defsEl)
+
+          # defs contains a mask...
+          maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
+          maskEl.id = "svgmask" + elementSuffix
+          maskEl.setAttribute("maskUnits", "userSpaceOnUse")
+          maskEl.setAttribute("maskContentUnits", "userSpaceOnUse")
+          maskEl.setAttribute("transform", "scale(1)")
+          defsEl.appendChild(maskEl)
+
+          # and mask contain a polygon
+          polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
+          polygonEl.id = "maskpoly" + elementSuffix
+          polygonEl.setAttribute("points", @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly))
+          polygonEl.setAttribute("fill", "white")
+          maskEl.appendChild(polygonEl)
+
+
+          # ...and svgEl also contains an image
+          imgEl = document.createElementNS(DefaultView.SVG_NS, "image")
+          imgEl.id = "image" + elementSuffix
+          # mask: "url(#svgmask" + elementSuffix
+          maskAttrib = "url(#svgmask" + elementSuffix + ")"
+          console.log "mask atrib [" + maskAttrib + "]"
+          imgEl.setAttribute("mask", "url(#svgmask" + elementSuffix + ")")
+          # imgEl.setAttribute("x", 0)
+          # imgEl.setAttribute("y", 0)
+
+          svgEl.appendChild(imgEl)
+
+
+          ###
+          # imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
           titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
 
           bbEl = $("<span/>").attr("id", "bb" + elementSuffix).appendTo(doorEl)
@@ -61,6 +113,7 @@ define(["view/abstractview"], (AbstractView) ->
           bbEl.css(blackBarStyle)
 
           detailsEl = $("<span/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
+          ###
 
           # style things appropriately
           doorStyle = {
@@ -68,7 +121,13 @@ define(["view/abstractview"], (AbstractView) ->
             top: vertPos + "px",
             display: (if i == 0 then "block" else "none")
           }
+
+          #svgStyle = {
+            #width: @imgWidth
+            #height: @imgHeight
+          #}
           
+          ###
           titleStyle = {
             position: "absolute",
             bottom: "100px",
@@ -83,8 +142,10 @@ define(["view/abstractview"], (AbstractView) ->
             font: "12px/12px Arial",
             color: "white"
           }
+          ###
 
           # a few things are different based on which side door you are...
+          ###
           textPadding = "140px"
           if (side == "left")
             titleStyle.right = textPadding
@@ -96,12 +157,14 @@ define(["view/abstractview"], (AbstractView) ->
             detailsStyle.left = textPadding
             this.clipElement(@rightImagePoly, imgEl, "imagePolySVG_right")
             this.clipElement(@rightTextPoly, bbEl, "textPolySVG_right")
+          ###
 
           this.putDoorInOpenPosition(doorEl, side)
 
           doorEl.css(doorStyle)
-          titleEl.css(titleStyle)
-          detailsEl.css(detailsStyle)
+          #svgEl.css(svgStyle)
+          # titleEl.css(titleStyle)
+          # detailsEl.css(detailsStyle)
 
           # and finally let's save things
           if (side == "left")
@@ -160,6 +223,7 @@ define(["view/abstractview"], (AbstractView) ->
       blackBarEl.css(blackBarStyle)
       ###
 
+    ###
     cropImagesDelayed: ->
       console.log "DELAYED here we go [" + this + "]"
       for letter, i in ["A","B"]
@@ -171,20 +235,14 @@ define(["view/abstractview"], (AbstractView) ->
             this.clipElement(@leftImagePoly, imgEl, "polySVG_left")
           else
             this.clipElement(@rightImagePoly, imgEl, "polySVG_right")
+    ###
 
+    ### 
     fleshOutInlineSVG: ->
-      ### 
-      svgEl = $("<svg/>").attr({"width": 0, "height": 0}).appendTo($(document.body))
-      for side in ["left","right"]
-        pathEl = $("<clipPath/>").attr("id", "imagePolySVG_" + side).appendTo(svgEl)
-        polyEl = $("<polygon/>").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftImagePoly else @rightImagePoly))).appendTo(pathEl)
-
-        pathEl = $("<clipPath/>").attr("id", "textPolySVG_" + side).appendTo(svgEl)
-        polyEl = $("<polygon/>").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly))).appendTo(pathEl)
-      ###
       for side in ["left","right"]
         $("#imagePolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftImagePoly else @rightImagePoly)))
         $("#textPolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly)))
+    ###
       
 
     putDoorInOpenPosition: (doorEl, side) ->
@@ -279,12 +337,26 @@ define(["view/abstractview"], (AbstractView) ->
         suffix = "_" + sides[i] + "_" + @activeDoorIndex
         slide = slides[i]
 
-        imgEl = $("#image" + suffix)
+        # imgEl = $("#image" + suffix)
         titleEl = $("#title" + suffix)
         detailsEl = $("#details" + suffix)
 
-        imgEl.attr("src", slide.imgUrl)
-        imgEl.css({width:@imgWidth, height:@imgHeight})
+        # imgEl.attr("src", slide.imgUrl)
+        # imgEl.css({width:@imgWidth, height:@imgHeight})
+        # imgEl.attr("xlink:href", slide.imgUrl)
+
+        # imgEl.attr({
+          # "xlink:href": slide.imgUrl
+        # })
+
+        console.log("!!!!!!!!!!!!!!!!!!!")
+        console.log("!!!!!!! NS !!!!!!!!!")
+        console.log("!!!!!!!!!!!!!!!!!!!")
+
+        imgDomEl = document.getElementById("image" + suffix)
+        imgDomEl.setAttributeNS(DefaultView.XLINK_NS, 'href', slide.imgUrl)
+        imgDomEl.setAttribute('width', "100%")
+        imgDomEl.setAttribute('height', "100%")
 
         # TODO? - sanitize this input? maybe allow a couple of tags but not full blown control...
         titleEl.html(slide.title)
@@ -308,11 +380,48 @@ define(["view/abstractview"], (AbstractView) ->
       # very weird bug that manifested when integrating into Reason module - the right slide
       # had varying width/height as it animated, causing it to appear to "grow" from the right
       # and slide in from the top. This is part of a fix for that problem
+      console.log "REALLY ENfORCING DIMENIONS!!!"
+      console.log "REALLY ENfORCING DIMENIONS!!!"
+      console.log "REALLY ENfORCING DIMENIONS!!!"
 
       doors = [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
       for door in doors
         door.width(@imgWidth)
         door.height(@imgHeight)
+
+      for foo in [ $("#mover_left_0"), $("#mover_right_0") ]
+        foo.width(@imgWidth)
+        foo.height(@imgHeight)
+
+
+      # $("image_left_0").width(566)
+
+
+
+      # imgDomEl = document.getElementById("image_left_0")
+      # imgDomEl.setAttribute("width", "100%")
+      # imgDomEl.setAttribute("height", "100%")
+      # imgDomEl.style.width = "566px"
+      # imgDomEl.style.height = "331px"
+      # imgDomEl.width = 566
+      # imgDomEl.height = 331
+
+      # bar = document.getElementById("image_left_0")
+      # console.log "got bar:"
+      # console.log bar
+      # bar.setAttributeNS(null, 'width', '566')
+      # bar.setAttributeNS(null, 'height', '331')
+      # bar.style.width = "300px"
+      
+      ###
+      for foo in [ $("#image_left_0"), $("#image_right_0") ]
+        foo.attr('width', @imgWidth)
+        foo.attr('height', @imgHeight)
+        # foo.width(@imgWidth)
+        # foo.height(@imgHeight)
+        console.log "image [" + foo.attr('id') + "] has width [" + foo.width() + "]"
+      ###
+
       
     ###
     onAnimationProgress: (anim, prog, remaining) ->

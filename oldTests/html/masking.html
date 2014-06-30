@@ -88,7 +88,7 @@
 						imgToClip.css("position", "absolute"); // MUST BE ABSOLUTE TO WORK!!!
 						imgToClip.css("clip", "rect(120px, 290px, 240px, 175px");
 					} else if (method == "2") {
-						console.log("circular clip path");
+						console.log("poly path");
 						// imgToClip.css("-webkit-clip-path", "circle(245px, 140px, 50px)");
 						// imgToClip.css("position", "absolute"); // NOT necessary
 						imgToClip.css("-webkit-clip-path", path);
@@ -114,7 +114,7 @@
 		<a href="index.html">Back</a>
 		<hr>
 		Demo Canvas:<br>
-		<canvas style="background:url(lake.jpg)" id="myCanvas" width="566" height="331">No Canvas Support: <img src="lake.jpg"></canvas><br>
+		<canvas style="background:url(../images/lake.jpg)" id="myCanvas" width="566" height="331">No Canvas Support: <img src="../images/lake.jpg"></canvas><br>
 		<input type="button" value="Show poly on image" onClick="drawPolyIntoCanvas(leftPoly, 'myCanvas');">
 
 		<hr>
@@ -129,12 +129,12 @@
 			<image width="566" height="331" src="lake.jpg" id="lake"><br>
 		</svg>
 		-->
-		<img src="lake.jpg" id="lake">
-		<img src="scoville.jpg" id="scoville">
+		<img src="../images/lake.jpg" id="lake">
+		<img src="../images/scoville.jpg" id="scoville">
 		<br>
 		<input type="button" value="clip image - simple" onClick="clipImage(leftPoly, 'lake', '1');">
 		<input type="button" value="clip image - path" onClick="clipImage(leftPoly, 'lake', '2'); clipImage(rightPoly, 'scoville', '2'); moveImages();">
-		<input type="button" value="clear clip" onClick="clearClip('lake');">
+		<input type="button" value="clear clip" onClick="clearClip('lake'); clearClip('scoville');">
 	
 	</body>
 </html>
