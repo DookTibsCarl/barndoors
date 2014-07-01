@@ -127,6 +127,7 @@ define(["view/abstractview"], (AbstractView) ->
           wordsWidth = halfDiv - (slantAdjustment * 2)
           titleHeight = 65
 
+          ###
           titleEl = @addTextToSVG(svgEl,
                                   "title" + elementSuffix,
                                   wordsX
@@ -140,10 +141,13 @@ define(["view/abstractview"], (AbstractView) ->
                                   @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT,
                                   wordsWidth
                                   DefaultView.TEXT_SHADOWBOX_HEIGHT)
+          ###
           
 
+          titleEl = $("<div/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
+          detailsEl = $("<div/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
+
           ###
-          titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
           detailsEl = $("<span/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
           ###
 
@@ -156,8 +160,12 @@ define(["view/abstractview"], (AbstractView) ->
 
           wordsAlignment = if side == "left" then "right" else "left"
           titleStyle = {
-            # position: "inherit"
-            # bottom: "70px"
+            # "background-color": "green"
+            position: "absolute"
+            bottom: DefaultView.TEXT_SHADOWBOX_HEIGHT
+            # top: @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT - titleHeight
+            left: wordsX
+            width: wordsWidth
             letterSpacing: "1px"
             color: "white"
             font: "bold 30px/30px Helvetica, Sans-Serif"
@@ -165,8 +173,11 @@ define(["view/abstractview"], (AbstractView) ->
           }
 
           detailsStyle = {
-            # position: "absolute",
-            # bottom: "60px",
+            # "background-color": "orange"
+            position: "absolute"
+            top: @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
+            left: wordsX
+            width: wordsWidth
             letterSpacing: "1px",
             font: "12px/12px Arial",
             color: "white"
