@@ -1,0 +1,150 @@
+<html fooxmlns:v="urn:schemas-microsoft-com:vml">
+	<head>
+		<title>Barn Door IE experiments</title>
+
+		<meta http-equiv="X-UA-Compatible" content="IE=8" />
+		<!-- <meta http-equiv="X-UA-Compatible" content="IE=7" /> -->
+		<!--[if xvml]><style> v\:* { behavior: url(#default#VML); }</style><![endif]-->
+
+		<style> v\:* { behavior: url(#default#VML); }</style>
+		<!-- <xml:namespace ns="urn:schemas-microsoft-com:vml" prefix="v" /> -->
+
+			<!--
+		<fooxml:namespace ns="urn:schemas-microsoft-com:vml" prefix="v"/> 
+		<fooobject id="VMLRender" codebase="vgx.dll" classid="CLSID:10072CEC-8CC1-11D1-986E-00A0C955B42E"> 
+		</object>
+		-->
+
+		<style>
+.foo {
+	width: 120px;
+	background-color: pink;
+	filter: progid:DXImageTransform.Microsoft.Chroma(color='blue'); /* IE 6/7 Syntax */
+	FAKE-ms-filter: "progid:DXImageTransform.Microsoft.Chroma(color='blue')"; /* IE 8 Syntax */
+}
+.bar {
+	height: 100px;
+	margin: 10px;
+	background-color: blue;
+}
+
+
+
+			#blackbar {
+				position: absolute;
+				left:0px;
+				top:231px;
+				height:100px;
+				width: 566px;
+				background-color: black;
+				-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+				opacity:0.5;
+			}
+
+			#lake {
+				/* IE 6/7 Syntax */
+				filter: progid:DXImageTransform.Microsoft.Chroma(color='blue');
+
+				/* IE 8 Syntax */
+				-ms-filter: "progid:DXImageTransform.Microsoft.Chroma(color='blue')";
+				/* zoom: 1; */
+			}
+
+		</style>
+
+		<script type="text/javascript" src="../../lib/js/jquery.js"></script>
+
+		<script language="JavaScript">
+			document.namespaces.add('v', 'urn:schemas-microsoft-com:vml', "#default#VML");
+
+			var imageWidth = 204;
+			var divWidth = 600;
+
+			function setup() {
+				console.log("setup()...");
+
+
+				/*
+				var lake = $("#lake");
+				lake.css({
+					// IE 7 / quirks
+					// filter: "progid:DXImageTransform.Microsoft.Chroma(color='blue')",
+					//
+					// IE 8
+					// "-ms-filter": "progid:DXImageTransform.Microsoft.Chroma(color='blue')",
+					// zoom: 1
+				});
+				*/
+
+
+
+				setTimeout("drive()", 500);
+			}
+
+			function drive() {
+				console.log("drive()...");
+
+				var car = $("#car");
+				var lake = $("#lake");
+				var animLength = 1000; // in ms
+
+				car.animate({
+								"left": "750px"
+								}, animLength, "swing", function() {
+								animateDone("car");
+							});
+
+				lake.animate({
+								"left": "270px"
+								}, animLength, "swing", function() {
+								animateDone("lake");
+							});
+			}
+
+			function animateDone(whatFinished) {
+				console.log("animation for " + whatFinished + " completed");
+			}
+
+
+		</script>
+	</head>
+
+	<body style="background-color:grey" onLoad="setup();">
+		IE8 animation test
+		<hr>
+
+		<!--
+		<div style="width:800px; height:300px; background-color:orange; position:absolute; overflow:hidden">
+			<div id="car" style="position:absolute; bottom:0px"><img src="../images/car1.jpeg"></div>
+		</div>
+		-->
+
+		<!--
+		<div class="foo">
+			<div class="bar">
+			</div>
+		</div>
+		-->
+
+		<p>
+
+		<div style="xtop:2000px; width:800px; height:500px; background-color:orange; position:absolute; overflow:hidden">
+			<div style="position:absolute; top: 0px; left: 0px; width: 600px; height: 500px; background-color: green" id="lake">
+				<!-- <v:rect style="position:absolute; top: 0px; left: 50px; width:100px;height:100px" fillcolor="#0000ff" strokecolor="blue"></v:rect> -->
+				<!-- <v:polyline points="10pt,10pt 100pt,100pt" strokecolor="blue"></v:polyline> -->
+				<!--
+				<v:shape style="position:absolute; width: 566px; height: 331px; top: 0px; left:0px" fillcolor="blue" strokecolor="blue" coordorigin="0 0" coordsize="566 331">
+					<v:path v="m 466,0 l 566,0, 566,331 x e"/>
+				</v:shape>
+				<img width="566" height="331" src="../images/lake.jpg">
+				<div id="blackbar"></div>
+				-->
+
+
+				<div style="position:relative; top: 200px; left: 0px; width: 100px; height: 200px; background-color: blue">DESCENDANT: position=absolute is breaking stuff</div>
+				<div class="bar">THIS IS BAR WHAT IS SO DIFFERENT ABOUT THIS I WONDER???</div>
+			</div>
+		</div>
+
+	</body>
+</html>
