@@ -22,6 +22,8 @@ when the controller calls their "renderInitialView" or "showNextPair" methods th
 
 define([""], () ->
   class ImageLoader
+    @DISABLE_PRELOADS = false # used for testing only, NEVER SET THIS TO TRUE
+
     constructor: () ->
       console.log "constructing ImageLoader..."
       @loadedImages = {}    # storage for images that we have successfully preloaded
@@ -100,9 +102,7 @@ define([""], () ->
       # @debugPLR("end")
 
     ensureImagesLoaded: (urls, callback = null) ->
-      DISABLE_PRELOADS = false # used for testing only, NEVER SET THIS TO TRUE
-
-      if DISABLE_PRELOADS
+      if ImageLoader.DISABLE_PRELOADS
         if (callback != null)
           callback()
         return
