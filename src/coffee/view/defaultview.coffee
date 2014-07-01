@@ -5,7 +5,7 @@ define(["view/abstractview"], (AbstractView) ->
     # currently hardcoded, and polygons are associated with the overall view
     # and not with individual items. If we allow different polys per pair, 
     # need to rethink this...
-    @TOP_EDGE_INSET = 50
+    @TOP_EDGE_INSET = 40
     @BOTTOM_EDGE_INSET = 90
     @TEXT_SHADOWBOX_HEIGHT = 100
 
@@ -25,6 +25,14 @@ define(["view/abstractview"], (AbstractView) ->
       @controlContainerDiv = $("<div/>").attr("id", "controlContainer").appendTo(@targetDiv)
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
+
+      # shift the y psitio down...
+      # TODO - fix this, this is ugly and confusing should just be in the initial calculation. IT's a side-effect of
+      # changing how the clipping stuff works.
+      for tp in [@leftTextPoly, @rightTextPoly]
+        for xy in tp
+          xy[1] += (@imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT)
+
       this.calculateSlideDestinations()
       # this.fleshOutInlineSVG()
 
@@ -56,10 +64,12 @@ define(["view/abstractview"], (AbstractView) ->
           # top level - svg
           svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
           svgEl.id = "mover" + elementSuffix
-          svgEl.setAttribute("width", @imgWidth)
-          svgEl.setAttribute("height", @imgHeight)
-          svgEl.setAttribute("baseProfile", "full")
-          svgEl.setAttribute("version", "1.2")
+          @addAttributeHelper(svgEl, {
+            width: @imgWidth
+            height: @imgHeight
+            baseProfile: "full"
+            version: "1.2"
+          })
           (doorEl[0]).appendChild(svgEl)
 
           # svgEl contains a "defs" element...
@@ -69,49 +79,71 @@ define(["view/abstractview"], (AbstractView) ->
           # defs contains a mask...
           maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
           maskEl.id = "svgmask" + elementSuffix
-          maskEl.setAttribute("maskUnits", "userSpaceOnUse")
-          maskEl.setAttribute("maskContentUnits", "userSpaceOnUse")
-          maskEl.setAttribute("transform", "scale(1)")
+          @addAttributeHelper(maskEl, {
+            maskUnits: "userSpaceOnUse"
+            maskContentUnits: "userSpaceOnUse"
+            transform: "scale(1)"
+          })
           defsEl.appendChild(maskEl)
 
           # and mask contain a polygon
           polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
           polygonEl.id = "maskpoly" + elementSuffix
-          polygonEl.setAttribute("points", @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly))
-          polygonEl.setAttribute("fill", "white")
+          @addAttributeHelper(polygonEl, {
+            points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
+            fill: "white"
+          })
           maskEl.appendChild(polygonEl)
-
 
           # ...and svgEl also contains an image
           imgEl = document.createElementNS(DefaultView.SVG_NS, "image")
           imgEl.id = "image" + elementSuffix
-          # mask: "url(#svgmask" + elementSuffix
-          maskAttrib = "url(#svgmask" + elementSuffix + ")"
-          console.log "mask atrib [" + maskAttrib + "]"
-          imgEl.setAttribute("mask", "url(#svgmask" + elementSuffix + ")")
-          # imgEl.setAttribute("x", 0)
-          # imgEl.setAttribute("y", 0)
-
+          @addAttributeHelper(imgEl, {
+            mask: "url(#svgmask" + elementSuffix + ")"
+          })
           svgEl.appendChild(imgEl)
 
+          bbEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
+          bbEl.id = "bb" + elementSuffix
+          @addAttributeHelper(bbEl, {
+            points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftTextPoly else @rightTextPoly)
+            fill: "black"
+            "fill-opacity": "0.5"
+          })
+          svgEl.appendChild(bbEl)
+
+          halfDiv = @targetDiv.width()/2
+          cutoffImageAmount = @imgWidth - halfDiv
+          slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
+          # choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+          maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+
+
+          if side == "left"
+            wordsX = cutoffImageAmount - maxInset + (slantAdjustment * 2)
+          else
+            wordsX = maxInset
+
+          wordsWidth = halfDiv - (slantAdjustment * 2)
+          titleHeight = 65
+
+          titleEl = @addTextToSVG(svgEl,
+                                  "title" + elementSuffix,
+                                  wordsX
+                                  @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT - titleHeight,
+                                  wordsWidth
+                                  titleHeight)
+
+          detailsEl = @addTextToSVG(svgEl,
+                                  "details" + elementSuffix,
+                                  wordsX
+                                  @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT,
+                                  wordsWidth
+                                  DefaultView.TEXT_SHADOWBOX_HEIGHT)
+          
 
           ###
-          # imgEl = $("<img/>").attr("id", "image" + elementSuffix).appendTo(doorEl)
           titleEl = $("<span/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
-
-          bbEl = $("<span/>").attr("id", "bb" + elementSuffix).appendTo(doorEl)
-          blackBarStyle = {
-            position: "absolute",
-            width: @imgWidth + "px",
-            left: "0px",
-            bottom: "0px",
-            height: "100px",
-            background: "black",
-            opacity: 0.5
-          }
-
-          bbEl.css(blackBarStyle)
-
           detailsEl = $("<span/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
           ###
 
@@ -122,49 +154,45 @@ define(["view/abstractview"], (AbstractView) ->
             display: (if i == 0 then "block" else "none")
           }
 
-          #svgStyle = {
-            #width: @imgWidth
-            #height: @imgHeight
-          #}
-          
-          ###
+          wordsAlignment = if side == "left" then "right" else "left"
           titleStyle = {
-            position: "absolute",
-            bottom: "100px",
-            letterSpacing: "1px",
+            # position: "inherit"
+            # bottom: "70px"
+            letterSpacing: "1px"
+            color: "white"
             font: "bold 30px/30px Helvetica, Sans-Serif"
+            "text-align": wordsAlignment
           }
 
           detailsStyle = {
-            position: "absolute",
-            bottom: "60px",
+            # position: "absolute",
+            # bottom: "60px",
             letterSpacing: "1px",
             font: "12px/12px Arial",
             color: "white"
+            "text-align": wordsAlignment
           }
-          ###
 
           # a few things are different based on which side door you are...
           ###
-          textPadding = "140px"
+          textPadding = 140
           if (side == "left")
-            titleStyle.right = textPadding
-            detailsStyle.right = textPadding
-            this.clipElement(@leftImagePoly, imgEl, "imagePolySVG_left")
-            this.clipElement(@leftTextPoly, bbEl, "textPolySVG_left")
+            # titleStyle.right = textPadding
+            # detailsStyle.right = textPadding
+            # this.clipElement(@leftImagePoly, imgEl, "imagePolySVG_left")
+            # this.clipElement(@leftTextPoly, bbEl, "textPolySVG_left")
           else
-            titleStyle.left = textPadding
-            detailsStyle.left = textPadding
-            this.clipElement(@rightImagePoly, imgEl, "imagePolySVG_right")
-            this.clipElement(@rightTextPoly, bbEl, "textPolySVG_right")
+            # titleStyle.left = textPadding
+            # detailsStyle.left = textPadding
+            # this.clipElement(@rightImagePoly, imgEl, "imagePolySVG_right")
+            # this.clipElement(@rightTextPoly, bbEl, "textPolySVG_right")
           ###
 
           this.putDoorInOpenPosition(doorEl, side)
 
           doorEl.css(doorStyle)
-          #svgEl.css(svgStyle)
-          # titleEl.css(titleStyle)
-          # detailsEl.css(detailsStyle)
+          titleEl.css(titleStyle)
+          detailsEl.css(detailsStyle)
 
           # and finally let's save things
           if (side == "left")
@@ -243,6 +271,34 @@ define(["view/abstractview"], (AbstractView) ->
         $("#imagePolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftImagePoly else @rightImagePoly)))
         $("#textPolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly)))
     ###
+
+    addAttributeHelper: (o, attribs) ->
+      for n, v of attribs
+        o.setAttribute(n, v)
+
+    addTextToSVG: (container, idString, xPos, yPos, width, height, debugColor = null) ->
+      foId = "fo_" + idString
+
+      foreignObj = document.createElementNS(DefaultView.SVG_NS, "foreignObject")
+      foreignObj.id = foId
+      @addAttributeHelper(foreignObj, {
+        class: "node"
+        width: width
+        height: height
+        x: xPos
+        y: yPos
+      })
+      if debugColor != null then foreignObj.style["background-color"] = debugColor
+      container.appendChild(foreignObj)
+
+      textHolder = $("<div/>").attr({
+        id: idString
+      }).css({
+        width: width
+        height: height
+      }).appendTo($("#" + foId))
+
+      return textHolder
       
 
     putDoorInOpenPosition: (doorEl, side) ->
@@ -345,14 +401,6 @@ define(["view/abstractview"], (AbstractView) ->
         # imgEl.css({width:@imgWidth, height:@imgHeight})
         # imgEl.attr("xlink:href", slide.imgUrl)
 
-        # imgEl.attr({
-          # "xlink:href": slide.imgUrl
-        # })
-
-        console.log("!!!!!!!!!!!!!!!!!!!")
-        console.log("!!!!!!! NS !!!!!!!!!")
-        console.log("!!!!!!!!!!!!!!!!!!!")
-
         imgDomEl = document.getElementById("image" + suffix)
         imgDomEl.setAttributeNS(DefaultView.XLINK_NS, 'href', slide.imgUrl)
         imgDomEl.setAttribute('width', "100%")
@@ -380,8 +428,6 @@ define(["view/abstractview"], (AbstractView) ->
       # very weird bug that manifested when integrating into Reason module - the right slide
       # had varying width/height as it animated, causing it to appear to "grow" from the right
       # and slide in from the top. This is part of a fix for that problem
-      console.log "REALLY ENfORCING DIMENIONS!!!"
-      console.log "REALLY ENfORCING DIMENIONS!!!"
       console.log "REALLY ENfORCING DIMENIONS!!!"
 
       doors = [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
