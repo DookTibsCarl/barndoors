@@ -1,6 +1,8 @@
 # IE8/9 don't have console.log defined unless you open F12 dev tools; stub out to avoid errors
 window.console = window.console || { log: () -> }
 
+# window.console.log = () ->
+
 # indexOf doesn't exist in IE?!?!
 if !Array.prototype.indexOf
   Array.prototype.indexOf = (el) ->

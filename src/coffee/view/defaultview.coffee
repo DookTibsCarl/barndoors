@@ -8,6 +8,7 @@ define(["view/abstractview"], (AbstractView) ->
     @TOP_EDGE_INSET = 40
     @BOTTOM_EDGE_INSET = 90
     @TEXT_SHADOWBOX_HEIGHT = 100
+    @TEXT_SHADOWBOX_OPACITY = 0.5
 
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
@@ -18,6 +19,29 @@ define(["view/abstractview"], (AbstractView) ->
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       console.log "constructing default view..."
       @targetDiv = $("##{@targetDivName}")
+
+      # @createCSSSelector(".tomOnTheFly", "width:100%; background-color:red")
+      # styleDef = "position: absolute; left: 0px; bottom:0px; width:100%; height: " + DefaultView.TEXT_SHADOWBOX_HEIGHT + "px; -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=" + (DefaultView.TEXT_SHADOWBOX_OPACITY * 100) + ")'; opacity: " + DefaultView.TEXT_SHADOWBOX_OPACITY + "; background-color:green"
+      # @createCSSSelector(".blackbar_basic", styleDef
+      # $("head").append("<style>.blackbar_basic { " + styleDef + " }</style>")
+
+      ###
+      css = ".blackbar_basic {" + styleDef + "}"
+      head = document.head or document.getElementsByTagName('head')[0]
+      style = document.createElement('style')
+      style.type = 'text/css'
+      if (style.styleSheet)
+        style.styleSheet.cssText = css
+      else
+        style.appendChild(document.createTextNode(css))
+      head.appendChild(style)
+      ###
+
+
+      # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
+      @basicMode = false
+      if (true and !document.createElementNS)
+        @basicMode = true
 
       pairCount = @mainController.appModel.getPairCount()
 
@@ -50,73 +74,18 @@ define(["view/abstractview"], (AbstractView) ->
 
       console.log "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
 
+      halfDiv = @targetDiv.width()/2
+      cutoffImageAmount = @imgWidth - halfDiv
+      slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
+      # choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+      maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
+          console.log "looping for [" + elementSuffix + "]"
           # add the necessary structure to the DOM
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
-
-          # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript to construct it all
-          # might want to separate this out to make this more explicit.
-          # also todo - make some convenience functions for setting all these attribs
-          
-          # top level - svg
-          svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
-          svgEl.id = "mover" + elementSuffix
-          @addAttributeHelper(svgEl, {
-            width: @imgWidth
-            height: @imgHeight
-            baseProfile: "full"
-            version: "1.2"
-          })
-          (doorEl[0]).appendChild(svgEl)
-
-          # svgEl contains a "defs" element...
-          defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
-          svgEl.appendChild(defsEl)
-
-          # defs contains a mask...
-          maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
-          maskEl.id = "svgmask" + elementSuffix
-          @addAttributeHelper(maskEl, {
-            maskUnits: "userSpaceOnUse"
-            maskContentUnits: "userSpaceOnUse"
-            transform: "scale(1)"
-          })
-          defsEl.appendChild(maskEl)
-
-          # and mask contain a polygon
-          polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
-          polygonEl.id = "maskpoly" + elementSuffix
-          @addAttributeHelper(polygonEl, {
-            points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
-            fill: "white"
-          })
-          maskEl.appendChild(polygonEl)
-
-          # ...and svgEl also contains an image
-          imgEl = document.createElementNS(DefaultView.SVG_NS, "image")
-          imgEl.id = "image" + elementSuffix
-          @addAttributeHelper(imgEl, {
-            mask: "url(#svgmask" + elementSuffix + ")"
-          })
-          svgEl.appendChild(imgEl)
-
-          bbEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
-          bbEl.id = "bb" + elementSuffix
-          @addAttributeHelper(bbEl, {
-            points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftTextPoly else @rightTextPoly)
-            fill: "black"
-            "fill-opacity": "0.5"
-          })
-          svgEl.appendChild(bbEl)
-
-          halfDiv = @targetDiv.width()/2
-          cutoffImageAmount = @imgWidth - halfDiv
-          slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
-          # choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-          maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
 
           if side == "left"
@@ -127,22 +96,113 @@ define(["view/abstractview"], (AbstractView) ->
           wordsWidth = halfDiv - (slantAdjustment * 2)
           titleHeight = 65
 
-          ###
-          titleEl = @addTextToSVG(svgEl,
-                                  "title" + elementSuffix,
-                                  wordsX
-                                  @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT - titleHeight,
-                                  wordsWidth
-                                  titleHeight)
 
-          detailsEl = @addTextToSVG(svgEl,
-                                  "details" + elementSuffix,
-                                  wordsX
-                                  @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT,
-                                  wordsWidth
-                                  DefaultView.TEXT_SHADOWBOX_HEIGHT)
-          ###
-          
+          if (@basicMode)
+            console.log "RENDERING IN BASIC MODE"
+            imgEl = document.createElement("img")
+            imgEl.id = "image" + elementSuffix
+            doorEl[0].appendChild(imgEl)
+
+            bbEl = document.createElement("div")
+            bbEl.className = "blackbar_basic"
+
+            ###
+            # bbEl.cssText = 'filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=' + DefaultView.TEXT_SHADOWBOX_OPACITY*100 + ');'
+            bbEl.style.position = "absolute"
+            bbEl.style.left = "0px"
+            bbEl.style.bottom = "0px"
+            bbEl.style.width = "100%"
+            bbEl.style["background-color"] = "black"
+            bbEl.style.height = DefaultView.TEXT_SHADOWBOX_HEIGHT + "px"
+            # bbEl.className = "tomOnTheFly"
+            # bbEl.style["background-color"] = "black"
+            # bbEl.style["-ms-filter"] = "progid:DXImageTransform.Microsoft.Alpha(Opacity=" + (DefaultView.TEXT_SHADOWBOX_OPACITY*100)   + ")"
+            # bbEl.style.filters.item("DXImageTransform.Microsoft.Alpha").opacity = DefaultView.TEXT_SHADOWBOX_OPACITY * 100
+
+            foo = '<div id="innerFoo" style="width:100%; height:100%; -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);"></div>'
+            bbEl.innerHTML = foo
+
+            bbEl.style.opacity = DefaultView.TEXT_SHADOWBOX_OPACITY
+            bbEl.style.height = DefaultView.TEXT_SHADOWBOX_HEIGHT + "px"
+            ###
+            doorEl[0].appendChild(bbEl)
+          else
+            # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript to construct it all
+            # might want to separate this out to make this more explicit.
+            # also todo - make some convenience functions for setting all these attribs
+
+            # top level - svg
+            svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
+            svgEl.id = "mover" + elementSuffix
+            @addAttributeHelper(svgEl, {
+              width: @imgWidth
+              height: @imgHeight
+              baseProfile: "full"
+              version: "1.2"
+            })
+            (doorEl[0]).appendChild(svgEl)
+
+            # svgEl contains a "defs" element...
+            defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
+            svgEl.appendChild(defsEl)
+
+            # defs contains a mask...
+            maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
+            maskEl.id = "svgmask" + elementSuffix
+            @addAttributeHelper(maskEl, {
+              maskUnits: "userSpaceOnUse"
+              maskContentUnits: "userSpaceOnUse"
+              transform: "scale(1)"
+            })
+            defsEl.appendChild(maskEl)
+
+            # and mask contain a polygon
+            polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
+            polygonEl.id = "maskpoly" + elementSuffix
+            @addAttributeHelper(polygonEl, {
+              points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
+              fill: "white"
+            })
+            maskEl.appendChild(polygonEl)
+
+            # ...and svgEl also contains an image
+            imgEl = document.createElementNS(DefaultView.SVG_NS, "image")
+            imgEl.id = "image" + elementSuffix
+            @addAttributeHelper(imgEl, {
+              mask: "url(#svgmask" + elementSuffix + ")"
+            })
+            svgEl.appendChild(imgEl)
+
+            bbEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
+            bbEl.id = "bb" + elementSuffix
+            @addAttributeHelper(bbEl, {
+              points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftTextPoly else @rightTextPoly)
+              fill: "black"
+              "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY
+            })
+            svgEl.appendChild(bbEl)
+
+            ###
+            titleEl = @addTextToSVG(svgEl,
+                                    "title" + elementSuffix,
+                                    wordsX
+                                    @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT - titleHeight,
+                                    wordsWidth
+                                    titleHeight)
+
+            detailsEl = @addTextToSVG(svgEl,
+                                    "details" + elementSuffix,
+                                    wordsX
+                                    @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT,
+                                    wordsWidth
+                                    DefaultView.TEXT_SHADOWBOX_HEIGHT)
+            ###
+            
+
+
+            # end of normal styling. CoffeeScript's lack of brackets is a little annoying sometimes
+          this.putDoorInOpenPosition(doorEl, side)
+
 
           titleEl = $("<div/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
           detailsEl = $("<div/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
@@ -152,11 +212,6 @@ define(["view/abstractview"], (AbstractView) ->
           ###
 
           # style things appropriately
-          doorStyle = {
-            position: "inherit",
-            top: vertPos + "px",
-            display: (if i == 0 then "block" else "none")
-          }
 
           wordsAlignment = if side == "left" then "right" else "left"
           titleStyle = {
@@ -199,17 +254,24 @@ define(["view/abstractview"], (AbstractView) ->
             # this.clipElement(@rightTextPoly, bbEl, "textPolySVG_right")
           ###
 
-          this.putDoorInOpenPosition(doorEl, side)
-
+          doorStyle = {
+            position: "inherit",
+            top: vertPos + "px",
+            display: (if i == 0 then "block" else "none")
+          }
           doorEl.css(doorStyle)
           titleEl.css(titleStyle)
           detailsEl.css(detailsStyle)
+
 
           # and finally let's save things
           if (side == "left")
             @leftDoors.push(doorEl)
           else
             @rightDoors.push(doorEl)
+
+          console.log "end of this bit"
+          
 
       controlsEl = $("<div/>").css({"position": "relative", "top":@slideContainerDiv.height()}).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
       # listEl = $("<ul/>").appendTo(controlsEl)
@@ -287,6 +349,7 @@ define(["view/abstractview"], (AbstractView) ->
       for n, v of attribs
         o.setAttribute(n, v)
 
+    ###
     addTextToSVG: (container, idString, xPos, yPos, width, height, debugColor = null) ->
       foId = "fo_" + idString
 
@@ -310,6 +373,7 @@ define(["view/abstractview"], (AbstractView) ->
       }).appendTo($("#" + foId))
 
       return textHolder
+    ###
       
 
     putDoorInOpenPosition: (doorEl, side) ->
@@ -320,21 +384,29 @@ define(["view/abstractview"], (AbstractView) ->
 
     # do some math to figure out what's the offscreen and centered positions for each side of the show
     calculateSlideDestinations: ->
-      slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
-      choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+      # set this to adjust how far onscreen (positive number) the starting position for a door should be
+      # debugAdjuster = 200
+      debugAdjuster = 0
+
       centerOfDiv = @slideContainerDiv.width() / 2
 
-      @leftDoorClosedDestination = centerOfDiv - (@imgWidth - slantAdjustment) + choppedPixels
-      @rightDoorClosedDestination = centerOfDiv - slantAdjustment - choppedPixels
+      if (@basicMode)
+        @leftDoorClosedDestination = centerOfDiv - @imgWidth
+        @rightDoorClosedDestination = centerOfDiv
+      else
+        slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
+        choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
+        @leftDoorClosedDestination = centerOfDiv - (@imgWidth - slantAdjustment) + choppedPixels
+        @rightDoorClosedDestination = centerOfDiv - slantAdjustment - choppedPixels
+
+      # sometimes a gap is useful for debugging...
       gap = 0
       if gap > 0
         @leftDoorClosedDestination -= gap
         @rightDoorClosedDestination += gap
 
-      # set this to adjust how far onscreen (positive number) the starting position for a door should be
-      # debugAdjuster = 200
-      debugAdjuster = 0
+      # offscreen position is always the same
       @leftDoorOpenDestination = (-1 * @imgWidth) + debugAdjuster
       @rightDoorOpenDestination = @slideContainerDiv.width() - debugAdjuster
 
@@ -413,9 +485,12 @@ define(["view/abstractview"], (AbstractView) ->
         # imgEl.attr("xlink:href", slide.imgUrl)
 
         imgDomEl = document.getElementById("image" + suffix)
-        imgDomEl.setAttributeNS(DefaultView.XLINK_NS, 'href', slide.imgUrl)
-        imgDomEl.setAttribute('width', "100%")
-        imgDomEl.setAttribute('height', "100%")
+        if (@basicMode)
+          imgDomEl.setAttribute('src', slide.imgUrl)
+        else
+          imgDomEl.setAttributeNS(DefaultView.XLINK_NS, 'href', slide.imgUrl)
+          imgDomEl.setAttribute('width', "100%")
+          imgDomEl.setAttribute('height', "100%")
 
         # TODO? - sanitize this input? maybe allow a couple of tags but not full blown control...
         titleEl.html(slide.title)
@@ -433,13 +508,14 @@ define(["view/abstractview"], (AbstractView) ->
         else
           doorEl.css("left", destinations[i] + "px")
 
-        @enforceDimensions()
+        # doesnt seem necessary since reworking how doors are built
+        # @enforceDimensions()
 
+    ###
     enforceDimensions: () ->
       # very weird bug that manifested when integrating into Reason module - the right slide
       # had varying width/height as it animated, causing it to appear to "grow" from the right
       # and slide in from the top. This is part of a fix for that problem
-      console.log "REALLY ENfORCING DIMENIONS!!!"
 
       doors = [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
       for door in doors
@@ -449,36 +525,7 @@ define(["view/abstractview"], (AbstractView) ->
       for foo in [ $("#mover_left_0"), $("#mover_right_0") ]
         foo.width(@imgWidth)
         foo.height(@imgHeight)
-
-
-      # $("image_left_0").width(566)
-
-
-
-      # imgDomEl = document.getElementById("image_left_0")
-      # imgDomEl.setAttribute("width", "100%")
-      # imgDomEl.setAttribute("height", "100%")
-      # imgDomEl.style.width = "566px"
-      # imgDomEl.style.height = "331px"
-      # imgDomEl.width = 566
-      # imgDomEl.height = 331
-
-      # bar = document.getElementById("image_left_0")
-      # console.log "got bar:"
-      # console.log bar
-      # bar.setAttributeNS(null, 'width', '566')
-      # bar.setAttributeNS(null, 'height', '331')
-      # bar.style.width = "300px"
-      
-      ###
-      for foo in [ $("#image_left_0"), $("#image_right_0") ]
-        foo.attr('width', @imgWidth)
-        foo.attr('height', @imgHeight)
-        # foo.width(@imgWidth)
-        # foo.height(@imgHeight)
-        console.log "image [" + foo.attr('id') + "] has width [" + foo.width() + "]"
-      ###
-
+    ###
       
     ###
     onAnimationProgress: (anim, prog, remaining) ->

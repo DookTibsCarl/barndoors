@@ -115,5 +115,63 @@ define([], () ->
       elementA.css("z-index", topIdx)
       elementB.css("z-index", bottomIdx)
 
+
+    # pinched from http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-in-javascript-and-apply and rewritten in CS
+    ###
+    createCSSSelector: (selector, style) ->
+      if (!document.styleSheets)
+        return
+
+      if (document.getElementsByTagName("head").length == 0)
+        return
+
+      if (document.styleSheets.length > 0)
+        for ss, i in document.styleSheets
+          if (ss.disabled)
+            continue
+
+          media = ss.media
+          mediaType = typeof media
+
+          if (mediaType == "string")
+            if (media == "" or (media.indexOf("screen") != -1))
+              styleSheet = ss
+          else if (mediaType == "object")
+            if (media.mediaText == "" or (media.mediaText.indexOf("screen") != -1))
+              styleSheet = ss
+
+          if (typeof styleSheet != "undefined")
+            break
+
+      if (typeof styleSheet == "undefined")
+        styleSheetElement = document.createElement("style")
+        styleSheetElement.type = "text/css"
+
+        document.getElementsByTagName("head")[0].appendChild(styleSheetElement)
+
+        for ss, i in document.styleSheets
+          if ss.disabled
+            continue
+          styleSheet = ss
+
+        media = styleSheet.media
+        mediaType = typeof media
+
+      if (mediaType == "string")
+        for rule, i in styleSheet.rules
+          if (rule.selectorText and rule.selectorText.toLowerCase() == selector.toLowerCase())
+            rule.style.cssText = style
+            return
+
+        styleSheet.addRule(selector, style)
+      else if (mediaType == "object")
+        for rule, i in styleSheet.cssRules
+          if (rule.selectorText and rule.selectorText.toLowerCase() == selector.toLowerCase())
+            rule.style.cssText = style
+            return
+
+        styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length)
+    ###
+
   return AbstractView
 )
