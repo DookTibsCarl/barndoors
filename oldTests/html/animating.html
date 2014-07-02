@@ -3,8 +3,11 @@
 	<head>
 		<title>Barn Door Image Animation Experiments</title>
 
+		<!--
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.js"></script>
+		-->
+		<script type="text/javascript" src="../../lib/js/jquery.js"></script>
 
 		<script language="JavaScript">
 			var imageWidth = 204;
@@ -32,24 +35,25 @@
 			}
 
 			function drive() {
-				console.log("start animating!");
+				var easeFxn;
+				// easeFxn = "easeOutBounce";
+				easeFxn = "swing";
+
+				console.log("start animating with easeFxn [" + easeFxn + "]!");
 				var car1 = $("#car1");
 				var car2 = $("#car2");
 				// see http://api.jqueryui.com/easings/
-				var easeFxn;
-				easeFxn = "easeOutBounce";
-				// easeFxn = "swing";
 
 				var animLength = 500; // in ms
 
 				car1.animate({
-								"left": ((divWidth/2) - imageWidth) + "px",
+								"left": ((divWidth/2) - imageWidth) + "px"
 								}, animLength, easeFxn, function() {
 								animateDone("1");
 							});
 
 				car2.animate({
-								"left": (divWidth/2) + "px",
+								"left": (divWidth/2) + "px"
 								}, animLength, easeFxn, function() {
 								animateDone("2");
 							});
@@ -68,8 +72,8 @@
 		<hr>
 		<!-- take 1 - requires absolutely positioned div... -->
 		<div style="overflow: hidden; position: absolute; left:150px; top: 100px; width:600px; height:410px; background-color:gray" id="barn">
-			<img src="car1.jpeg" id="car1">
-			<img src="car2.jpeg" id="car2">
+			<img src="../images/car1.jpeg" id="car1">
+			<img src="../images/car2.jpeg" id="car2">
 		</div>
 	</body>
 </html>

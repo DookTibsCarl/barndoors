@@ -1,0 +1,31 @@
+<html>
+	<head>
+		<title>RequireJS Test Page</title>
+
+		<script language="javascript" src="../../lib/js/jquery.js"></script>
+		<script>
+
+			function loadWatcher(evt) {
+				console.log("watcher complete [" + evt + "]");
+				var target = $(evt.target);
+				console.log("target is [" + target + "]");
+				console.log("UP TOP img url is [" + target.attr('src') + "], foobar is [" + target.data("foobar") + "]");
+			}
+
+			function doStuff() {
+				console.log("hi!");
+				var sampleDiv = $("#sampleDiv");
+				var img = $("<img/>").data("foobar", "yo!").css("display","none").attr("src", "http://fc04.deviantart.net/fs70/f/2013/263/3/8/red_meeple_01_by_gamnamno-d6n2sbx.png").bind('load', loadWatcher).appendTo(sampleDiv);
+				console.log("img is [" + img + "]");
+				console.log("DOWN BELOW img url is [" + img.attr('src') + "], foobar is [" + img.data("foobar") + "]");
+
+			}
+
+		</script>
+
+	</head>
+
+	<body onLoad="doStuff();" bgcolor="lightgray">
+		[<span id="sampleDiv"></span>]
+	</body>
+</html>

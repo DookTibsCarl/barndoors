@@ -1,0 +1,123 @@
+<html>
+	<head>
+		<title>RequireJS Test Page</title>
+
+		<style>
+			.whiteText {
+				color: white;
+			}
+
+		</style>
+
+		<script type="text/javascript" src="../../lib/js/jquery.js"></script>
+
+	</head>
+
+	<body bgcolor="lightgray">
+		<svg style="position:inherit" id="blahblah" width="566" height="331" baseProfile="full" version="1.2">
+			 <image id="tommy" y="0" x="0" width="100%" height="100%"/>
+
+			 <polygon points="0 261 566 261 566 331 0 331" fill="black" fill-opacity=".55"/>
+
+			 <foreignObject class="node" x="0" y="251" width="566" height="80">
+			 <div class="whiteText">HELLO WORLD! <a href="http://google.com">this is a link</a></div>
+			 <!--
+			     <body xmlns="http://www.w3.org/1999/xhtml">
+				   <div>The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs</div>
+				</body>
+				-->
+			 </foreignObject>
+		</svg>
+
+	<script language="Javascript">
+		function fleshOutImages() {
+			// various failed experiments
+			// var img = $("#tommy");
+			// img.attr('xlink:href', 'http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg');
+			// var img = $("#blahblah").svg('get');
+			// console.log(img);
+			// img.setAttributeNS(null, 'xlink:href', 'http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg');
+			// img.setAttribute("x", "2px");
+
+			// THIS WAY WORKS!
+
+			// either way of getting this works
+			// var img = document.getElementById("tommy");
+			var img = $("#tommy")[0];
+			img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', 'http://tfeiler57864.acs.carleton.edu/barndoor/images/lake.jpg');
+			img.setAttribute('width', "100%");
+			img.setAttribute('height', "100%");
+		}
+
+		// see http://www.i-programmer.info/programming/graphics-and-imaging/3254-svg-javascript-and-the-dom.html
+
+		function setupStructure() {
+			/*
+			var svgEl = $("<svg/>").attr({
+				id: "blahblah",
+				width: 566,
+				height: 331,
+				baseProfile: "full",
+				version: "1.2"
+			}).css({
+				position: "inherit"
+			}).appendTo($("body"));
+			
+			var imgEl = $("<image/>").attr({
+				id: "tommy",
+				y: 0,
+				x: 0,
+				width: "100%",
+				height: "100%"
+			}).appendTo($("#blahblah"));
+			*/
+
+			$("<div/>").attr({
+				id: "red",
+				width: "800px",
+				height: "600px",
+				"color": "red"
+			}).html("hello there!").appendTo($("body"));
+
+			// create an svg element to put in here
+			var NS="http://www.w3.org/2000/svg";
+			var svgDomEl=document.createElementNS(NS,"svg");
+
+			svgDomEl.style.position = "inherit";
+			svgDomEl.id="blahblah";
+
+			svgDomEl.setAttribute("width", 566);
+			svgDomEl.setAttribute("height", 331);
+			svgDomEl.setAttribute("baseProfile", "full");
+			svgDomEl.setAttribute("version", "1.2");
+
+			// var container = document.body;
+			// var container = document.getElementById("red");
+			var container = $("#red")[0];
+			container.appendChild(svgDomEl);
+
+			// now create an image to go into it
+			var imgDomEl = document.createElementNS(NS, "image");
+			imgDomEl.id = "tommy";
+			imgDomEl.setAttribute("x", 0);
+			imgDomEl.setAttribute("y", 0);
+
+			svgDomEl.appendChild(imgDomEl);
+
+			/*
+			imgEl = $("<image/>").attr({
+				id: "tommy",
+				x: 0,
+				y: 0
+			});
+
+			svgDomEl.appendChild(imgEl[0]);
+			*/
+		}
+
+		// setTimeout(setupStructure, 100);
+		setTimeout(fleshOutImages, 200);
+	</script>
+
+	</body>
+</html>
