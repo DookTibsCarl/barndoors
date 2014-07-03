@@ -78,9 +78,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.imageWidth, @appModel.imageHeight)
 
       activePair = @appModel.getActivePair()
-      @logToConsole "new preload approach..."
       @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
-        @logToConsole "callback firing!"
         @view?.renderInitialView(@appModel.getActivePair())
 
         @preloadNextPair()
@@ -88,9 +86,6 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
 
     # loads the next set of images. No callback / fire and forget. If it hasn't finished by the time the n
     preloadNextPair: () ->
-      @logToConsole "disabling lookahead preload"
-      return
-
       peekPair = @appModel.getLookaheadPair()
       @imageLoader.ensureImagesLoaded([peekPair.leftSlide.imgUrl, peekPair.rightSlide.imgUrl])
 
