@@ -2,8 +2,11 @@
 define([], () ->
   class AbstractView
 
+    logToConsole: (s) ->
+      console.log(this.constructor.name + "::" + s)
+
     renderInitialView: (pair) ->
-      console.log "renderInitialView not implemented for [" + this.constructor.name + "]"
+      @logToConsole "renderInitialView not implemented for [" + this.constructor.name + "]"
 
     togglePlayPause: (index) ->
       $.event.trigger({
@@ -17,20 +20,20 @@ define([], () ->
       })
 
     showNextPair: (index, pair, reversing = false) ->
-      console.log "showNextPair not implemented for [" + this.constructor.name + "]"
+      @logToConsole "showNextPair not implemented for [" + this.constructor.name + "]"
 
     updatePlayPauseStatus: (isPlaying) ->
-      console.log "updatePlayPauseStatus not implemented for [" + this.constructor.name + "]"
+      @logToConsole "updatePlayPauseStatus not implemented for [" + this.constructor.name + "]"
 
     pseudoDestructor: () ->
-      console.log "pseudoDestructor::[" + this.constructor.name + "]"
+      @logToConsole "pseudoDestructor::[" + this.constructor.name + "]"
 
     # see http://sawyerhollenshead.com/writing/using-svg-clippath/
     
     # points is an array of arrays. Each sub-array is x in slot 0, y in slot 1. imgToClip is a jquery image element
     # currently works in Firefox, Safari, Chrome on OSX. IE? Mobile?
     clipElement: (points, imgToClip, svgUrlId) ->
-      console.log "CLIP ELEMENT DELAYED!!!!!"
+      @logToConsole "CLIP ELEMENT DELAYED!!!!!"
       return
 
       if (imgToClip.length > 0)
@@ -74,11 +77,11 @@ define([], () ->
 
       # do a little trig to calculate the angle of the relevant triangle; we'll need this to properly crop the background text box
       # fullHypotenuseLength = Math.sqrt((imgHeight * imgHeight) + (insetDiff * insetDiff))
-      # console.log "triangle width=[" + insetDiff + "], triangle height=[" + imgHeight + "], fullHypotenuseLength = [" + fullHypotenuseLength + "]"
+      # @logToConsole "triangle width=[" + insetDiff + "], triangle height=[" + imgHeight + "], fullHypotenuseLength = [" + fullHypotenuseLength + "]"
       insetDiff = Math.abs(topEdgeInset - bottomEdgeInset)
       bottomAngle = Math.atan(imgHeight / insetDiff) * RAD_TO_DEG
       topAngle = Math.atan(insetDiff / imgHeight) * RAD_TO_DEG
-      console.log "angles are [" + bottomAngle + "] / [" + topAngle + "]"
+      @logToConsole "angles are [" + bottomAngle + "] / [" + topAngle + "]"
 
       textTriangleBase = textBoxHeight / Math.tan(bottomAngle * DEG_TO_RAD)
 

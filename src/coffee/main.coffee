@@ -48,7 +48,6 @@ if !Array.prototype.filter
 define("bootstrapper", ["module"], (module) ->
   bootstrap = () ->
     kickoff = (cfg) ->
-      console.log "new style kickoff 4"
       require(["controller"], (BarnDoorController) ->
         bdc = new BarnDoorController()
         bdc.setup(cfg)

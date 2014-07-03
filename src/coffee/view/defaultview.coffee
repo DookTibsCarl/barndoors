@@ -17,7 +17,7 @@ define(["view/abstractview"], (AbstractView) ->
     @XLINK_NS = "http://www.w3.org/1999/xlink"
 
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
-      console.log "constructing default view..."
+      @logToConsole "constructing default view..."
       @targetDiv = $("##{@targetDivName}")
 
       # @createCSSSelector(".tomOnTheFly", "width:100%; background-color:red")
@@ -72,7 +72,7 @@ define(["view/abstractview"], (AbstractView) ->
       # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
       # we swap the z-order as necessary.
 
-      console.log "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
+      @logToConsole "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
 
       halfDiv = @targetDiv.width()/2
       cutoffImageAmount = @imgWidth - halfDiv
@@ -83,7 +83,7 @@ define(["view/abstractview"], (AbstractView) ->
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
-          console.log "looping for [" + elementSuffix + "]"
+          @logToConsole "looping for [" + elementSuffix + "]"
           # add the necessary structure to the DOM
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
 
@@ -98,7 +98,7 @@ define(["view/abstractview"], (AbstractView) ->
 
 
           if (@basicMode)
-            console.log "RENDERING IN BASIC MODE"
+            @logToConsole "RENDERING IN BASIC MODE"
             imgEl = document.createElement("img")
             imgEl.id = "image" + elementSuffix
             doorEl[0].appendChild(imgEl)
@@ -270,7 +270,7 @@ define(["view/abstractview"], (AbstractView) ->
           else
             @rightDoors.push(doorEl)
 
-          console.log "end of this bit"
+          @logToConsole "end of this bit"
           
 
       controlsEl = $("<div/>").css({"position": "relative", "top":@slideContainerDiv.height()}).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
@@ -279,7 +279,7 @@ define(["view/abstractview"], (AbstractView) ->
       for i in [0..pairCount-1]
         # liEl = $("<li/>").appendTo(listEl)
         # liEl.html("SLIDE " + (i+1))
-        console.log "need a control for [" + i + "]"
+        @logToConsole "need a control for [" + i + "]"
         jumpEl = $("<span/>").attr("class", "slideJumpControl").appendTo(controlsEl)
 
         jumpElStyle = {
@@ -294,7 +294,7 @@ define(["view/abstractview"], (AbstractView) ->
         classHook = this
         jumpEl.click(() ->
           if classHook.currentlyAnimating
-            # console.log "not done with previous animation..."
+            # @logToConsole "not done with previous animation..."
           else
             classHook.jumpToIndex($(this).index())
         )
@@ -326,12 +326,12 @@ define(["view/abstractview"], (AbstractView) ->
 
     ###
     cropImagesDelayed: ->
-      console.log "DELAYED here we go [" + this + "]"
+      @logToConsole "DELAYED here we go [" + this + "]"
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
           imgEl = $("#image" + elementSuffix);
-          console.log "IMG EL IS [" + imgEl.attr('id') + "]..."
+          @logToConsole "IMG EL IS [" + imgEl.attr('id') + "]..."
           if (side == "left")
             this.clipElement(@leftImagePoly, imgEl, "polySVG_left")
           else
@@ -412,7 +412,7 @@ define(["view/abstractview"], (AbstractView) ->
 
 
     renderInitialView: (pair) ->
-      console.log "rendering with [" + pair + "]..."
+      @logToConsole "rendering with [" + pair + "]..."
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
 
@@ -422,10 +422,10 @@ define(["view/abstractview"], (AbstractView) ->
       @playPauseEl.html(if isPlaying then "PAUSE" else "PLAY")
 
     reRenderJumpControls: (index) ->
-      console.log "update jumpers [" + index + "]"
+      @logToConsole "update jumpers [" + index + "]"
       # spans = $("#barndoorControls > span")
       spans = $("#barndoorControls > span.slideJumpControl")
-      console.log spans
+      @logToConsole spans
       for i in [0..spans.length-1]
         span = spans.eq(i)
         span.css("background-color", if i == index then "green" else "red")
@@ -529,19 +529,19 @@ define(["view/abstractview"], (AbstractView) ->
       
     ###
     onAnimationProgress: (anim, prog, remaining) ->
-      console.log "animating [" + prog + "]/[" + remaining "]"
+      @logToConsole "animating [" + prog + "]/[" + remaining "]"
     ###
 
     onAnimationComplete: ->
       @doorsThatFinishedAnimating++
       if @doorsThatFinishedAnimating == 2
         @currentlyAnimating = false
-        # console.log "ALL DOORS FINISHED!"
+        # @logToConsole "ALL DOORS FINISHED!"
       else
-        # console.log "NOT DONE YET!"
+        # @logToConsole "NOT DONE YET!"
 
     pseudoDestructor: ->
-      console.log "cleaning up custom default..."
+      @logToConsole "cleaning up custom default..."
       $("##{@targetDivName} > div").remove()
       # @targetDiv.css({ "background-color": "", "overflow": "", "position": "" })
       super

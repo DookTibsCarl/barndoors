@@ -5,7 +5,7 @@ define(["view/abstractview"], (AbstractView) ->
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       # @$ = jq
       @targetDiv = $("##{@targetDivName}")
-      console.log "constructing simple view!"
+      @logToConsole "constructing simple view!"
 
       someWidth = "200px"
       # @targetDiv.css({ "background-color": "", "overflow": "hidden", "position": "absolute" })
@@ -32,7 +32,7 @@ define(["view/abstractview"], (AbstractView) ->
     showNextPair: (index, pair, reversing = false) ->
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
-      console.log "SHOWING [" + @leftSlide.title + "]/[" + @rightSlide.title + "]"
+      @logToConsole "SHOWING [" + @leftSlide.title + "]/[" + @rightSlide.title + "]"
 
       $("#imgleftContainer").attr("src", @leftSlide.imgUrl);
       $("#imgrightContainer").attr("src", @rightSlide.imgUrl);
@@ -45,7 +45,7 @@ define(["view/abstractview"], (AbstractView) ->
 
 
     pseudoDestructor: ->
-      console.log "cleaning up custom simple..."
+      @logToConsole "cleaning up custom simple..."
       $("##{@targetDivName} > div").remove()
       super
 
