@@ -40,7 +40,7 @@ define(["view/abstractview"], (AbstractView) ->
 
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
       @basicMode = false
-      if (true and !document.createElementNS)
+      if (!document.createElementNS)
         @basicMode = true
 
       pairCount = @mainController.appModel.getPairCount()
