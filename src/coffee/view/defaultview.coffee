@@ -10,6 +10,11 @@ define(["view/abstractview"], (AbstractView) ->
     @TEXT_SHADOWBOX_HEIGHT = 100
     @TEXT_SHADOWBOX_OPACITY = 0.5
 
+    # if we add any more of these, I think we need to rethink how this rendering works. It's getting close to being out of hand.
+    @RENDER_MODE_DEFAULT = "defaultMode"     # standard render mode, works for IE 9+, Safari 5+, Firefox, Chrome, etc. Uses svg's with mask
+    @RENDER_MODE_CLIP_PATH = "clipPathMode"  # works for builtin Android browser. Uses svg's with clip-path. Should be almost identical to default for functionality
+    @RENDER_MODE_BASIC = "basicMode"         # basic render mode - does NOT use svg's. Has most features except lacks diagonal slice. Works for IE8
+
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
 
@@ -39,9 +44,12 @@ define(["view/abstractview"], (AbstractView) ->
 
 
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
-      @basicMode = false
+      @renderMode = DefaultView.RENDER_MODE_DEFAULT
       if (!document.createElementNS)
-        @basicMode = true
+        @renderMode = DefaultView.RENDER_MODE_BASIC
+
+      # hardcoded for testing
+      # @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
 
       pairCount = @mainController.appModel.getPairCount()
 
@@ -80,6 +88,34 @@ define(["view/abstractview"], (AbstractView) ->
       # choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
       maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
+      # add the clip-path polygons used by the clip_path rendering style
+      if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+        sides = ["left","right"]
+        for side, i in sides
+          poly = @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
+          svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
+          @addAttributeHelper(svgEl, {
+            width: 0
+            height: 0
+          })
+          (@slideContainerDiv[0]).appendChild(svgEl)
+
+          defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
+          svgEl.appendChild(defsEl)
+
+          clipPathEl = document.createElementNS(DefaultView.SVG_NS, "clipPath")
+          @addAttributeHelper(clipPathEl, {
+            id: side + "_clip_path"
+          })
+          defsEl.appendChild(clipPathEl)
+
+          polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
+          @addAttributeHelper(polygonEl, {
+            points: poly
+          })
+          clipPathEl.appendChild(polygonEl)
+
+
       for letter, i in ["A","B"]
         for side in ["left", "right"]
           elementSuffix = "_#{side}_#{i}"
@@ -97,7 +133,7 @@ define(["view/abstractview"], (AbstractView) ->
           titleHeight = 65
 
 
-          if (@basicMode)
+          if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             @logToConsole "RENDERING IN BASIC MODE"
             imgEl = document.createElement("img")
             imgEl.id = "image" + elementSuffix
@@ -126,7 +162,7 @@ define(["view/abstractview"], (AbstractView) ->
             bbEl.style.height = DefaultView.TEXT_SHADOWBOX_HEIGHT + "px"
             ###
             doorEl[0].appendChild(bbEl)
-          else
+          else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
             # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript to construct it all
             # might want to separate this out to make this more explicit.
             # also todo - make some convenience functions for setting all these attribs
@@ -142,35 +178,45 @@ define(["view/abstractview"], (AbstractView) ->
             })
             (doorEl[0]).appendChild(svgEl)
 
-            # svgEl contains a "defs" element...
-            defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
-            svgEl.appendChild(defsEl)
+            if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
+              # svgEl contains a "defs" element...
+              defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
+              svgEl.appendChild(defsEl)
 
-            # defs contains a mask...
-            maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
-            maskEl.id = "svgmask" + elementSuffix
-            @addAttributeHelper(maskEl, {
-              maskUnits: "userSpaceOnUse"
-              maskContentUnits: "userSpaceOnUse"
-              transform: "scale(1)"
-            })
-            defsEl.appendChild(maskEl)
+              # defs contains a mask...
+              maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
+              maskEl.id = "svgmask" + elementSuffix
+              @addAttributeHelper(maskEl, {
+                maskUnits: "userSpaceOnUse"
+                maskContentUnits: "userSpaceOnUse"
+                transform: "scale(1)"
+              })
+              defsEl.appendChild(maskEl)
 
-            # and mask contain a polygon
-            polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
-            polygonEl.id = "maskpoly" + elementSuffix
-            @addAttributeHelper(polygonEl, {
-              points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
-              fill: "white"
-            })
-            maskEl.appendChild(polygonEl)
+              # and mask contain a polygon
+              polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
+              polygonEl.id = "maskpoly" + elementSuffix
+              @addAttributeHelper(polygonEl, {
+                points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
+                fill: "white"
+              })
+              maskEl.appendChild(polygonEl)
+            # else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+              # no special handling required
 
             # ...and svgEl also contains an image
             imgEl = document.createElementNS(DefaultView.SVG_NS, "image")
             imgEl.id = "image" + elementSuffix
-            @addAttributeHelper(imgEl, {
-              mask: "url(#svgmask" + elementSuffix + ")"
-            })
+
+            if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
+              @addAttributeHelper(imgEl, {
+                mask: "url(#svgmask" + elementSuffix + ")"
+              })
+            else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+              @addAttributeHelper(imgEl, {
+                "clip-path": "url(#" + side + "_clip_path)"
+              })
+
             svgEl.appendChild(imgEl)
 
             bbEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
@@ -390,10 +436,10 @@ define(["view/abstractview"], (AbstractView) ->
 
       centerOfDiv = @slideContainerDiv.width() / 2
 
-      if (@basicMode)
+      if (@renderMode == DefaultView.RENDER_MODE_BASIC)
         @leftDoorClosedDestination = centerOfDiv - @imgWidth
         @rightDoorClosedDestination = centerOfDiv
-      else
+      else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
         slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
         choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
@@ -485,9 +531,9 @@ define(["view/abstractview"], (AbstractView) ->
         # imgEl.attr("xlink:href", slide.imgUrl)
 
         imgDomEl = document.getElementById("image" + suffix)
-        if (@basicMode)
+        if (@renderMode == DefaultView.RENDER_MODE_BASIC)
           imgDomEl.setAttribute('src', slide.imgUrl)
-        else
+        else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
           imgDomEl.setAttributeNS(DefaultView.XLINK_NS, 'href', slide.imgUrl)
           imgDomEl.setAttribute('width', "100%")
           imgDomEl.setAttribute('height', "100%")
