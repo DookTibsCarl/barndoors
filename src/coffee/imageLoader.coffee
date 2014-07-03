@@ -25,11 +25,14 @@ define([""], () ->
     @DISABLE_PRELOADS = false # used for testing only, NEVER SET THIS TO TRUE
 
     constructor: () ->
-      console.log "constructing ImageLoader..."
+      @logToConsole "constructing ImageLoader..."
       @loadedImages = {}    # storage for images that we have successfully preloaded
       @activeLoaders = {}   # storage for offscreen <img> elements that we are using to handle preloads
       @postLoadRouters = [] # each element of the array is an object with two properties: 1. "urls": an array of image urls.
                             #                                                             2. "callback": a function to call once all "urls" are loaded
+
+    logToConsole: (s) ->
+      console.log("ImageLoader::" + s)
 
     imageLazyLoadComplete: (evt) ->
       targetElement = $(evt.target)
@@ -39,40 +42,41 @@ define([""], () ->
       targetElement.remove()
       @loadedImages[elementUrl] = true
 
-      console.log "new methodology - loaded: [" + elementUrl + "]"
+      @logToConsole "new methodology - loaded: [" + elementUrl + "]"
 
       for plr, i in @postLoadRouters
-        console.log "checking plr index [" + i + "]/[" + plr.urls + "]..."
+        @logToConsole "checking plr index [" + i + "]/[" + plr.urls + "]..."
         for url, k in plr.urls
-          console.log "   foofoo [" + url + "]/[" + k + "]"
+          @logToConsole "   foofoo [" + url + "]/[" + k + "]"
           arrayPos = url.indexOf(elementUrl)
+          @logToConsole "past indexOf!"
 
           if (arrayPos != -1)
             @postLoadRouters[i].urls.splice(k, 1)
 
             if @postLoadRouters[i].urls.length == 0
-              console.log "all in this section are done; break!"
+              @logToConsole "all in this section are done; break!"
               cb = plr.callback
               @postLoadRouters.splice(i, 1)
 
               if (cb != null)
-                console.log "firing callback!"
+                @logToConsole "firing callback!"
                 cb()
             else
-              console.log "not done yet..."
+              @logToConsole "not done yet..."
 
             return
 
-      console.log "loads are done but nobody cares"
+      @logToConsole "loads are done but nobody cares"
 
     debugPLR: (foo) ->
-      console.log ("##### PLR START (" + foo + ")#####")
+      @logToConsole("##### PLR START (" + foo + ")#####")
       for plr, i in @postLoadRouters
-        console.log "[" + i + "]"
+        @logToConsole "[" + i + "]"
         
         for u, k in plr.urls
-          console.log "     [" + k + "] -> [" + u + "]"
-      console.log ("##### PLR END #####")
+          @logToConsole "     [" + k + "] -> [" + u + "]"
+      @logToConsole("##### PLR END #####")
 
     setupCallbacks: (urls, callback) ->
       # @debugPLR("start")
@@ -80,7 +84,7 @@ define([""], () ->
       # scenario - we display pair 0, and immediately start preloading pair 1. While that's in progress,
       # user clicks on pair 9. We start loading pair 9 and don't care about when pair 1 finishes.
       for plr, i in @postLoadRouters
-        console.log "clearing out old garbage"
+        @logToConsole "clearing out old garbage"
         loopUrls = plr.urls
 
         # remove any instance of the urls in "urls" from the ones stored on this postLoadRouter object
@@ -107,7 +111,7 @@ define([""], () ->
           callback()
         return
 
-      console.log ">>>>> preloading images [" + urls + "] (" + new Date() + ")"
+      @logToConsole ">>>>> preloading images [" + urls + "] (" + new Date() + ")"
       indexesToLoad = []
 
       allImagesAlreadyLoaded = true
@@ -115,17 +119,17 @@ define([""], () ->
       for url, i in urls
         if (@loadedImages[url] != true)
           allImagesAlreadyLoaded = false
-          console.log "url #" + (i+1) + ": [" + url + "] needs to be loaded..."
+          @logToConsole "url #" + (i+1) + ": [" + url + "] needs to be loaded..."
           plrUrls.push(url)
           if (@activeLoaders[url] != null)
             # hven't yet tried to load this one
             indexesToLoad.push(i)
           else
             # some earlier process started this one loading...
-            console.log "someone already started this load..."
+            @logToConsole "someone already started this load..."
 
       if allImagesAlreadyLoaded
-        console.log "everything already loaded"
+        @logToConsole "everything already loaded"
         if (callback != null)
           callback()
       else
