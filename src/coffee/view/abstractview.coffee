@@ -60,12 +60,32 @@ define([], () ->
     DEG_TO_RAD = Math.PI/180
     RAD_TO_DEG = 180/Math.PI
 
+    # takes a 5 point polygon (upper left, upper right, lower right, lower left, back to upper left) and shifts it by some adjustment
+    squeezePoly: (p, topAdjust, bottomAdjust, leftAdjust, rightAdjust) ->
+      if (p.length != 5)
+        return p
+      topLeft = p[0]
+      topRight = p[1]
+      bottomRight = p[2]
+      bottomLeft = p[3]
+      topLeftLoop = p[4]
+
+      [ topLeft[0], topLeft[1] ] = [ topLeft[0] + leftAdjust, topLeft[1] + topAdjust ]
+      [ topRight[0], topRight[1] ] = [ topRight[0] + rightAdjust, topRight[1] + topAdjust ]
+      [ bottomRight[0], bottomRight[1] ] = [ bottomRight[0] + rightAdjust, bottomRight[1] + bottomAdjust ]
+      [ bottomLeft[0], bottomLeft[1] ] = [ bottomLeft[0] + leftAdjust, bottomLeft[1] + bottomAdjust ]
+      [ topLeftLoop[0], topLeftLoop[1] ] = [ topLeftLoop[0] + leftAdjust, topLeftLoop[1] + topAdjust ]
+
+      return [topLeft, topRight, bottomRight, bottomLeft, topLeftLoop]
+      
+
     createClippingPolygons: (imgWidth, imgHeight, topEdgeInset, bottomEdgeInset, textBoxHeight) ->
       leftImagePoly = [
         [0, 0],
         [imgWidth - topEdgeInset, 0],
         [imgWidth - bottomEdgeInset, imgHeight],
         [0, imgHeight],
+        [0, 0]
       ]
 
       rightImagePoly = [
@@ -73,6 +93,7 @@ define([], () ->
         [imgWidth, 0],
         [imgWidth, imgHeight],
         [topEdgeInset, imgHeight],
+        [bottomEdgeInset, 0],
       ]
 
       # do a little trig to calculate the angle of the relevant triangle; we'll need this to properly crop the background text box

@@ -246,6 +246,12 @@ define(["view/abstractview"], (AbstractView) ->
             })
             svgEl.appendChild(bbEl)
 
+            outlineEl = document.createElementNS(DefaultView.SVG_NS, "polyline")
+            @addAttributeHelper(outlineEl, {
+              points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == "left" then @leftImagePoly else @rightImagePoly), 1, -1, 0, 0))
+              style: "fill:none; stroke:white; stroke-width:3"
+            })
+            svgEl.appendChild(outlineEl)
             ###
             titleEl = @addTextToSVG(svgEl,
                                     "title" + elementSuffix,
