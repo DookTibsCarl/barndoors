@@ -14,6 +14,7 @@ define(["view/abstractview"], (AbstractView) ->
     @RENDER_MODE_DEFAULT = "defaultMode"     # standard render mode, works for IE 9+, Safari 5+, Firefox, Chrome, etc. Uses svg's with mask
     @RENDER_MODE_CLIP_PATH = "clipPathMode"  # works for builtin Android browser. Uses svg's with clip-path. Should be almost identical to default for functionality
     @RENDER_MODE_BASIC = "basicMode"         # basic render mode - does NOT use svg's. Has most features except lacks diagonal slice. Works for IE8
+    @RENDER_MODE_BROWSER_TOO_OLD = "tooOld"  # browser has been deemed too old to do much of anything.
 
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
@@ -48,8 +49,20 @@ define(["view/abstractview"], (AbstractView) ->
       if (!document.createElementNS)
         @renderMode = DefaultView.RENDER_MODE_BASIC
 
-      # hardcoded for testing
-      # @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
+      nua = navigator.userAgent
+      isStockAndroid = ((nua.indexOf('Mozilla/5.0') > -1 and nua.indexOf('Android ') > -1 and nua.indexOf('AppleWebKit') > -1) and !(nua.indexOf('Chrome') > -1))
+      if (isStockAndroid)
+        @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
+
+      if (navigator.appName == 'Microsoft Internet Explorer')
+        re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})")
+        if (re.exec(nua) != null)
+          ieVer = parseFloat( RegExp.$1 )
+          if (ieVer < 8.0)
+            @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
+
+      $("#debugUserAgent").html(nua)
+      $("#debugRenderMode").html(@renderMode)
 
       pairCount = @mainController.appModel.getPairCount()
 
@@ -89,7 +102,12 @@ define(["view/abstractview"], (AbstractView) ->
       maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
       # add the clip-path polygons used by the clip_path rendering style
-      if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+      if (@renderMode == DefaultView.RENDER_MODE_BROWSER_TOO_OLD)
+        @slideContainerDiv.remove()
+        # @slideContainerDiv.html("sorry, browser too old")
+        @controlContainerDiv.remove()
+        
+      else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
         sides = ["left","right"]
         for side, i in sides
           poly = @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
