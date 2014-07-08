@@ -248,7 +248,8 @@ define(["view/abstractview"], (AbstractView) ->
 
             outlineEl = document.createElementNS(DefaultView.SVG_NS, "polyline")
             @addAttributeHelper(outlineEl, {
-              points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == "left" then @leftImagePoly else @rightImagePoly), 1, -1, 0, 0))
+              # points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == "left" then @leftImagePoly else @rightImagePoly), -10, 10, 0, 0))
+              points: @translatePointsFromArrayToSVGNotation(if side == "left" then [@leftImagePoly[1], @leftImagePoly[2]] else ([@rightImagePoly[0], @rightImagePoly[3]]))
               style: "fill:none; stroke:white; stroke-width:3"
             })
             svgEl.appendChild(outlineEl)
@@ -343,40 +344,8 @@ define(["view/abstractview"], (AbstractView) ->
           @logToConsole "end of this bit"
           
 
-      controlsEl = $("<div/>").css({"position": "relative", "top":@slideContainerDiv.height()}).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
-      # listEl = $("<ul/>").appendTo(controlsEl)
-      # for i in [0..@pairCount-1]
-      for i in [0..pairCount-1]
-        # liEl = $("<li/>").appendTo(listEl)
-        # liEl.html("SLIDE " + (i+1))
-        @logToConsole "need a control for [" + i + "]"
-        jumpEl = $("<span/>").attr("class", "slideJumpControl").appendTo(controlsEl)
-
-        jumpElStyle = {
-          # width: 50
-          # height: 50
-          "background-color": "red"
-          cursor: "hand"
-          margin: 20
-          # padding: 20
-        }
-
-        classHook = this
-        jumpEl.click(() ->
-          if classHook.currentlyAnimating
-            # @logToConsole "not done with previous animation..."
-          else
-            classHook.jumpToIndex($(this).index())
-        )
-
-        jumpEl.css(jumpElStyle)
-        jumpEl.html("slide_" + (i+1))
-
-      @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
-      @playPauseEl.click(() ->
-        classHook.togglePlayPause()
-      )
-      @reRenderJumpControls(@mainController.appModel.activePairIndex)
+      # @addControls("paginated")
+      @addControls("prevNext")
 
       @activeDoorIndex = 0
       # setTimeout((=> @cropImagesDelayed()), 2000)
@@ -393,6 +362,50 @@ define(["view/abstractview"], (AbstractView) ->
       }
       blackBarEl.css(blackBarStyle)
       ###
+
+    addControls: (controlType) ->
+      controlsEl = $("<div/>").css({"position": "relative", "top":@slideContainerDiv.height()}).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
+
+      classHook = this
+      if (controlType == "paginated")
+        pairCount = @mainController.appModel.getPairCount()
+        for i in [0..pairCount-1]
+          jumpEl = $("<span/>").attr("class", "slideJumpControl").appendTo(controlsEl)
+
+          jumpElStyle = {
+            "background-color": "red"
+            cursor: "hand"
+            margin: 20
+          }
+
+          jumpEl.click(() ->
+            if classHook.currentlyAnimating
+            else
+              classHook.jumpToIndex($(this).index())
+          )
+
+          jumpEl.css(jumpElStyle)
+          jumpEl.html("slide_" + (i+1))
+
+        @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
+        @reRenderJumpControls(@mainController.appModel.activePairIndex)
+      else
+        prevEl = $("<span/>").attr("class", "slidePrevNextControl").html("[<-] ").appendTo(controlsEl)
+        @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
+        nextEl = $("<span/>").attr("class", "slidePrevNextControl").html(" [->]").appendTo(controlsEl)
+
+        for el, i in [prevEl, nextEl]
+          el.click(() ->
+            if ! classHook.currentlyAnimating
+              if ($(this).index() == 0)
+                classHook.moveToPrevIndex()
+              else
+                classHook.moveToNextIndex()
+          )
+        
+      @playPauseEl.click(() ->
+        classHook.togglePlayPause()
+      )
 
     ###
     cropImagesDelayed: ->

@@ -19,6 +19,16 @@ define([], () ->
         jumpIndex: index
       })
 
+    moveToNextIndex: () ->
+      $.event.trigger({
+        type: "moveToNextSlideIndex"
+      })
+
+    moveToPrevIndex: () ->
+      $.event.trigger({
+        type: "moveToPrevSlideIndex"
+      })
+
     showNextPair: (index, pair, reversing = false) ->
       @logToConsole "showNextPair not implemented for [" + this.constructor.name + "]"
 

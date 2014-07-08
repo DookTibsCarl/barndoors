@@ -38,9 +38,19 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
       @activePairIndex = index
 
     advanceToNextPair: ->
-      @activePairIndex++
-      if (@activePairIndex >= @pairs.length)
-        @activePairIndex = 0
+      @activePairIndex = @getNextPairIndex()
+
+    getNextPairIndex: ->
+      rv = @activePairIndex + 1
+      if (rv >= @pairs.length)
+        rv = 0
+      return rv
+
+    getPrevPairIndex: ->
+      rv = @activePairIndex - 1
+      if (rv < 0)
+        rv = @pairs.length - 1
+      return rv
 
     debug: ->
       console.log "###### model with [#{@pairs.length}] pairs #####"

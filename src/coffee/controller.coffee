@@ -7,7 +7,15 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
 
       @autoplayTimeout = null
       $(document).on("jumpToSlideIndex", (evt) => (
-        @handleJump(evt)
+        @handleJump(evt.jumpIndex)
+      ))
+
+      $(document).on("moveToNextSlideIndex", (evt) => (
+        @handleJump(@appModel.getNextPairIndex(), 1)
+      ))
+
+      $(document).on("moveToPrevSlideIndex", (evt) => (
+        @handleJump(@appModel.getPrevPairIndex(), -1)
       ))
 
       $(document).on("toggleAutoplaySlideshow", (evt) => (
@@ -29,8 +37,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       # either way we need to notify our views as some of them include an interface for play/pause
       @view?.updatePlayPauseStatus(not @isSlideshowPaused())
 
-    handleJump: (evt) ->
-      jumpIndex = evt.jumpIndex
+    handleJump: (jumpIndex, forceForwardOrBackward = 0) ->
       clearTimeout(@autoplayTimeout) # turn off autoplay in case it finishes before the preload does
 
       if (jumpIndex != @appModel.activePairIndex)
@@ -41,7 +48,14 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
         activePair = @appModel.getActivePair()
         @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
           updatedIndex = @appModel.activePairIndex
-          @view?.showNextPair(updatedIndex, activePair, updatedIndex < oldIndex)
+
+          if (forceForwardOrBackward == 0)
+            reverseAnim = updatedIndex < oldIndex
+          else
+            reverseAnim = forceForwardOrBackward == -1
+
+
+          @view?.showNextPair(updatedIndex, activePair, reverseAnim)
           @preloadNextPair()
 
           if not @isSlideshowPaused()
