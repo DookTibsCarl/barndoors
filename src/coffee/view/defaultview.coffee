@@ -1,7 +1,7 @@
 # different views can do things like slice and dice the image, handle animating, etc.
 # right now this is doing an awful lot...
-define(["view/abstractview"], (AbstractView) ->
-  class DefaultView extends AbstractView
+define(["view/baseview"], (BaseView) ->
+  class DefaultView extends BaseView
     # currently hardcoded, and polygons are associated with the overall view
     # and not with individual items. If we allow different polys per pair, 
     # need to rethink this...
@@ -28,24 +28,6 @@ define(["view/abstractview"], (AbstractView) ->
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       @logToConsole "constructing default view..."
       @targetDiv = $("##{@targetDivName}")
-
-      # @createCSSSelector(".tomOnTheFly", "width:100%; background-color:red")
-      # styleDef = "position: absolute; left: 0px; bottom:0px; width:100%; height: " + DefaultView.TEXT_SHADOWBOX_HEIGHT + "px; -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=" + (DefaultView.TEXT_SHADOWBOX_OPACITY * 100) + ")'; opacity: " + DefaultView.TEXT_SHADOWBOX_OPACITY + "; background-color:green"
-      # @createCSSSelector(".blackbar_basic", styleDef
-      # $("head").append("<style>.blackbar_basic { " + styleDef + " }</style>")
-
-      ###
-      css = ".blackbar_basic {" + styleDef + "}"
-      head = document.head or document.getElementsByTagName('head')[0]
-      style = document.createElement('style')
-      style.type = 'text/css'
-      if (style.styleSheet)
-        style.styleSheet.cssText = css
-      else
-        style.appendChild(document.createTextNode(css))
-      head.appendChild(style)
-      ###
-
 
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
       @renderMode = DefaultView.RENDER_MODE_DEFAULT
@@ -74,15 +56,7 @@ define(["view/abstractview"], (AbstractView) ->
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
 
-      # shift the y psitio down...
-      # TODO - fix this, this is ugly and confusing should just be in the initial calculation. IT's a side-effect of
-      # changing how the clipping stuff works.
-      for tp in [@leftTextPoly, @rightTextPoly]
-        for xy in tp
-          xy[1] += (@imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT)
-
       this.calculateSlideDestinations()
-      # this.fleshOutInlineSVG()
 
       @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
@@ -93,10 +67,10 @@ define(["view/abstractview"], (AbstractView) ->
 
       # TODO - stop giving things unique id's and select them based on class/hierarchy perhaps? Or if not, at least break "door"/"title"/etc. out into consts
 
+
       # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
       # we swap the z-order as necessary.
-
-      @logToConsole "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
+      # @logToConsole "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
 
       halfDiv = @targetDiv.width()/2
       cutoffImageAmount = @imgWidth - halfDiv
@@ -153,7 +127,6 @@ define(["view/abstractview"], (AbstractView) ->
           wordsWidth = halfDiv - (slantAdjustment * 2)
           titleHeight = 65
 
-
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             @logToConsole "RENDERING IN BASIC MODE"
             imgEl = document.createElement("img")
@@ -163,25 +136,6 @@ define(["view/abstractview"], (AbstractView) ->
             bbEl = document.createElement("div")
             bbEl.className = "blackbar_basic"
 
-            ###
-            # bbEl.cssText = 'filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=' + DefaultView.TEXT_SHADOWBOX_OPACITY*100 + ');'
-            bbEl.style.position = "absolute"
-            bbEl.style.left = "0px"
-            bbEl.style.bottom = "0px"
-            bbEl.style.width = "100%"
-            bbEl.style["background-color"] = "black"
-            bbEl.style.height = DefaultView.TEXT_SHADOWBOX_HEIGHT + "px"
-            # bbEl.className = "tomOnTheFly"
-            # bbEl.style["background-color"] = "black"
-            # bbEl.style["-ms-filter"] = "progid:DXImageTransform.Microsoft.Alpha(Opacity=" + (DefaultView.TEXT_SHADOWBOX_OPACITY*100)   + ")"
-            # bbEl.style.filters.item("DXImageTransform.Microsoft.Alpha").opacity = DefaultView.TEXT_SHADOWBOX_OPACITY * 100
-
-            foo = '<div id="innerFoo" style="width:100%; height:100%; -ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);"></div>'
-            bbEl.innerHTML = foo
-
-            bbEl.style.opacity = DefaultView.TEXT_SHADOWBOX_OPACITY
-            bbEl.style.height = DefaultView.TEXT_SHADOWBOX_HEIGHT + "px"
-            ###
             doorEl[0].appendChild(bbEl)
           else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
             # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript to construct it all
@@ -274,34 +228,12 @@ define(["view/abstractview"], (AbstractView) ->
               style: "fill:none; stroke:" + strokeColor + "; stroke-width:3"
             })
             svgEl.appendChild(outlineEl)
-            ###
-            titleEl = @addTextToSVG(svgEl,
-                                    "title" + elementSuffix,
-                                    wordsX
-                                    @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT - titleHeight,
-                                    wordsWidth
-                                    titleHeight)
-
-            detailsEl = @addTextToSVG(svgEl,
-                                    "details" + elementSuffix,
-                                    wordsX
-                                    @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT,
-                                    wordsWidth
-                                    DefaultView.TEXT_SHADOWBOX_HEIGHT)
-            ###
-            
-
-
             # end of normal styling. CoffeeScript's lack of brackets is a little annoying sometimes
-          this.putDoorInOpenPosition(doorEl, side)
 
+          this.putDoorInOpenPosition(doorEl, side)
 
           titleEl = $("<div/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
           detailsEl = $("<div/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
-
-          ###
-          detailsEl = $("<span/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
-          ###
 
           # style things appropriately
 
@@ -331,21 +263,6 @@ define(["view/abstractview"], (AbstractView) ->
             "text-align": wordsAlignment
           }
 
-          # a few things are different based on which side door you are...
-          ###
-          textPadding = 140
-          if (side == "left")
-            # titleStyle.right = textPadding
-            # detailsStyle.right = textPadding
-            # this.clipElement(@leftImagePoly, imgEl, "imagePolySVG_left")
-            # this.clipElement(@leftTextPoly, bbEl, "textPolySVG_left")
-          else
-            # titleStyle.left = textPadding
-            # detailsStyle.left = textPadding
-            # this.clipElement(@rightImagePoly, imgEl, "imagePolySVG_right")
-            # this.clipElement(@rightTextPoly, bbEl, "textPolySVG_right")
-          ###
-
           doorStyle = {
             position: "inherit",
             top: vertPos + "px",
@@ -369,20 +286,6 @@ define(["view/abstractview"], (AbstractView) ->
       @addControls(DefaultView.CONTROL_MODE_PREV_NEXT)
 
       @activeDoorIndex = 0
-      # setTimeout((=> @cropImagesDelayed()), 2000)
-      ###
-      blackBarEl = $("<span/>").attr('id', 'blackBarFoo').appendTo(@targetDiv)
-      blackBarStyle = {
-        position: "absolute",
-        width: "100%",
-        left: "0px",
-        bottom: "0px",
-        height: "110px",
-        background: "red",
-        opacity: 0.5
-      }
-      blackBarEl.css(blackBarStyle)
-      ###
 
     addControls: (controlType) ->
       controlsEl = $("<div/>").css({
@@ -436,57 +339,9 @@ define(["view/abstractview"], (AbstractView) ->
         classHook.togglePlayPause()
       )
 
-    ###
-    cropImagesDelayed: ->
-      @logToConsole "DELAYED here we go [" + this + "]"
-      for letter, i in ["A","B"]
-        for side in ["left", "right"]
-          elementSuffix = "_#{side}_#{i}"
-          imgEl = $("#image" + elementSuffix);
-          @logToConsole "IMG EL IS [" + imgEl.attr('id') + "]..."
-          if (side == "left")
-            this.clipElement(@leftImagePoly, imgEl, "polySVG_left")
-          else
-            this.clipElement(@rightImagePoly, imgEl, "polySVG_right")
-    ###
-
-    ### 
-    fleshOutInlineSVG: ->
-      for side in ["left","right"]
-        $("#imagePolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftImagePoly else @rightImagePoly)))
-        $("#textPolySVG_#{side} > polygon").attr("points", @translatePointsFromArrayToSVGNotation((if side == "left" then @leftTextPoly else @rightTextPoly)))
-    ###
-
     addAttributeHelper: (o, attribs) ->
       for n, v of attribs
         o.setAttribute(n, v)
-
-    ###
-    addTextToSVG: (container, idString, xPos, yPos, width, height, debugColor = null) ->
-      foId = "fo_" + idString
-
-      foreignObj = document.createElementNS(DefaultView.SVG_NS, "foreignObject")
-      foreignObj.id = foId
-      @addAttributeHelper(foreignObj, {
-        class: "node"
-        width: width
-        height: height
-        x: xPos
-        y: yPos
-      })
-      if debugColor != null then foreignObj.style["background-color"] = debugColor
-      container.appendChild(foreignObj)
-
-      textHolder = $("<div/>").attr({
-        id: idString
-      }).css({
-        width: width
-        height: height
-      }).appendTo($("#" + foId))
-
-      return textHolder
-    ###
-      
 
     putDoorInOpenPosition: (doorEl, side) ->
       doorEl.css("left", (if side == "left" then @leftDoorOpenDestination else @rightDoorOpenDestination))
@@ -576,8 +431,6 @@ define(["view/abstractview"], (AbstractView) ->
       @stackElements(@controlContainerDiv, @slideContainerDiv)
 
     positionSlides: (doAnimate = true, closeSlides = true) ->
-      # @leftImgElement.attr("src", "/barndoor/images/sayles.jpg")
-
       sides = [ "left", "right" ]
       slides = [ @leftSlide, @rightSlide ]
       destinations = if closeSlides then [ @leftDoorClosedDestination, @rightDoorClosedDestination ] else [ @leftDoorOpenDestination, @rightDoorOpenDestination ]
@@ -590,13 +443,8 @@ define(["view/abstractview"], (AbstractView) ->
         suffix = "_" + sides[i] + "_" + @activeDoorIndex
         slide = slides[i]
 
-        # imgEl = $("#image" + suffix)
         titleEl = $("#title" + suffix)
         detailsEl = $("#details" + suffix)
-
-        # imgEl.attr("src", slide.imgUrl)
-        # imgEl.css({width:@imgWidth, height:@imgHeight})
-        # imgEl.attr("xlink:href", slide.imgUrl)
 
         imgDomEl = document.getElementById("image" + suffix)
         if (@renderMode == DefaultView.RENDER_MODE_BASIC)
@@ -622,25 +470,6 @@ define(["view/abstractview"], (AbstractView) ->
         else
           doorEl.css("left", destinations[i] + "px")
 
-        # doesnt seem necessary since reworking how doors are built
-        # @enforceDimensions()
-
-    ###
-    enforceDimensions: () ->
-      # very weird bug that manifested when integrating into Reason module - the right slide
-      # had varying width/height as it animated, causing it to appear to "grow" from the right
-      # and slide in from the top. This is part of a fix for that problem
-
-      doors = [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
-      for door in doors
-        door.width(@imgWidth)
-        door.height(@imgHeight)
-
-      for foo in [ $("#mover_left_0"), $("#mover_right_0") ]
-        foo.width(@imgWidth)
-        foo.height(@imgHeight)
-    ###
-      
     ###
     onAnimationProgress: (anim, prog, remaining) ->
       @logToConsole "animating [" + prog + "]/[" + remaining "]"

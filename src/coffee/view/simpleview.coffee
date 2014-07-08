@@ -1,7 +1,7 @@
 # super garbagey test view to work out some of the kinks and flow 
 # around switching between view types on screen resize
-define(["view/abstractview"], (AbstractView) ->
-  class SimpleView extends AbstractView
+define(["view/baseview"], (BaseView) ->
+  class SimpleView extends BaseView
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       # @$ = jq
       @targetDiv = $("##{@targetDivName}")

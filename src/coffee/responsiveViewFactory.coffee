@@ -1,6 +1,6 @@
 ###
 
-this class is responsible for returning a valid instance of AbstractView to the controller. This depends on:
+this class is responsible for returning a valid instance of BaseView to the controller. This depends on:
   1. screen size
   2. device capability
 

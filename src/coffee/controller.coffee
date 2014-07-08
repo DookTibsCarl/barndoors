@@ -136,9 +136,9 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       # @view?.showNextPair(@appModel.activePairIndex, @appModel.getActivePair())
       # @setNextSlideDelay()
 
-      @logToConsole "---------------------"
-      @logToConsole "---------------------"
-      @logToConsole "---------------------"
+      # @logToConsole "---------------------"
+      # @logToConsole "---------------------"
+      # @logToConsole "---------------------"
 
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>

@@ -1,6 +1,5 @@
-# at this point not really an abstract view; more of a general utility class. Plan is to flesh this out tho.
 define([], () ->
-  class AbstractView
+  class BaseView
 
     logToConsole: (s) ->
       console.log(this.constructor.name + "::" + s)
@@ -37,28 +36,6 @@ define([], () ->
 
     pseudoDestructor: () ->
       @logToConsole "pseudoDestructor::[" + this.constructor.name + "]"
-
-    # see http://sawyerhollenshead.com/writing/using-svg-clippath/
-    
-    # points is an array of arrays. Each sub-array is x in slot 0, y in slot 1. imgToClip is a jquery image element
-    # currently works in Firefox, Safari, Chrome on OSX. IE? Mobile?
-    clipElement: (points, imgToClip, svgUrlId) ->
-      @logToConsole "CLIP ELEMENT DELAYED!!!!!"
-      return
-
-      if (imgToClip.length > 0)
-        path = this.translatePointsFromArrayToWebkitString(points)
-        imgToClip.css("clip-path", "url('##{svgUrlId}')")
-        imgToClip.css("-webkit-clip-path", path)
-
-    # translates from array-of-arrays points representation to the "polygon()" style svg notation
-    translatePointsFromArrayToWebkitString: (points) ->
-      rv = "polygon("
-      for p, i in points
-        [x, y] = p
-        rv += (if i == 0 then "" else ", ") + x + "px " + y + "px"
-      rv += ")"
-      rv
 
     translatePointsFromArrayToSVGNotation: (points) ->
       rv = ""
@@ -118,18 +95,21 @@ define([], () ->
 
       textTriangleBase = textBoxHeight / Math.tan(bottomAngle * DEG_TO_RAD)
 
+      # topOfBox = 0
+      topOfBox = imgHeight - textBoxHeight
+
       leftTextPoly = [
-        [0, 0],
-        [imgWidth - bottomEdgeInset + textTriangleBase, 0],
-        [imgWidth - bottomEdgeInset, textBoxHeight],
-        [0, textBoxHeight]
+        [0, topOfBox],
+        [imgWidth - bottomEdgeInset + textTriangleBase, topOfBox],
+        [imgWidth - bottomEdgeInset, topOfBox + textBoxHeight],
+        [0, topOfBox + textBoxHeight]
       ]
 
       rightTextPoly = [
-        [topEdgeInset + textTriangleBase, 0],
-        [imgWidth, 0],
-        [imgWidth, textBoxHeight],
-        [topEdgeInset, textBoxHeight]
+        [topEdgeInset + textTriangleBase, topOfBox],
+        [imgWidth, topOfBox],
+        [imgWidth, topOfBox + textBoxHeight],
+        [topEdgeInset, topOfBox + textBoxHeight]
       ]
 
       [leftImagePoly, rightImagePoly, leftTextPoly, rightTextPoly]
@@ -209,5 +189,28 @@ define([], () ->
         styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length)
     ###
 
-  return AbstractView
+    # see http://sawyerhollenshead.com/writing/using-svg-clippath/
+    
+    ###
+    # points is an array of arrays. Each sub-array is x in slot 0, y in slot 1. imgToClip is a jquery image element
+    # currently works in Firefox, Safari, Chrome on OSX. IE? Mobile?
+    clipElement: (points, imgToClip, svgUrlId) ->
+      if (imgToClip.length > 0)
+        path = this.translatePointsFromArrayToWebkitString(points)
+        imgToClip.css("clip-path", "url('##{svgUrlId}')")
+        imgToClip.css("-webkit-clip-path", path)
+    ###
+
+    ###
+    # translates from array-of-arrays points representation to the "polygon()" style svg notation
+    translatePointsFromArrayToWebkitString: (points) ->
+      rv = "polygon("
+      for p, i in points
+        [x, y] = p
+        rv += (if i == 0 then "" else ", ") + x + "px " + y + "px"
+      rv += ")"
+      rv
+    ###
+
+  return BaseView
 )
