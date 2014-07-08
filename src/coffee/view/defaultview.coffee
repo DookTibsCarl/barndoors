@@ -45,7 +45,7 @@ define(["view/baseview"], (BaseView) ->
             @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
 
       # console.log "HARDCODED TESTING MODE"
-      # @renderMode = DefaultView.RENDER_MODE_BASIC
+      # @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
 
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
@@ -60,7 +60,7 @@ define(["view/baseview"], (BaseView) ->
       @createClippingPolygons()
       @calculateSlideDestinations()
 
-      @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
+      @slideContainerDiv.css({ "xbackground-color": "gray", "overflow": "hidden", "position": "absolute" })
 
       vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
 
@@ -116,6 +116,8 @@ define(["view/baseview"], (BaseView) ->
             svgEl = @addNSElement("svg", "mover" + elementSuffix, {width:@imgWidth, height:@imgHeight,baseProfile:"full",version:"1.2"}, doorEl[0])
 
             if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
+              svgImageAttribs = { mask: "url(#svgmask" + elementSuffix + ")" }
+
               # svgEl contains a "defs" element...
               defsEl = @addNSElement("defs", "", null, svgEl)
 
@@ -126,14 +128,9 @@ define(["view/baseview"], (BaseView) ->
               console.log("poly points [" + polyPoints + "]")
               polygonEl = @addNSElement("polygon", "maskpoly" + elementSuffix, {points:polyPoints, fill:"white"}, maskEl)
 
-            # else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-              # no special handling required
-
-            # ...and svgEl also contains an image
-            if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
-              svgImageAttribs = { mask: "url(#svgmask" + elementSuffix + ")" }
             else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
               svgImageAttribs = { "clip-path": "url(#" + side + "_clip_path)" }
+
             imgEl = @addNSElement("image", "image" + elementSuffix, svgImageAttribs, svgEl)
 
             # black box el is next
