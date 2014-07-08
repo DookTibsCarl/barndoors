@@ -27,6 +27,7 @@ define(["view/baseview"], (BaseView) ->
 
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       @logToConsole "constructing default view..."
+      @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
 
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
@@ -56,7 +57,14 @@ define(["view/baseview"], (BaseView) ->
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
 
-      this.calculateSlideDestinations()
+      # a couple of dimensions/calculations are used in a number of places - let's just do them up front.
+      @halfDiv = @targetDiv.width()/2
+      @cutoffImageAmount = @imgWidth - @halfDiv
+      @slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
+      @choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+      @maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+
+      @calculateSlideDestinations()
 
       @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
 
@@ -67,17 +75,6 @@ define(["view/baseview"], (BaseView) ->
 
       # TODO - stop giving things unique id's and select them based on class/hierarchy perhaps? Or if not, at least break "door"/"title"/etc. out into consts
 
-
-      # A/B lets us have two versions of the doors. One is always stuck in the middle, the other is used for animating.
-      # we swap the z-order as necessary.
-      # @logToConsole "SETUP WITH DIMENSIONS [" + @imgWidth + "]/[" + @imgHeight + "]..."
-
-      halfDiv = @targetDiv.width()/2
-      cutoffImageAmount = @imgWidth - halfDiv
-      slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
-      # choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-      maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-
       # add the clip-path polygons used by the clip_path rendering style
       if (@renderMode == DefaultView.RENDER_MODE_BROWSER_TOO_OLD)
         @slideContainerDiv.remove()
@@ -85,9 +82,8 @@ define(["view/baseview"], (BaseView) ->
         @controlContainerDiv.remove()
         
       else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-        sides = ["left","right"]
-        for side, i in sides
-          poly = @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
+        for side, i in BaseView.SIDES
+          poly = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
           svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
           @addAttributeHelper(svgEl, {
             width: 0
@@ -112,19 +108,19 @@ define(["view/baseview"], (BaseView) ->
 
 
       for letter, i in ["A","B"]
-        for side in ["left", "right"]
+        for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
           @logToConsole "looping for [" + elementSuffix + "]"
           # add the necessary structure to the DOM
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
 
 
-          if side == "left"
-            wordsX = cutoffImageAmount - maxInset + (slantAdjustment * 2)
+          if side == BaseView.SIDE_LEFT
+            wordsX = @cutoffImageAmount - @maxInset + (@slantAdjustment * 2)
           else
-            wordsX = maxInset
+            wordsX = @maxInset
 
-          wordsWidth = halfDiv - (slantAdjustment * 2)
+          wordsWidth = @halfDiv - (@slantAdjustment * 2)
           titleHeight = 65
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
@@ -172,7 +168,7 @@ define(["view/baseview"], (BaseView) ->
               polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
               polygonEl.id = "maskpoly" + elementSuffix
               @addAttributeHelper(polygonEl, {
-                points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftImagePoly else @rightImagePoly)
+                points: @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
                 fill: "white"
               })
               maskEl.appendChild(polygonEl)
@@ -197,22 +193,20 @@ define(["view/baseview"], (BaseView) ->
             bbEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
             bbEl.id = "bb" + elementSuffix
             @addAttributeHelper(bbEl, {
-              points: @translatePointsFromArrayToSVGNotation(if side == "left" then @leftTextPoly else @rightTextPoly)
+              points: @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
               fill: "black"
               "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY
             })
             svgEl.appendChild(bbEl)
 
 
-            slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
-            choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-
-            offscreenShifter = @imgWidth - (@targetDiv.width() / 2) - (choppedPixels + slantAdjustment) + 0
+            offscreenShifter = @imgWidth - (@targetDiv.width() / 2) - (@choppedPixels + @slantAdjustment) + 0
+            # offscreenShifter = @cutoffImageAmount - (@choppedPixels + @slantAdjustment) + 0
 
             strokeColor = "white"
             tAdj = 0
             bAdj = 0
-            if (side == "left")
+            if (side == BaseView.SIDE_LEFT)
               lAdj = offscreenShifter
               rAdj = 0
               # strokeColor = if (i == 0) then "red" else "yellow"
@@ -223,8 +217,8 @@ define(["view/baseview"], (BaseView) ->
 
             outlineEl = document.createElementNS(DefaultView.SVG_NS, "polyline")
             @addAttributeHelper(outlineEl, {
-              points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == "left" then @leftImagePoly else @rightImagePoly), tAdj, bAdj, lAdj, rAdj))
-              # points: @translatePointsFromArrayToSVGNotation(if side == "left" then [@leftImagePoly[1], @leftImagePoly[2]] else ([@rightImagePoly[0], @rightImagePoly[3]]))
+              points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly), tAdj, bAdj, lAdj, rAdj))
+              # points: @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then [@leftImagePoly[1], @leftImagePoly[2]] else ([@rightImagePoly[0], @rightImagePoly[3]]))
               style: "fill:none; stroke:" + strokeColor + "; stroke-width:3"
             })
             svgEl.appendChild(outlineEl)
@@ -237,7 +231,7 @@ define(["view/baseview"], (BaseView) ->
 
           # style things appropriately
 
-          wordsAlignment = if side == "left" then "right" else "left"
+          wordsAlignment = if side == BaseView.SIDE_LEFT then "right" else "left"
           titleStyle = {
             # "background-color": "green"
             position: "absolute"
@@ -274,7 +268,7 @@ define(["view/baseview"], (BaseView) ->
 
 
           # and finally let's save things
-          if (side == "left")
+          if (side == BaseView.SIDE_LEFT)
             @leftDoors.push(doorEl)
           else
             @rightDoors.push(doorEl)
@@ -344,10 +338,10 @@ define(["view/baseview"], (BaseView) ->
         o.setAttribute(n, v)
 
     putDoorInOpenPosition: (doorEl, side) ->
-      doorEl.css("left", (if side == "left" then @leftDoorOpenDestination else @rightDoorOpenDestination))
+      doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
 
     putDoorInClosedPosition: (doorEl, side) ->
-      doorEl.css("left", (if side == "left" then @leftDoorClosedDestination else @rightDoorClosedDestination))
+      doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorClosedDestination else @rightDoorClosedDestination))
 
     # do some math to figure out what's the offscreen and centered positions for each side of the show
     calculateSlideDestinations: ->
@@ -361,11 +355,8 @@ define(["view/baseview"], (BaseView) ->
         @leftDoorClosedDestination = centerOfDiv - @imgWidth
         @rightDoorClosedDestination = centerOfDiv
       else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-        slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
-        choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-
-        @leftDoorClosedDestination = centerOfDiv - (@imgWidth - slantAdjustment) + choppedPixels
-        @rightDoorClosedDestination = centerOfDiv - slantAdjustment - choppedPixels
+        @leftDoorClosedDestination = centerOfDiv - (@imgWidth - @slantAdjustment) + @choppedPixels
+        @rightDoorClosedDestination = centerOfDiv - @slantAdjustment - @choppedPixels
 
       # sometimes a gap is useful for debugging...
       gap = 0
@@ -410,7 +401,6 @@ define(["view/baseview"], (BaseView) ->
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
 
-      sides = [ "left", "right" ]
       oldDoors = [@leftDoors[@inactiveDoorIndex], @rightDoors[@inactiveDoorIndex]]
 
       if reversing
@@ -418,20 +408,19 @@ define(["view/baseview"], (BaseView) ->
         for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
           doorEl.css("display", "block")
           @stackElements(oldDoors[i], doorEl)
-          @putDoorInClosedPosition(doorEl, sides[i])
+          @putDoorInClosedPosition(doorEl, BaseView.SIDES[i])
         @positionSlides(true, false)
       else
         # put the new slides on top of the current ones and offscreen, and "close" the barn doors
         for doorEl, i in [@leftDoors[@activeDoorIndex], @rightDoors[@activeDoorIndex]]
           doorEl.css("display", "block")
-          @putDoorInOpenPosition(doorEl, sides[i])
+          @putDoorInOpenPosition(doorEl, BaseView.SIDES[i])
           @stackElements(doorEl, oldDoors[i])
         @positionSlides()
 
       @stackElements(@controlContainerDiv, @slideContainerDiv)
 
     positionSlides: (doAnimate = true, closeSlides = true) ->
-      sides = [ "left", "right" ]
       slides = [ @leftSlide, @rightSlide ]
       destinations = if closeSlides then [ @leftDoorClosedDestination, @rightDoorClosedDestination ] else [ @leftDoorOpenDestination, @rightDoorOpenDestination ]
 
@@ -440,7 +429,7 @@ define(["view/baseview"], (BaseView) ->
       @currentlyAnimating = doAnimate
       @doorsThatFinishedAnimating = 0
       for doorEl, i in animaters
-        suffix = "_" + sides[i] + "_" + @activeDoorIndex
+        suffix = "_" + BaseView.SIDES[i] + "_" + @activeDoorIndex
         slide = slides[i]
 
         titleEl = $("#title" + suffix)

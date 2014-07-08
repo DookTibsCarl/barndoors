@@ -1,5 +1,8 @@
 define([], () ->
   class BaseView
+    @SIDE_LEFT = "left"
+    @SIDE_RIGHT = "right"
+    @SIDES = [ @SIDE_LEFT, @SIDE_RIGHT ]
 
     logToConsole: (s) ->
       console.log(this.constructor.name + "::" + s)
