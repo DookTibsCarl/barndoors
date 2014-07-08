@@ -1,5 +1,8 @@
 define([], () ->
   class BaseView
+    @SVG_NS = "http://www.w3.org/2000/svg"
+    @XLINK_NS = "http://www.w3.org/1999/xlink"
+
     @SIDE_LEFT = "left"
     @SIDE_RIGHT = "right"
     @SIDES = [ @SIDE_LEFT, @SIDE_RIGHT ]
@@ -47,9 +50,6 @@ define([], () ->
         rv += (if i == 0 then "" else ",") + x + " " + y
       rv
 
-    DEG_TO_RAD = Math.PI/180
-    RAD_TO_DEG = 180/Math.PI
-
     # takes a 5 point polygon (upper left, upper right, lower right, lower left, back to upper left) and shifts it by some adjustment
     squeezePoly: (p, topAdjust, bottomAdjust, leftAdjust, rightAdjust) ->
       if (p.length != 5)
@@ -69,53 +69,6 @@ define([], () ->
 
       rv = [topLeftCopy, topRightCopy, bottomRightCopy, bottomLeftCopy, topLeftLoopCopy]
       return rv
-      
-
-    createClippingPolygons: (imgWidth, imgHeight, topEdgeInset, bottomEdgeInset, textBoxHeight) ->
-      leftImagePoly = [
-        [0, 0],
-        [imgWidth - topEdgeInset, 0],
-        [imgWidth - bottomEdgeInset, imgHeight],
-        [0, imgHeight],
-        [0, 0]
-      ]
-
-      rightImagePoly = [
-        [bottomEdgeInset, 0],
-        [imgWidth, 0],
-        [imgWidth, imgHeight],
-        [topEdgeInset, imgHeight],
-        [bottomEdgeInset, 0],
-      ]
-
-      # do a little trig to calculate the angle of the relevant triangle; we'll need this to properly crop the background text box
-      # fullHypotenuseLength = Math.sqrt((imgHeight * imgHeight) + (insetDiff * insetDiff))
-      # @logToConsole "triangle width=[" + insetDiff + "], triangle height=[" + imgHeight + "], fullHypotenuseLength = [" + fullHypotenuseLength + "]"
-      insetDiff = Math.abs(topEdgeInset - bottomEdgeInset)
-      bottomAngle = Math.atan(imgHeight / insetDiff) * RAD_TO_DEG
-      topAngle = Math.atan(insetDiff / imgHeight) * RAD_TO_DEG
-      @logToConsole "angles are [" + bottomAngle + "] / [" + topAngle + "]"
-
-      textTriangleBase = textBoxHeight / Math.tan(bottomAngle * DEG_TO_RAD)
-
-      # topOfBox = 0
-      topOfBox = imgHeight - textBoxHeight
-
-      leftTextPoly = [
-        [0, topOfBox],
-        [imgWidth - bottomEdgeInset + textTriangleBase, topOfBox],
-        [imgWidth - bottomEdgeInset, topOfBox + textBoxHeight],
-        [0, topOfBox + textBoxHeight]
-      ]
-
-      rightTextPoly = [
-        [topEdgeInset + textTriangleBase, topOfBox],
-        [imgWidth, topOfBox],
-        [imgWidth, topOfBox + textBoxHeight],
-        [topEdgeInset, topOfBox + textBoxHeight]
-      ]
-
-      [leftImagePoly, rightImagePoly, leftTextPoly, rightTextPoly]
 
     # elements are jquery elements. elementA will be given a higher z-order than B, swapping if necssary
     stackElements: (elementA, elementB) ->
@@ -134,6 +87,19 @@ define([], () ->
       elementA.css("z-index", topIdx)
       elementB.css("z-index", bottomIdx)
 
+    # helper function to simplify creating namespace elements (currently used for building out the svg structures)
+    addNSElement: (elementType, elementId, attribs, container, namespace = BaseView.SVG_NS) ->
+      el = document.createElementNS(namespace, elementType)
+      if (elementId != "" and elementId != null)
+        el.id = elementId
+      if (attribs != null)
+        @addAttributeHelper(el, attribs)
+      container.appendChild(el)
+      return el
+      
+    addAttributeHelper: (o, attribs) ->
+      for n, v of attribs
+        o.setAttribute(n, v)
 
     # pinched from http://stackoverflow.com/questions/1720320/how-to-dynamically-create-css-class-in-javascript-and-apply and rewritten in CS
     ###

@@ -22,9 +22,6 @@ define(["view/baseview"], (BaseView) ->
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
 
-    @SVG_NS = "http://www.w3.org/2000/svg"
-    @XLINK_NS = "http://www.w3.org/1999/xlink"
-
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
       @logToConsole "constructing default view..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
@@ -47,6 +44,9 @@ define(["view/baseview"], (BaseView) ->
           if (ieVer < 8.0)
             @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
 
+      # console.log "HARDCODED TESTING MODE"
+      # @renderMode = DefaultView.RENDER_MODE_BASIC
+
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
 
@@ -55,15 +55,9 @@ define(["view/baseview"], (BaseView) ->
       @slideContainerDiv = $("<div/>").css({"width":@targetDiv.width(), "height":@targetDiv.height()}).attr("id", "slideContainer").appendTo(@targetDiv)
       @controlContainerDiv = $("<div/>").css({"position": "absolute", "width":@targetDiv.width()}).attr("id", "controlContainer").appendTo(@targetDiv)
 
-      [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
-
-      # a couple of dimensions/calculations are used in a number of places - let's just do them up front.
-      @halfDiv = @targetDiv.width()/2
-      @cutoffImageAmount = @imgWidth - @halfDiv
-      @slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
-      @choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-      @maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
-
+      # do some math setup
+      @precalcImageAdjustments()
+      @createClippingPolygons()
       @calculateSlideDestinations()
 
       @slideContainerDiv.css({ "background-color": "gray", "overflow": "hidden", "position": "absolute" })
@@ -75,7 +69,7 @@ define(["view/baseview"], (BaseView) ->
 
       # TODO - stop giving things unique id's and select them based on class/hierarchy perhaps? Or if not, at least break "door"/"title"/etc. out into consts
 
-      # add the clip-path polygons used by the clip_path rendering style
+      # Some modes require some initial setup
       if (@renderMode == DefaultView.RENDER_MODE_BROWSER_TOO_OLD)
         @slideContainerDiv.remove()
         # @slideContainerDiv.html("sorry, browser too old")
@@ -83,30 +77,13 @@ define(["view/baseview"], (BaseView) ->
         
       else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
         for side, i in BaseView.SIDES
-          poly = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
-          svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
-          @addAttributeHelper(svgEl, {
-            width: 0
-            height: 0
-          })
-          (@slideContainerDiv[0]).appendChild(svgEl)
+          polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
+          svgEl = @addNSElement("svg", "", {width:0, height:0}, @slideContainerDiv[0])
+          defsEl = @addNSElement("defs", "", null, svgEl)
+          clipPathEl = @addNSElement("clipPath", side + "_clip_path", null, defsEl)
+          polygonEl = @addNSElement("polygon", "", {points:polyPoints}, clipPathEl)
 
-          defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
-          svgEl.appendChild(defsEl)
-
-          clipPathEl = document.createElementNS(DefaultView.SVG_NS, "clipPath")
-          @addAttributeHelper(clipPathEl, {
-            id: side + "_clip_path"
-          })
-          defsEl.appendChild(clipPathEl)
-
-          polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
-          @addAttributeHelper(polygonEl, {
-            points: poly
-          })
-          clipPathEl.appendChild(polygonEl)
-
-
+      # and now let's set up the individual A/B slides - this lets us keep one onscreen and use another for animating, and we just swap the content in each as needed.
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
@@ -114,6 +91,7 @@ define(["view/baseview"], (BaseView) ->
           # add the necessary structure to the DOM
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
 
+          polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
 
           if side == BaseView.SIDE_LEFT
             wordsX = @cutoffImageAmount - @maxInset + (@slantAdjustment * 2)
@@ -124,104 +102,46 @@ define(["view/baseview"], (BaseView) ->
           titleHeight = 65
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
-            @logToConsole "RENDERING IN BASIC MODE"
             imgEl = document.createElement("img")
             imgEl.id = "image" + elementSuffix
             doorEl[0].appendChild(imgEl)
 
             bbEl = document.createElement("div")
-            bbEl.className = "blackbar_basic"
+            bbEl.className = "blackbar_basic" # this needs to be predefined for everything to work nicely...ugly
 
             doorEl[0].appendChild(bbEl)
           else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-            # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript to construct it all
-            # might want to separate this out to make this more explicit.
-            # also todo - make some convenience functions for setting all these attribs
-
+            # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript (with a helper fxn) to construct it all
             # top level - svg
-            svgEl = document.createElementNS(DefaultView.SVG_NS,"svg")
-            svgEl.id = "mover" + elementSuffix
-            @addAttributeHelper(svgEl, {
-              width: @imgWidth
-              height: @imgHeight
-              baseProfile: "full"
-              version: "1.2"
-            })
-            (doorEl[0]).appendChild(svgEl)
+            svgEl = @addNSElement("svg", "mover" + elementSuffix, {width:@imgWidth, height:@imgHeight,baseProfile:"full",version:"1.2"}, doorEl[0])
 
             if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
               # svgEl contains a "defs" element...
-              defsEl = document.createElementNS(DefaultView.SVG_NS, "defs")
-              svgEl.appendChild(defsEl)
+              defsEl = @addNSElement("defs", "", null, svgEl)
 
               # defs contains a mask...
-              maskEl = document.createElementNS(DefaultView.SVG_NS, "mask")
-              maskEl.id = "svgmask" + elementSuffix
-              @addAttributeHelper(maskEl, {
-                maskUnits: "userSpaceOnUse"
-                maskContentUnits: "userSpaceOnUse"
-                transform: "scale(1)"
-              })
-              defsEl.appendChild(maskEl)
+              maskEl = @addNSElement("mask", "svgmask" + elementSuffix, {maskUnits:"userSpaceOnUse",maskContentUnits:"userSpaceOnUse",transform:"scale(1)"}, defsEl)
 
               # and mask contain a polygon
-              polygonEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
-              polygonEl.id = "maskpoly" + elementSuffix
-              @addAttributeHelper(polygonEl, {
-                points: @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
-                fill: "white"
-              })
-              maskEl.appendChild(polygonEl)
+              console.log("poly points [" + polyPoints + "]")
+              polygonEl = @addNSElement("polygon", "maskpoly" + elementSuffix, {points:polyPoints, fill:"white"}, maskEl)
+
             # else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
               # no special handling required
 
             # ...and svgEl also contains an image
-            imgEl = document.createElementNS(DefaultView.SVG_NS, "image")
-            imgEl.id = "image" + elementSuffix
-
             if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
-              @addAttributeHelper(imgEl, {
-                mask: "url(#svgmask" + elementSuffix + ")"
-              })
+              svgImageAttribs = { mask: "url(#svgmask" + elementSuffix + ")" }
             else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-              @addAttributeHelper(imgEl, {
-                "clip-path": "url(#" + side + "_clip_path)"
-              })
+              svgImageAttribs = { "clip-path": "url(#" + side + "_clip_path)" }
+            imgEl = @addNSElement("image", "image" + elementSuffix, svgImageAttribs, svgEl)
 
-            svgEl.appendChild(imgEl)
+            # black box el is next
+            bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
+            bbEl = @addNSElement("polygon", "", {points:bbPoints, fill:"black", "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY}, svgEl)
 
-            bbEl = document.createElementNS(DefaultView.SVG_NS, "polygon")
-            bbEl.id = "bb" + elementSuffix
-            @addAttributeHelper(bbEl, {
-              points: @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
-              fill: "black"
-              "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY
-            })
-            svgEl.appendChild(bbEl)
-
-
-            offscreenShifter = @imgWidth - (@targetDiv.width() / 2) - (@choppedPixels + @slantAdjustment) + 0
-            # offscreenShifter = @cutoffImageAmount - (@choppedPixels + @slantAdjustment) + 0
-
-            strokeColor = "white"
-            tAdj = 0
-            bAdj = 0
-            if (side == BaseView.SIDE_LEFT)
-              lAdj = offscreenShifter
-              rAdj = 0
-              # strokeColor = if (i == 0) then "red" else "yellow"
-            else
-              lAdj = 0
-              rAdj = -1 * offscreenShifter
-              # strokeColor = if (i == 0) then "purple" else "green"
-
-            outlineEl = document.createElementNS(DefaultView.SVG_NS, "polyline")
-            @addAttributeHelper(outlineEl, {
-              points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly), tAdj, bAdj, lAdj, rAdj))
-              # points: @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then [@leftImagePoly[1], @leftImagePoly[2]] else ([@rightImagePoly[0], @rightImagePoly[3]]))
-              style: "fill:none; stroke:" + strokeColor + "; stroke-width:3"
-            })
-            svgEl.appendChild(outlineEl)
+            # and now the border that appears around the edge of the slide
+            @addNSElement("polyline", "", {points:polyPoints, style: "fill:none; stroke:white; stroke-width:3"}, svgEl)
             # end of normal styling. CoffeeScript's lack of brackets is a little annoying sometimes
 
           this.putDoorInOpenPosition(doorEl, side)
@@ -333,9 +253,93 @@ define(["view/baseview"], (BaseView) ->
         classHook.togglePlayPause()
       )
 
-    addAttributeHelper: (o, attribs) ->
-      for n, v of attribs
-        o.setAttribute(n, v)
+    precalcImageAdjustments: () ->
+      # a couple of dimensions/calculations are used in a number of places - let's just do them up front.
+
+      ###
+      An image might make things a little clearer down the line:
+
+      +--+
+      |  |   this box represents the visible targetDiv. A vertical line shows the midpoint. A diagonal line shows
+      +--+        one possible orientation of the sliced angle between the slides
+
+      ====
+      =  =   this box represents one of the two slides in its "closed" / visible position.
+      ====
+      
+      Couple of notes:
+      * the diagonal slice doesn't necessarily start at the "corner" of the image.
+      * the image itself may extend beyond the visible border of the targetDiv (targetDiv has overflow==none so it will be hidden)
+
+      Put it all together and this is more or less what things look like, showing JUST the left slide as this is confusing enough.
+
+            +----------------------------+
+      ======|=============|===/===       |
+      =     |             |  /   =       |
+      =     |             | /    =       |
+      =     |             |/     =       |
+      =     |             /      =       |
+      =     |            /|      =       |
+      =     |           / |      =       |
+      ======|==========/==|=======       |
+            +----------------------------+
+                          <~~~ halfDiv ~~>
+
+      <~~~~~~~ imgWidth ~~~~~~~~~>
+      ###
+
+      @halfDiv = @targetDiv.width()/2
+      @cutoffImageAmount = @imgWidth - @halfDiv
+      @slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
+      @choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+      @maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+
+    createClippingPolygons: () ->
+      DEG_TO_RAD = Math.PI/180
+      RAD_TO_DEG = 180/Math.PI
+
+      # we want the clipping polygons to reflect the actual visible portions, so we need to account for the slide bits that are cut off outside container bounds
+      overflowAdjustment = @cutoffImageAmount - (@choppedPixels + @slantAdjustment) + 0
+      @leftImagePoly = [
+        [overflowAdjustment, 0]
+        [@imgWidth - DefaultView.TOP_EDGE_INSET, 0]
+        [@imgWidth - DefaultView.BOTTOM_EDGE_INSET, @imgHeight]
+        [overflowAdjustment, @imgHeight]
+        [overflowAdjustment, 0]
+      ]
+
+      @rightImagePoly = [
+        [DefaultView.BOTTOM_EDGE_INSET, 0],
+        [@imgWidth - overflowAdjustment, 0],
+        [@imgWidth - overflowAdjustment, @imgHeight],
+        [DefaultView.TOP_EDGE_INSET, @imgHeight],
+        [DefaultView.BOTTOM_EDGE_INSET, 0],
+      ]
+
+      # do a little trig to calculate the angle of the relevant triangle; we'll need this to properly crop the background text box
+      insetDiff = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET)
+      bottomAngle = Math.atan(@imgHeight / insetDiff) * RAD_TO_DEG
+      topAngle = Math.atan(insetDiff / @imgHeight) * RAD_TO_DEG
+      @logToConsole "angles are [" + bottomAngle + "] / [" + topAngle + "]"
+
+      textTriangleBase = DefaultView.TEXT_SHADOWBOX_HEIGHT / Math.tan(bottomAngle * DEG_TO_RAD)
+
+      # topOfBox = 0
+      topOfBox = @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
+
+      @leftTextPoly = [
+        [overflowAdjustment, topOfBox],
+        [@imgWidth - DefaultView.BOTTOM_EDGE_INSET + textTriangleBase, topOfBox],
+        [@imgWidth - DefaultView.BOTTOM_EDGE_INSET, topOfBox + DefaultView.TEXT_SHADOWBOX_HEIGHT],
+        [overflowAdjustment, topOfBox + DefaultView.TEXT_SHADOWBOX_HEIGHT]
+      ]
+
+      @rightTextPoly = [
+        [DefaultView.TOP_EDGE_INSET + textTriangleBase, topOfBox],
+        [@imgWidth - overflowAdjustment, topOfBox],
+        [@imgWidth - overflowAdjustment, topOfBox + DefaultView.TEXT_SHADOWBOX_HEIGHT],
+        [DefaultView.TOP_EDGE_INSET, topOfBox + DefaultView.TEXT_SHADOWBOX_HEIGHT]
+      ]
 
     putDoorInOpenPosition: (doorEl, side) ->
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
@@ -439,7 +443,7 @@ define(["view/baseview"], (BaseView) ->
         if (@renderMode == DefaultView.RENDER_MODE_BASIC)
           imgDomEl.setAttribute('src', slide.imgUrl)
         else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-          imgDomEl.setAttributeNS(DefaultView.XLINK_NS, 'href', slide.imgUrl)
+          imgDomEl.setAttributeNS(BaseView.XLINK_NS, 'href', slide.imgUrl)
           imgDomEl.setAttribute('width', "100%")
           imgDomEl.setAttribute('height', "100%")
 
