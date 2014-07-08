@@ -249,11 +249,29 @@ define(["view/abstractview"], (AbstractView) ->
             })
             svgEl.appendChild(bbEl)
 
+
+            slantAdjustment = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET) / 2
+            choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
+
+            offscreenShifter = @imgWidth - (@targetDiv.width() / 2) - (choppedPixels + slantAdjustment) + 0
+
+            strokeColor = "white"
+            tAdj = 0
+            bAdj = 0
+            if (side == "left")
+              lAdj = offscreenShifter
+              rAdj = 0
+              # strokeColor = if (i == 0) then "red" else "yellow"
+            else
+              lAdj = 0
+              rAdj = -1 * offscreenShifter
+              # strokeColor = if (i == 0) then "purple" else "green"
+
             outlineEl = document.createElementNS(DefaultView.SVG_NS, "polyline")
             @addAttributeHelper(outlineEl, {
-              # points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == "left" then @leftImagePoly else @rightImagePoly), -10, 10, 0, 0))
-              points: @translatePointsFromArrayToSVGNotation(if side == "left" then [@leftImagePoly[1], @leftImagePoly[2]] else ([@rightImagePoly[0], @rightImagePoly[3]]))
-              style: "fill:none; stroke:white; stroke-width:3"
+              points: @translatePointsFromArrayToSVGNotation(@squeezePoly((if side == "left" then @leftImagePoly else @rightImagePoly), tAdj, bAdj, lAdj, rAdj))
+              # points: @translatePointsFromArrayToSVGNotation(if side == "left" then [@leftImagePoly[1], @leftImagePoly[2]] else ([@rightImagePoly[0], @rightImagePoly[3]]))
+              style: "fill:none; stroke:" + strokeColor + "; stroke-width:3"
             })
             svgEl.appendChild(outlineEl)
             ###

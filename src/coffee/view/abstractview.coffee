@@ -80,13 +80,15 @@ define([], () ->
       bottomLeft = p[3]
       topLeftLoop = p[4]
 
-      [ topLeft[0], topLeft[1] ] = [ topLeft[0] + leftAdjust, topLeft[1] + topAdjust ]
-      [ topRight[0], topRight[1] ] = [ topRight[0] + rightAdjust, topRight[1] + topAdjust ]
-      [ bottomRight[0], bottomRight[1] ] = [ bottomRight[0] + rightAdjust, bottomRight[1] + bottomAdjust ]
-      [ bottomLeft[0], bottomLeft[1] ] = [ bottomLeft[0] + leftAdjust, bottomLeft[1] + bottomAdjust ]
-      [ topLeftLoop[0], topLeftLoop[1] ] = [ topLeftLoop[0] + leftAdjust, topLeftLoop[1] + topAdjust ]
+      topLeftCopy = []; topRightCopy = []; bottomRightCopy = []; bottomLeftCopy = []; topLeftLoopCopy = [];
+      [ topLeftCopy[0], topLeftCopy[1] ] = [ topLeft[0] + leftAdjust, topLeft[1] + topAdjust ]
+      [ topRightCopy[0], topRightCopy[1] ] = [ topRight[0] + rightAdjust, topRight[1] + topAdjust ]
+      [ bottomRightCopy[0], bottomRightCopy[1] ] = [ bottomRight[0] + rightAdjust, bottomRight[1] + bottomAdjust ]
+      [ bottomLeftCopy[0], bottomLeftCopy[1] ] = [ bottomLeft[0] + leftAdjust, bottomLeft[1] + bottomAdjust ]
+      [ topLeftLoopCopy[0], topLeftLoopCopy[1] ] = [ topLeftLoop[0] + leftAdjust, topLeftLoop[1] + topAdjust ]
 
-      return [topLeft, topRight, bottomRight, bottomLeft, topLeftLoop]
+      rv = [topLeftCopy, topRightCopy, bottomRightCopy, bottomLeftCopy, topLeftLoopCopy]
+      return rv
       
 
     createClippingPolygons: (imgWidth, imgHeight, topEdgeInset, bottomEdgeInset, textBoxHeight) ->
