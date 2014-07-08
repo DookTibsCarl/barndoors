@@ -10,6 +10,9 @@ define(["view/abstractview"], (AbstractView) ->
     @TEXT_SHADOWBOX_HEIGHT = 100
     @TEXT_SHADOWBOX_OPACITY = 0.5
 
+    @CONTROL_MODE_PAGINATED = "paginatedControls"
+    @CONTROL_MODE_PREV_NEXT = "prevNextControls"
+
     # if we add any more of these, I think we need to rethink how this rendering works. It's getting close to being out of hand.
     @RENDER_MODE_DEFAULT = "defaultMode"     # standard render mode, works for IE 9+, Safari 5+, Firefox, Chrome, etc. Uses svg's with mask
     @RENDER_MODE_CLIP_PATH = "clipPathMode"  # works for builtin Android browser. Uses svg's with clip-path. Should be almost identical to default for functionality
@@ -67,7 +70,7 @@ define(["view/abstractview"], (AbstractView) ->
       pairCount = @mainController.appModel.getPairCount()
 
       @slideContainerDiv = $("<div/>").css({"width":@targetDiv.width(), "height":@targetDiv.height()}).attr("id", "slideContainer").appendTo(@targetDiv)
-      @controlContainerDiv = $("<div/>").attr("id", "controlContainer").appendTo(@targetDiv)
+      @controlContainerDiv = $("<div/>").css({"position": "absolute", "width":@targetDiv.width()}).attr("id", "controlContainer").appendTo(@targetDiv)
 
       [@leftImagePoly, @rightImagePoly, @leftTextPoly, @rightTextPoly] = this.createClippingPolygons(@imgWidth, @imgHeight, DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET, DefaultView.TEXT_SHADOWBOX_HEIGHT)
 
@@ -344,8 +347,8 @@ define(["view/abstractview"], (AbstractView) ->
           @logToConsole "end of this bit"
           
 
-      # @addControls("paginated")
-      @addControls("prevNext")
+      # @addControls(DefaultView.CONTROL_MODE_PAGINATED)
+      @addControls(DefaultView.CONTROL_MODE_PREV_NEXT)
 
       @activeDoorIndex = 0
       # setTimeout((=> @cropImagesDelayed()), 2000)
@@ -364,10 +367,16 @@ define(["view/abstractview"], (AbstractView) ->
       ###
 
     addControls: (controlType) ->
-      controlsEl = $("<div/>").css({"position": "relative", "top":@slideContainerDiv.height()}).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
+      controlsEl = $("<div/>").css({
+                                    "position": "relative"
+                                    "float": "right"
+                                    # this top position puts controls just below the slide container
+                                    # "top":@slideContainerDiv.height()
+                                  }).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
+
 
       classHook = this
-      if (controlType == "paginated")
+      if (controlType == DefaultView.CONTROL_MODE_PAGINATED)
         pairCount = @mainController.appModel.getPairCount()
         for i in [0..pairCount-1]
           jumpEl = $("<span/>").attr("class", "slideJumpControl").appendTo(controlsEl)
@@ -389,7 +398,7 @@ define(["view/abstractview"], (AbstractView) ->
 
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
         @reRenderJumpControls(@mainController.appModel.activePairIndex)
-      else
+      else if (controlType == DefaultView.CONTROL_MODE_PREV_NEXT)
         prevEl = $("<span/>").attr("class", "slidePrevNextControl").html("[<-] ").appendTo(controlsEl)
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
         nextEl = $("<span/>").attr("class", "slidePrevNextControl").html(" [->]").appendTo(controlsEl)
@@ -402,6 +411,8 @@ define(["view/abstractview"], (AbstractView) ->
               else
                 classHook.moveToNextIndex()
           )
+      else
+        @logToConsole("unsupported control type [" + controlType + "] supplied...")
         
       @playPauseEl.click(() ->
         classHook.togglePlayPause()
@@ -543,6 +554,8 @@ define(["view/abstractview"], (AbstractView) ->
           @putDoorInOpenPosition(doorEl, sides[i])
           @stackElements(doorEl, oldDoors[i])
         @positionSlides()
+
+      @stackElements(@controlContainerDiv, @slideContainerDiv)
 
     positionSlides: (doAnimate = true, closeSlides = true) ->
       # @leftImgElement.attr("src", "/barndoor/images/sayles.jpg")
