@@ -65,7 +65,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
 
     setup: (@configuration) ->
       # @logToConsole "setup: there are #{@configuration.pairs.length} image pairs. Each image is #{@configuration.imageDimensions.width} pixels wide"
-      @logToConsole "setup with view factory..."
+      @logToConsole "setup with view factory changed name..."
 
       @targetDivName = @configuration.targetDivName
 
