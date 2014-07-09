@@ -99,7 +99,6 @@ define(["view/baseview"], (BaseView) ->
             wordsX = @maxInset
 
           wordsWidth = @halfDiv - (@slantAdjustment * 2)
-          titleHeight = 65
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             imgEl = document.createElement("img")
@@ -150,10 +149,8 @@ define(["view/baseview"], (BaseView) ->
 
           wordsAlignment = if side == BaseView.SIDE_LEFT then "right" else "left"
           titleStyle = {
-            # "background-color": "green"
             position: "absolute"
             bottom: DefaultView.TEXT_SHADOWBOX_HEIGHT
-            # top: @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT - titleHeight
             left: wordsX
             width: wordsWidth
             letterSpacing: "1px"
