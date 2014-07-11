@@ -57,7 +57,10 @@ define(["view/defaultview", "view/simpleview"], (DefaultView, SimpleView) ->
       if (oldIdx != updatedIdx or forceChange)
         @breakPointIndex = updatedIdx 
         $("#debugRespView").text(@getActiveViewDescriptor())
-        $(document).trigger('screenSizeChanged', { 'viewDescriptor': @getActiveViewDescriptor() })
+        $(document).trigger('viewHandlerChanged', { 'viewDescriptor': @getActiveViewDescriptor() })
+      else
+        $(document).trigger('screenSizeChanged', { 'width': w, 'height': h })
+        
 
   return ResponsiveViewFactory
 )

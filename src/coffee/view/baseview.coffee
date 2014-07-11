@@ -37,6 +37,9 @@ define([], () ->
     showNextPair: (index, pair, reversing = false) ->
       @logToConsole "showNextPair not implemented for [" + this.constructor.name + "]"
 
+    responsiveUpdate: (w, h) ->
+      @logToConsole "responsiveUpdate not implemented for [" + this.constructor.name + "]"
+
     updatePlayPauseStatus: (isPlaying) ->
       @logToConsole "updatePlayPauseStatus not implemented for [" + this.constructor.name + "]"
 
@@ -96,6 +99,10 @@ define([], () ->
         @addAttributeHelper(el, attribs)
       container.appendChild(el)
       return el
+
+    updateNSElement: (elementId, attribs) ->
+      el = document.getElementById(elementId)
+      @addAttributeHelper(el, attribs)
       
     addAttributeHelper: (o, attribs) ->
       for n, v of attribs

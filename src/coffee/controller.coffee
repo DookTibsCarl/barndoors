@@ -75,10 +75,15 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       @imageLoader = new ImageLoader()
 
       @viewFactory = new ResponsiveViewFactory()
-      $(document).bind('screenSizeChanged', ((evt, data) =>
+      $(document).bind('viewHandlerChanged', ((evt, data) =>
         @swapInView()
       ))
       @swapInView() # initial setup
+
+      $(document).bind('screenSizeChanged', ((evt, data) =>
+        console.log("screen size changed to [" + data.width + "]x[" + data.height + "]");
+        @view?.responsiveUpdate(data.width, data.height)
+      ))
 
       # @autoplayTimeout = setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides)
       @setNextSlideDelay()

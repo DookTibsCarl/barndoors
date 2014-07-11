@@ -23,9 +23,11 @@ define(["view/baseview"], (BaseView) ->
     @ANIMATION_LENGTH_MS = 900
 
     constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
-      @logToConsole "constructing default view..."
+      @logToConsole "constructing default view with img size [" + @imgWidth + "]x[" + @imgHeight + "]..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
+
+      @enforceAspectRatio()
 
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
       @renderMode = DefaultView.RENDER_MODE_DEFAULT
@@ -50,8 +52,6 @@ define(["view/baseview"], (BaseView) ->
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
 
-      pairCount = @mainController.appModel.getPairCount()
-
       @slideContainerDiv = $("<div/>").css({"width":@targetDiv.width(), "height":@targetDiv.height()}).attr("id", "slideContainer").appendTo(@targetDiv)
       @controlContainerDiv = $("<div/>").css({"position": "absolute", "width":@targetDiv.width()}).attr("id", "controlContainer").appendTo(@targetDiv)
 
@@ -60,9 +60,7 @@ define(["view/baseview"], (BaseView) ->
       @createClippingPolygons()
       @calculateSlideDestinations()
 
-      @slideContainerDiv.css({ "xbackground-color": "gray", "overflow": "hidden", "position": "absolute" })
-
-      vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
+      @slideContainerDiv.css({ "background-color": "orange", "overflow": "hidden", "position": "absolute" })
 
       @leftDoors = []
       @rightDoors = []
@@ -82,6 +80,34 @@ define(["view/baseview"], (BaseView) ->
           defsEl = @addNSElement("defs", "", null, svgEl)
           clipPathEl = @addNSElement("clipPath", side + "_clip_path", null, defsEl)
           polygonEl = @addNSElement("polygon", "", {points:polyPoints}, clipPathEl)
+
+      @buildOutDoors()
+
+      # @addControls(DefaultView.CONTROL_MODE_PAGINATED)
+      @addControls(DefaultView.CONTROL_MODE_PREV_NEXT)
+
+      @activeDoorIndex = 0
+
+    # during a responsive update, we need to go through the door structure and get everything correctly sized again. fun.
+    resizeDoors: () ->
+      vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
+
+      for letter, i in ["A","B"]
+        for side in BaseView.SIDES
+          elementSuffix = "_#{side}_#{i}"
+
+          doorEl = $("#door" + elementSuffix)
+          doorEl.css("top", vertPos + "px")
+
+          polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
+          bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
+
+          @updateNSElement("maskpoly" + elementSuffix, {points:polyPoints})
+          @updateNSElement("blackbox" + elementSuffix, {points:bbPoints})
+          @updateNSElement("outliner" + elementSuffix, {points:polyPoints})
+
+    buildOutDoors: () ->
+      vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
 
       # and now let's set up the individual A/B slides - this lets us keep one onscreen and use another for animating, and we just swap the content in each as needed.
       for letter, i in ["A","B"]
@@ -134,10 +160,10 @@ define(["view/baseview"], (BaseView) ->
 
             # black box el is next
             bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
-            bbEl = @addNSElement("polygon", "", {points:bbPoints, fill:"black", "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY}, svgEl)
+            bbEl = @addNSElement("polygon", "blackbox" + elementSuffix, {points:bbPoints, fill:"black", "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY}, svgEl)
 
             # and now the border that appears around the edge of the slide
-            @addNSElement("polyline", "", {points:polyPoints, style: "fill:none; stroke:white; stroke-width:3"}, svgEl)
+            @addNSElement("polyline", "outliner" + elementSuffix, {points:polyPoints, style: "fill:none; stroke:white; stroke-width:3"}, svgEl)
             # end of normal styling. CoffeeScript's lack of brackets is a little annoying sometimes
 
           this.putDoorInOpenPosition(doorEl, side)
@@ -189,11 +215,6 @@ define(["view/baseview"], (BaseView) ->
 
           @logToConsole "end of this bit"
           
-
-      # @addControls(DefaultView.CONTROL_MODE_PAGINATED)
-      @addControls(DefaultView.CONTROL_MODE_PREV_NEXT)
-
-      @activeDoorIndex = 0
 
     addControls: (controlType) ->
       controlsEl = $("<div/>").css({
@@ -469,6 +490,22 @@ define(["view/baseview"], (BaseView) ->
         # @logToConsole "ALL DOORS FINISHED!"
       else
         # @logToConsole "NOT DONE YET!"
+
+    enforceAspectRatio: () ->
+      # enforce aspect ratio
+      @targetDiv.height(@targetDiv.width()/2)
+
+    responsiveUpdate: (w, h) ->
+      @logToConsole "viewport dimensions changed to [" + w + "x" + h + "...what shall we do about it?"
+      @enforceAspectRatio()
+      @slideContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
+      @controlContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
+
+      @precalcImageAdjustments()
+      @createClippingPolygons()
+      @calculateSlideDestinations()
+
+      @resizeDoors()
 
     pseudoDestructor: ->
       @logToConsole "cleaning up custom default..."
