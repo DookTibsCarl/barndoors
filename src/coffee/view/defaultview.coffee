@@ -11,7 +11,7 @@ define(["view/baseview"], (BaseView) ->
     DEG_TO_RAD = Math.PI/180
     RAD_TO_DEG = 180/Math.PI
 
-    @DIAGONAL_ANGLE = 85 # how sharp of an angle, measured from the base of the div, to define the slice?
+    @DIAGONAL_ANGLE = 80 # how sharp of an angle, measured from the base of the div, to define the slice?
 
     # @TEXT_SHADOWBOX_HEIGHT = 100
     @TEXT_SHADOWBOX_PERCENT = 0.33
@@ -117,10 +117,10 @@ define(["view/baseview"], (BaseView) ->
       # vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
 
       # and now let's set up the individual A/B slides - this lets us keep one onscreen and use another for animating, and we just swap the content in each as needed.
-      for letter, i in ["A"]
-      # for letter, i in ["A","B"]
-        # for side in BaseView.SIDES
-        for side in ["left"]
+      # for letter, i in ["A"]
+      for letter, i in ["A","B"]
+        for side in BaseView.SIDES
+        # for side in ["left"]
           elementSuffix = "_#{side}_#{i}"
           @logToConsole "looping for [" + elementSuffix + "]"
           # add the necessary structure to the DOM
@@ -138,7 +138,7 @@ define(["view/baseview"], (BaseView) ->
           if side == BaseView.SIDE_LEFT
             wordsX = @imageUnderflow + @dynamicImageWidth - Math.abs(@actualDiagonalInset) - wordsWidth
           else
-            wordsX = @halfDiag
+            wordsX = @actualDiagonalInset
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             imgEl = document.createElement("img")
@@ -160,8 +160,9 @@ define(["view/baseview"], (BaseView) ->
             else
               halfImgUnderflow = @imageUnderflow / 2 * 1
 
-            svgAttribs.viewBox = halfImgUnderflow + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
             svgAttribs.preserveAspectRatio = "xMaxYMin meet"
+
+            svgAttribs.viewBox = halfImgUnderflow + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
             alignWrapEl = @addNSElement("svg", "alignmentWrapper" + elementSuffix, svgAttribs, doorEl[0])
 
 
@@ -212,7 +213,7 @@ define(["view/baseview"], (BaseView) ->
           titleStyle = {
             position: "absolute"
             # bottom: DefaultView.TEXT_SHADOWBOX_HEIGHT
-            "background-color": "purple"
+            # "background-color": "purple"
             bottom: @actualShadowboxHeight
             left: wordsX
             width: wordsWidth
@@ -241,8 +242,14 @@ define(["view/baseview"], (BaseView) ->
             display: (if i == 0 then "block" else "none")
             width: "100%"
             height: "100%"
-            "background-color": "green"
+            # "background-color": "green"
           }
+
+          ### 
+          if (i == 1)
+            doorStyle.display = "block"
+            doorStyle.top = "100px"
+          ###
 
           doorEl.css(doorStyle)
           titleEl.css(titleStyle)
@@ -395,21 +402,26 @@ define(["view/baseview"], (BaseView) ->
       divHeight = @targetDiv.height()
       halfImgUnderflow = @imageUnderflow / 2
 
+      leftEdgeCoord = halfImgUnderflow + (@dynamicImageWidth - @halfDiv - @halfDiag)
+      rightEdgeCoord = halfImgUnderflow + @halfDiag + @halfDiv
+
       @leftImagePoly = [
-        [halfImgUnderflow, 0] 
+        [leftEdgeCoord, 0]
         [divWidth - (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset) - halfImgUnderflow, 0]
         [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow, divHeight]
-        [halfImgUnderflow, divHeight]
-        [halfImgUnderflow, 0]
+        [leftEdgeCoord, divHeight]
       ]
 
       @rightImagePoly = [
-        [DefaultView.BOTTOM_EDGE_INSET, 0],
-        [@imgWidth - overflowAdjustment, 0],
-        [@imgWidth - overflowAdjustment, @imgHeight],
-        [DefaultView.TOP_EDGE_INSET, @imgHeight],
-        [DefaultView.BOTTOM_EDGE_INSET, 0],
+        [halfImgUnderflow + (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0), 0]
+        [rightEdgeCoord, 0]
+        [rightEdgeCoord, divHeight]
+        [halfImgUnderflow + (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset), divHeight]
       ]
+
+      # complete the polys - make a copy of the first point and clone it on the end
+      @leftImagePoly.push(@leftImagePoly[0])
+      @rightImagePoly.push(@rightImagePoly[0])
 
       ###
       # do a little trig to calculate the angle of the relevant triangle; we'll need this to properly crop the background text box
@@ -444,18 +456,19 @@ define(["view/baseview"], (BaseView) ->
       angle = Math.atan(divHeight / @actualDiagonalInset) * RAD_TO_DEG
       triangleBase = @actualShadowboxHeight / Math.tan(angle * DEG_TO_RAD)
 
+      diagAdjustment = (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0)
       @leftTextPoly = [
-        [halfImgUnderflow, topOfBox] 
-        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow + triangleBase, topOfBox]
-        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow, bottomOfBox]
-        [halfImgUnderflow, bottomOfBox]
+        [leftEdgeCoord, topOfBox] 
+        [divWidth - diagAdjustment - halfImgUnderflow + triangleBase, topOfBox]
+        [divWidth - diagAdjustment - halfImgUnderflow, bottomOfBox]
+        [leftEdgeCoord, bottomOfBox]
       ]
 
       @rightTextPoly = [
-        [0, 0]
-        [400, 0]
-        [400, 500]
-        [0, 200]
+        [halfImgUnderflow + triangleBase, topOfBox]
+        [rightEdgeCoord, topOfBox]
+        [rightEdgeCoord, bottomOfBox]
+        [halfImgUnderflow, bottomOfBox]
       ]
 
 
@@ -478,12 +491,13 @@ define(["view/baseview"], (BaseView) ->
       halfImgUnderflow = @imageUnderflow / 2
       halfImgWidth = @dynamicImageWidth / 2
 
+      diagShifter = (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
       if (@renderMode == DefaultView.RENDER_MODE_BASIC)
         @leftDoorClosedDestination = centerOfDiv - @imgWidth
         @rightDoorClosedDestination = centerOfDiv
       else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-        @leftDoorClosedDestination = 0 - halfImgUnderflow - halfImgWidth + (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
-        @rightDoorClosedDestination = centerOfDiv + 200#- (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
+        @leftDoorClosedDestination = 0 - halfImgUnderflow - halfImgWidth + diagShifter
+        @rightDoorClosedDestination = centerOfDiv + (diagShifter * -1)
 
       # sometimes a gap is useful for debugging...
       gap = 0
@@ -492,7 +506,7 @@ define(["view/baseview"], (BaseView) ->
         @rightDoorClosedDestination += gap
 
       # offscreen position is always the same
-      @leftDoorOpenDestination = (-1 * @imgWidth) + debugAdjuster
+      @leftDoorOpenDestination = (-1 * @dynamicImageWidth) - @imageUnderflow + debugAdjuster
       @rightDoorOpenDestination = @slideContainerDiv.width() - debugAdjuster
 
 
@@ -563,6 +577,9 @@ define(["view/baseview"], (BaseView) ->
         detailsEl = $("#details" + suffix)
 
         imgDomEl = document.getElementById("image" + suffix)
+
+        if (imgDomEl == null) then continue #only happens during testing...
+
         if (@renderMode == DefaultView.RENDER_MODE_BASIC)
           imgDomEl.setAttribute('src', slide.imgUrl)
         else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
