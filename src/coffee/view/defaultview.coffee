@@ -7,7 +7,14 @@ define(["view/baseview"], (BaseView) ->
     # need to rethink this...
     @TOP_EDGE_INSET = 40
     @BOTTOM_EDGE_INSET = 90
-    @TEXT_SHADOWBOX_HEIGHT = 100
+
+    DEG_TO_RAD = Math.PI/180
+    RAD_TO_DEG = 180/Math.PI
+
+    @DIAGONAL_ANGLE = 85 # how sharp of an angle, measured from the base of the div, to define the slice?
+
+    # @TEXT_SHADOWBOX_HEIGHT = 100
+    @TEXT_SHADOWBOX_PERCENT = 0.33
     @TEXT_SHADOWBOX_OPACITY = 0.5
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
@@ -90,14 +97,14 @@ define(["view/baseview"], (BaseView) ->
 
     # during a responsive update, we need to go through the door structure and get everything correctly sized again. fun.
     resizeDoors: () ->
-      vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
+      # vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
 
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
 
           doorEl = $("#door" + elementSuffix)
-          doorEl.css("top", vertPos + "px")
+          # doorEl.css("top", vertPos + "px")
 
           polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
           bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
@@ -107,11 +114,13 @@ define(["view/baseview"], (BaseView) ->
           @updateNSElement("outliner" + elementSuffix, {points:polyPoints})
 
     buildOutDoors: () ->
-      vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
+      # vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
 
       # and now let's set up the individual A/B slides - this lets us keep one onscreen and use another for animating, and we just swap the content in each as needed.
-      for letter, i in ["A","B"]
-        for side in BaseView.SIDES
+      for letter, i in ["A"]
+      # for letter, i in ["A","B"]
+        # for side in BaseView.SIDES
+        for side in ["left"]
           elementSuffix = "_#{side}_#{i}"
           @logToConsole "looping for [" + elementSuffix + "]"
           # add the necessary structure to the DOM
@@ -119,12 +128,17 @@ define(["view/baseview"], (BaseView) ->
 
           polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
 
+          ###
           if side == BaseView.SIDE_LEFT
             wordsX = @cutoffImageAmount - @maxInset + (@slantAdjustment * 2)
           else
             wordsX = @maxInset
-
-          wordsWidth = @halfDiv - (@slantAdjustment * 2)
+          ###
+          wordsWidth = @halfDiv - Math.abs(@actualDiagonalInset)
+          if side == BaseView.SIDE_LEFT
+            wordsX = @imageUnderflow + @dynamicImageWidth - Math.abs(@actualDiagonalInset) - wordsWidth
+          else
+            wordsX = @halfDiag
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             imgEl = document.createElement("img")
@@ -137,8 +151,24 @@ define(["view/baseview"], (BaseView) ->
             doorEl[0].appendChild(bbEl)
           else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
             # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript (with a helper fxn) to construct it all
+
+            # NEED AN EXTRA SVG ELEMENT TO POSITION STUFF FLOATED TO LEFT/RIGHT
+            svgAttribs = {width:"100%", height:"100%",baseProfile:"full",version:"1.2"}
+            # underflow is how much smaller the image is than the containing div. Image is centered by default so we only need half. -1 to shift it right.
+            if (side == BaseView.SIDE_LEFT)
+              halfImgUnderflow = @imageUnderflow / 2 * -1
+            else
+              halfImgUnderflow = @imageUnderflow / 2 * 1
+
+            svgAttribs.viewBox = halfImgUnderflow + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
+            svgAttribs.preserveAspectRatio = "xMaxYMin meet"
+            alignWrapEl = @addNSElement("svg", "alignmentWrapper" + elementSuffix, svgAttribs, doorEl[0])
+
+
             # top level - svg
-            svgEl = @addNSElement("svg", "mover" + elementSuffix, {width:@imgWidth, height:@imgHeight,baseProfile:"full",version:"1.2"}, doorEl[0])
+            svgAttribs = {width:"100%", height:"100%",baseProfile:"full",version:"1.2"}
+            # svgEl = @addNSElement("svg", "mover" + elementSuffix, svgAttribs, doorEl[0])
+            svgEl = @addNSElement("svg", "mover" + elementSuffix, svgAttribs, alignWrapEl)
 
             if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
               svgImageAttribs = { mask: "url(#svgmask" + elementSuffix + ")" }
@@ -146,15 +176,20 @@ define(["view/baseview"], (BaseView) ->
               # svgEl contains a "defs" element...
               defsEl = @addNSElement("defs", "", null, svgEl)
 
-              # defs contains a mask...
-              maskEl = @addNSElement("mask", "svgmask" + elementSuffix, {maskUnits:"userSpaceOnUse",maskContentUnits:"userSpaceOnUse",transform:"scale(1)"}, defsEl)
+              reallyMask = true
+              if (reallyMask)
+                # defs contains a mask...
+                maskEl = @addNSElement("mask", "svgmask" + elementSuffix, {maskUnits:"userSpaceOnUse",maskContentUnits:"userSpaceOnUse",transform:"scale(1)"}, defsEl)
 
-              # and mask contain a polygon
-              console.log("poly points [" + polyPoints + "]")
-              polygonEl = @addNSElement("polygon", "maskpoly" + elementSuffix, {points:polyPoints, fill:"white"}, maskEl)
+                # and mask contain a polygon
+                # console.log("poly points [" + polyPoints + "]")
+                polygonEl = @addNSElement("polygon", "maskpoly" + elementSuffix, {points:polyPoints, fill:"white"}, maskEl)
 
             else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
               svgImageAttribs = { "clip-path": "url(#" + side + "_clip_path)" }
+
+            svgImageAttribs.width = "100%"
+            svgImageAttribs.height = "100%"
 
             imgEl = @addNSElement("image", "image" + elementSuffix, svgImageAttribs, svgEl)
 
@@ -176,7 +211,9 @@ define(["view/baseview"], (BaseView) ->
           wordsAlignment = if side == BaseView.SIDE_LEFT then "right" else "left"
           titleStyle = {
             position: "absolute"
-            bottom: DefaultView.TEXT_SHADOWBOX_HEIGHT
+            # bottom: DefaultView.TEXT_SHADOWBOX_HEIGHT
+            "background-color": "purple"
+            bottom: @actualShadowboxHeight
             left: wordsX
             width: wordsWidth
             letterSpacing: "1px"
@@ -188,7 +225,8 @@ define(["view/baseview"], (BaseView) ->
           detailsStyle = {
             # "background-color": "orange"
             position: "absolute"
-            top: @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
+            # top: @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
+            top: @targetDiv.height() - @actualShadowboxHeight
             left: wordsX
             width: wordsWidth
             letterSpacing: "1px",
@@ -199,9 +237,13 @@ define(["view/baseview"], (BaseView) ->
 
           doorStyle = {
             position: "inherit",
-            top: vertPos + "px",
+            # top: vertPos + "px",
             display: (if i == 0 then "block" else "none")
+            width: "100%"
+            height: "100%"
+            "background-color": "green"
           }
+
           doorEl.css(doorStyle)
           titleEl.css(titleStyle)
           detailsEl.css(detailsStyle)
@@ -215,6 +257,9 @@ define(["view/baseview"], (BaseView) ->
 
           @logToConsole "end of this bit"
           
+      debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
+      debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
+      @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
 
     addControls: (controlType) ->
       controlsEl = $("<div/>").css({
@@ -284,7 +329,7 @@ define(["view/baseview"], (BaseView) ->
       
       Couple of notes:
       * the diagonal slice doesn't necessarily start at the "corner" of the image.
-      * the image itself may extend beyond the visible border of the targetDiv (targetDiv has overflow==none so it will be hidden)
+      * the image itself may extend beyond the visible border of the targetDiv (targetDiv has overflow==hidden so it will be hidden)
 
       Put it all together and this is more or less what things look like, showing JUST the left slide as this is confusing enough.
 
@@ -309,12 +354,26 @@ define(["view/baseview"], (BaseView) ->
       @choppedPixels = Math.min(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
       @maxInset = Math.max(DefaultView.TOP_EDGE_INSET, DefaultView.BOTTOM_EDGE_INSET)
 
-    createClippingPolygons: () ->
-      DEG_TO_RAD = Math.PI/180
-      RAD_TO_DEG = 180/Math.PI
+      # REWORKED CALCULATIONS!!!
+      imageAspectRatio = @imgWidth / @imgHeight
+      @dynamicImageHeight = @targetDiv.height()
+      @dynamicImageWidth = @dynamicImageHeight * imageAspectRatio
+      @imageUnderflow = @targetDiv.width() - @dynamicImageWidth
 
+      if DefaultView.DIAGONAL_ANGLE > 90
+        amtAboveNinety = DefaultView.DIAGONAL_ANGLE - 90
+        @actualDiagonalInset = -1 * (@dynamicImageHeight / Math.tan((DefaultView.DIAGONAL_ANGLE - (amtAboveNinety * 2)) * DEG_TO_RAD))
+      else
+        @actualDiagonalInset = @dynamicImageHeight / Math.tan(DefaultView.DIAGONAL_ANGLE * DEG_TO_RAD)
+
+      @halfDiag = @actualDiagonalInset / 2
+
+      @actualShadowboxHeight = @targetDiv.height() * DefaultView.TEXT_SHADOWBOX_PERCENT
+
+    createClippingPolygons: () ->
       # we want the clipping polygons to reflect the actual visible portions, so we need to account for the slide bits that are cut off outside container bounds
       overflowAdjustment = @cutoffImageAmount - (@choppedPixels + @slantAdjustment) + 0
+      ###
       @leftImagePoly = [
         [overflowAdjustment, 0]
         [@imgWidth - DefaultView.TOP_EDGE_INSET, 0]
@@ -330,7 +389,29 @@ define(["view/baseview"], (BaseView) ->
         [DefaultView.TOP_EDGE_INSET, @imgHeight],
         [DefaultView.BOTTOM_EDGE_INSET, 0],
       ]
+      ###
 
+      divWidth = @targetDiv.width()
+      divHeight = @targetDiv.height()
+      halfImgUnderflow = @imageUnderflow / 2
+
+      @leftImagePoly = [
+        [halfImgUnderflow, 0] 
+        [divWidth - (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset) - halfImgUnderflow, 0]
+        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow, divHeight]
+        [halfImgUnderflow, divHeight]
+        [halfImgUnderflow, 0]
+      ]
+
+      @rightImagePoly = [
+        [DefaultView.BOTTOM_EDGE_INSET, 0],
+        [@imgWidth - overflowAdjustment, 0],
+        [@imgWidth - overflowAdjustment, @imgHeight],
+        [DefaultView.TOP_EDGE_INSET, @imgHeight],
+        [DefaultView.BOTTOM_EDGE_INSET, 0],
+      ]
+
+      ###
       # do a little trig to calculate the angle of the relevant triangle; we'll need this to properly crop the background text box
       insetDiff = Math.abs(DefaultView.TOP_EDGE_INSET - DefaultView.BOTTOM_EDGE_INSET)
       bottomAngle = Math.atan(@imgHeight / insetDiff) * RAD_TO_DEG
@@ -340,7 +421,7 @@ define(["view/baseview"], (BaseView) ->
       textTriangleBase = DefaultView.TEXT_SHADOWBOX_HEIGHT / Math.tan(bottomAngle * DEG_TO_RAD)
 
       # topOfBox = 0
-      topOfBox = @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
+      # topOfBox = @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
 
       @leftTextPoly = [
         [overflowAdjustment, topOfBox],
@@ -355,6 +436,28 @@ define(["view/baseview"], (BaseView) ->
         [@imgWidth - overflowAdjustment, topOfBox + DefaultView.TEXT_SHADOWBOX_HEIGHT],
         [DefaultView.TOP_EDGE_INSET, topOfBox + DefaultView.TEXT_SHADOWBOX_HEIGHT]
       ]
+      ###
+
+      topOfBox = @targetDiv.height() - @actualShadowboxHeight
+      bottomOfBox = @targetDiv.height()
+
+      angle = Math.atan(divHeight / @actualDiagonalInset) * RAD_TO_DEG
+      triangleBase = @actualShadowboxHeight / Math.tan(angle * DEG_TO_RAD)
+
+      @leftTextPoly = [
+        [halfImgUnderflow, topOfBox] 
+        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow + triangleBase, topOfBox]
+        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow, bottomOfBox]
+        [halfImgUnderflow, bottomOfBox]
+      ]
+
+      @rightTextPoly = [
+        [0, 0]
+        [400, 0]
+        [400, 500]
+        [0, 200]
+      ]
+
 
     putDoorInOpenPosition: (doorEl, side) ->
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
@@ -370,12 +473,17 @@ define(["view/baseview"], (BaseView) ->
 
       centerOfDiv = @slideContainerDiv.width() / 2
 
+      # console.log("when calculating, slide container div is [" + @slideContainerDiv.width() + "]...image raw is [" + @imgWidth + "]...ACTUAL is [" + $(
+
+      halfImgUnderflow = @imageUnderflow / 2
+      halfImgWidth = @dynamicImageWidth / 2
+
       if (@renderMode == DefaultView.RENDER_MODE_BASIC)
         @leftDoorClosedDestination = centerOfDiv - @imgWidth
         @rightDoorClosedDestination = centerOfDiv
       else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-        @leftDoorClosedDestination = centerOfDiv - (@imgWidth - @slantAdjustment) + @choppedPixels
-        @rightDoorClosedDestination = centerOfDiv - @slantAdjustment - @choppedPixels
+        @leftDoorClosedDestination = 0 - halfImgUnderflow - halfImgWidth + (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
+        @rightDoorClosedDestination = centerOfDiv + 200#- (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
 
       # sometimes a gap is useful for debugging...
       gap = 0
