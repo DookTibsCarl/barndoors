@@ -48,7 +48,7 @@ define(["view/baseview"], (BaseView) ->
             @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
 
       # console.log "HARDCODED TESTING MODE"
-      # @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
+      # @renderMode = DefaultView.RENDER_MODE_BASIC
 
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
@@ -180,7 +180,14 @@ define(["view/baseview"], (BaseView) ->
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
-            imgEl = @addElement("img", "image" + elementSuffix, {style: "float:" + otherSide}, doorEl[0])
+            # "fold" the middle-facing edge under, to come close to the viewport we get from the diagonal look
+            if (side == DefaultView.SIDE_LEFT)
+              imagePos = @targetDiv.width() - @dynamicImageWidth + @halfDiag
+            else
+              imagePos = -1 * @halfDiag
+
+            # imgEl = @addElement("img", "image" + elementSuffix, {style: "float:" + otherSide }, doorEl[0])
+            imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px" }, doorEl[0])
             @addElement("div", "blackbox" + elementSuffix, {class: "blackbar_template"}, doorEl[0])
 
           else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
@@ -256,6 +263,7 @@ define(["view/baseview"], (BaseView) ->
             display: (if i == 0 then "block" else "none")
             width: "100%"
             height: "100%"
+            overflow: "hidden"
           }
 
           doorEl.css(doorStyle)
