@@ -48,7 +48,7 @@ define(["view/baseview"], (BaseView) ->
             @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
 
       # console.log "HARDCODED TESTING MODE"
-      # @renderMode = DefaultView.RENDER_MODE_BASIC
+      # @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
 
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
@@ -80,7 +80,7 @@ define(["view/baseview"], (BaseView) ->
           svgEl = @addNSElement("svg", "", {width:0, height:0}, @slideContainerDiv[0])
           defsEl = @addNSElement("defs", "", null, svgEl)
           clipPathEl = @addNSElement("clipPath", side + "_clip_path", null, defsEl)
-          polygonEl = @addNSElement("polygon", "", {points:polyPoints}, clipPathEl)
+          polygonEl = @addNSElement("polygon", "clippath_poly_" + side, null, clipPathEl)
 
       @buildOutDoors()
 
@@ -92,16 +92,23 @@ define(["view/baseview"], (BaseView) ->
 
     # during a responsive update, we need to go through the door structure and redo various positions and polygon assignments
     resizeDoors: () ->
+      for side in BaseView.SIDES
+        @updateSideElementsForCurrentDimensions(side)
+
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
-          @updateElementsForCurrentDimensions(side, elementSuffix)
+          @updateDoorElementsForCurrentDimensions(side, elementSuffix)
 
           # reposition the door based on all of the above updates
           doorEl = $("#door" + elementSuffix)
           @putDoorInClosedPosition(doorEl, side)
 
-    updateElementsForCurrentDimensions: (side, elementSuffix) ->
+    updateSideElementsForCurrentDimensions: (side) ->
+      polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
+      @updateNSElement("clippath_poly_" + side, {points:polyPoints}) # this is the one used in RENDER_MODE_CLIP_PATH
+
+    updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
       if (@renderMode == DefaultView.RENDER_MODE_BASIC)
         imgEl = document.getElementById("image" + elementSuffix)
         imgEl.height = @targetDiv.height()
@@ -158,8 +165,10 @@ define(["view/baseview"], (BaseView) ->
     buildOutDoors: () ->
       # and now let's set up the individual A/B slides - this lets us keep one onscreen and use another for animating, and we just swap the content in each as needed.
 
-      # as we go through here, some items will get stubbed out and not really fleshed out until we call updateElementsForCurrentDimensions. This keeps
+      # as we go through here, some items will get stubbed out and not really fleshed out until we call updateDoorElementsForCurrentDimensions. This keeps
       # the logic for that in one place (it needs to be callable when doing a dynamic resize too) at the cost of a little bouncing around in the codebase...
+      for side in BaseView.SIDES
+        @updateSideElementsForCurrentDimensions(side)
 
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
@@ -249,12 +258,6 @@ define(["view/baseview"], (BaseView) ->
             height: "100%"
           }
 
-          ### 
-          if (i == 1)
-            doorStyle.display = "block"
-            doorStyle.top = "100px"
-          ###
-
           doorEl.css(doorStyle)
           titleEl.css(titleStyle)
           detailsEl.css(detailsStyle)
@@ -267,11 +270,14 @@ define(["view/baseview"], (BaseView) ->
             @rightDoors.push(doorEl)
 
           # finally - some of the elements we created above need to be fleshed out with actual x/y/w/h values, polygons for rendering/masking, etc.
-          @updateElementsForCurrentDimensions(side, elementSuffix)
+          @updateDoorElementsForCurrentDimensions(side, elementSuffix)
           
-      #debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
-      #debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
-      #@addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
+      #@addMidlineDebugger()
+
+    addMidlineDebugger: () ->
+      debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
+      debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
+      @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
 
     addControls: (controlType) ->
       controlsEl = $("<div/>").css({

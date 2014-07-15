@@ -112,7 +112,8 @@ define([], () ->
 
     updateNSElement: (elementId, attribs) ->
       el = document.getElementById(elementId)
-      @addAttributeHelper(el, attribs)
+      if (el != null)
+        @addAttributeHelper(el, attribs)
       
     addAttributeHelper: (o, attribs) ->
       for n, v of attribs
