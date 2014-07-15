@@ -90,6 +90,16 @@ define([], () ->
       elementA.css("z-index", topIdx)
       elementB.css("z-index", bottomIdx)
 
+    addElement: (elementType, elementId, attribs, container) ->
+      el = document.createElement(elementType)
+      if (elementId != "" and elementId != null)
+        el.id = elementId
+      if (attribs != null)
+        @addAttributeHelper(el, attribs)
+      container.appendChild(el)
+      return el
+      
+      
     # helper function to simplify creating namespace elements (currently used for building out the svg structures)
     addNSElement: (elementType, elementId, attribs, container, namespace = BaseView.SVG_NS) ->
       el = document.createElementNS(namespace, elementType)
