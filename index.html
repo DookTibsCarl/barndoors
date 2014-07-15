@@ -4,12 +4,8 @@
 
 <style>
 			/* this should get generated on the fly by the module so that things like height and background color are only defined in a single place */
-			.blackbar_basic {
+			.blackbar_template {
 				position: absolute;
-				left:0px;
-				top:231px;
-				height:100px;
-				width: 566px;
 				background-color: black;
 				-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 				opacity:0.5;
@@ -93,9 +89,10 @@
 		Window width=<span id="debugWindowWidth"></span>, height=<span id="debugWindowHeight"></span>...use view [<span id="debugRespView"></span>]<p>
 		UA: <span id="debugUserAgent"></span>, rendering mode <span id="debugRenderMode"></span>
 
-		<div style="padding-left:10%" id="someWrapper">
-			<div id="somethingRandom" style="width:50%; height:331px; border-style:none"></div>
-			<div style="background-color:red; width:50%">50% of window width</div>
+		<div style="padding-left:100px" id="someWrapper">
+			<div id="somethingRandom" style="width:75%; height:331px; border-style:none; background-color: grey"></div>
+			<div style="position:absolute; top:550px; background-color:red; width:75%">75% of window width</div>
+			<div style="position:absolute; top:580px; background-color:green; width:800px">800px</div>
 		</div>
 
 	<script language="Javascript">

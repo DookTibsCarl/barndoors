@@ -101,36 +101,64 @@ define(["view/baseview"], (BaseView) ->
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
+          @updateElementsForCurrentDimensions(side, elementSuffix)
 
+          # reposition the door based on all of the above updates
           doorEl = $("#door" + elementSuffix)
-
-          polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
-          bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
-
-          underflowStartPos = @halfImgUnderflow * (if side == BaseView.SIDE_LEFT then -1 else 1)
-          updatedViewbox = underflowStartPos + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
-
-          @updateNSElement("alignmentWrapper" + elementSuffix, {viewBox:updatedViewbox})
-          @updateNSElement("maskpoly" + elementSuffix, {points:polyPoints})
-          @updateNSElement("blackbox" + elementSuffix, {points:bbPoints})
-          @updateNSElement("outliner" + elementSuffix, {points:polyPoints})
-
-          [wordsX, wordsWidth] = @calculateTextPositions(side)
-          titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight }
-          detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight }
-          $("#title" + elementSuffix).css(titleStyleUpdate)
-          $("#details" + elementSuffix).css(detailStyleUpdate)
-
-          # and finally, reposition the door based on all of the above updates
           @putDoorInClosedPosition(doorEl, side)
 
+    updateElementsForCurrentDimensions: (side, elementSuffix) ->
+      if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+        imgEl = document.getElementById("image" + elementSuffix)
+        imgEl.height = @targetDiv.height()
+        @styleTemplatedBlackBar(side, elementSuffix)
+      else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+        polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
+        bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
+
+        underflowStartPos = @halfImgUnderflow * (if side == BaseView.SIDE_LEFT then -1 else 1)
+        updatedViewbox = underflowStartPos + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
+
+        @updateNSElement("alignmentWrapper" + elementSuffix, {viewBox:updatedViewbox})
+        @updateNSElement("maskpoly" + elementSuffix, {points:polyPoints})
+        @updateNSElement("blackbox" + elementSuffix, {points:bbPoints})
+        @updateNSElement("outliner" + elementSuffix, {points:polyPoints})
+
+      # update where the title/description go
+      [wordsX, wordsWidth] = @calculateTextPositions(side)
+      titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight }
+      detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight }
+      $("#title" + elementSuffix).css(titleStyleUpdate)
+      $("#details" + elementSuffix).css(detailStyleUpdate)
+      
+
+
     calculateTextPositions: (side) ->
-      wordsWidth = @halfDiv - Math.abs(@actualDiagonalInset)
-      if side == BaseView.SIDE_LEFT
-        wordsX = @imageUnderflow + @dynamicImageWidth - Math.abs(@actualDiagonalInset) - wordsWidth
+      if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+        bumper = @halfDiv * .05 # gives us just a little padding around the words
+        wordsWidth = @halfDiv - bumper*2
+        if side == BaseView.SIDE_LEFT
+          wordsX = @targetDiv.width() - wordsWidth - bumper
+        else
+          wordsX = bumper
+
       else
-        wordsX = @actualDiagonalInset
+        wordsWidth = @halfDiv - Math.abs(@actualDiagonalInset)
+        if side == BaseView.SIDE_LEFT
+          wordsX = @imageUnderflow + @dynamicImageWidth - Math.abs(@actualDiagonalInset) - wordsWidth
+        else
+          wordsX = @actualDiagonalInset
+
       return [wordsX, wordsWidth]
+
+    styleTemplatedBlackBar: (side, suffix) ->
+      bbEl = document.getElementById("blackbox" + suffix)
+
+      # the actual blackbar_template class can't know about the actual dimensions, so we need to update it now
+      bbEl.style.top = @targetDiv.height() - @actualShadowboxHeight
+      bbEl.style.height = @actualShadowboxHeight
+      bbEl.style.left = if side == DefaultView.SIDE_LEFT then @halfDiv else 0
+      bbEl.style.width = @halfDiv
 
 
     buildOutDoors: () ->
@@ -141,6 +169,8 @@ define(["view/baseview"], (BaseView) ->
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
         # for side in ["left"]
+          otherSide = if side == BaseView.SIDE_LEFT then "right" else "left"
+
           elementSuffix = "_#{side}_#{i}"
           @logToConsole "looping for [" + elementSuffix + "]"
           # add the necessary structure to the DOM
@@ -153,12 +183,18 @@ define(["view/baseview"], (BaseView) ->
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             imgEl = document.createElement("img")
             imgEl.id = "image" + elementSuffix
+            imgEl.height = @targetDiv.height()
+            imgEl.style.float = otherSide
             doorEl[0].appendChild(imgEl)
 
             bbEl = document.createElement("div")
-            bbEl.className = "blackbar_basic" # this needs to be predefined for everything to work nicely...ugly
-
+            bbEl.className = "blackbar_template" # this needs to be predefined for everything to work nicely...ugly
+            bbEl.id = "blackbox" + elementSuffix
             doorEl[0].appendChild(bbEl)
+
+            @styleTemplatedBlackBar(side, elementSuffix)
+
+
           else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
             # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript (with a helper fxn) to construct it all
 
@@ -217,7 +253,6 @@ define(["view/baseview"], (BaseView) ->
 
           # style things appropriately
 
-          wordsAlignment = if side == BaseView.SIDE_LEFT then "right" else "left"
           titleStyle = {
             position: "absolute"
             # bottom: DefaultView.TEXT_SHADOWBOX_HEIGHT
@@ -228,7 +263,7 @@ define(["view/baseview"], (BaseView) ->
             letterSpacing: "1px"
             color: "white"
             font: "bold 30px/30px Helvetica, Sans-Serif"
-            "text-align": wordsAlignment
+            "text-align": otherSide
           }
 
           detailsStyle = {
@@ -242,7 +277,7 @@ define(["view/baseview"], (BaseView) ->
             letterSpacing: "1px",
             font: "12px/12px Arial",
             color: "white"
-            "text-align": wordsAlignment
+            "text-align": otherSide
           }
 
           doorStyle = {
@@ -273,9 +308,9 @@ define(["view/baseview"], (BaseView) ->
 
           @logToConsole "end of this bit"
           
-      # debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
-      # debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
-      # @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
+      #debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
+      #debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
+      #@addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
 
     addControls: (controlType) ->
       controlsEl = $("<div/>").css({
@@ -500,7 +535,7 @@ define(["view/baseview"], (BaseView) ->
 
       diagShifter = (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
       if (@renderMode == DefaultView.RENDER_MODE_BASIC)
-        @leftDoorClosedDestination = centerOfDiv - @imgWidth
+        @leftDoorClosedDestination = centerOfDiv - @targetDiv.width()
         @rightDoorClosedDestination = centerOfDiv
       else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
         @leftDoorClosedDestination = 0 - @halfImgUnderflow - @halfImgWidth + diagShifter
