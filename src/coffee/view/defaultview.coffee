@@ -54,7 +54,7 @@ define(["view/baseview"], (BaseView) ->
             @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
 
       # console.log "HARDCODED TESTING MODE"
-      # @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
+      # @renderMode = DefaultView.RENDER_MODE_BASIC
 
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
@@ -94,24 +94,44 @@ define(["view/baseview"], (BaseView) ->
       @addControls(DefaultView.CONTROL_MODE_PREV_NEXT)
 
       @activeDoorIndex = 0
+      @inactiveDoorIndex = 1
 
-    # during a responsive update, we need to go through the door structure and get everything correctly sized again. fun.
+    # during a responsive update, we need to go through the door structure and redo various positions and polygon assignments
     resizeDoors: () ->
-      # vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
-
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
 
           doorEl = $("#door" + elementSuffix)
-          # doorEl.css("top", vertPos + "px")
 
           polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
           bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
 
+          underflowStartPos = @halfImgUnderflow * (if side == BaseView.SIDE_LEFT then -1 else 1)
+          updatedViewbox = underflowStartPos + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
+
+          @updateNSElement("alignmentWrapper" + elementSuffix, {viewBox:updatedViewbox})
           @updateNSElement("maskpoly" + elementSuffix, {points:polyPoints})
           @updateNSElement("blackbox" + elementSuffix, {points:bbPoints})
           @updateNSElement("outliner" + elementSuffix, {points:polyPoints})
+
+          [wordsX, wordsWidth] = @calculateTextPositions(side)
+          titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight }
+          detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight }
+          $("#title" + elementSuffix).css(titleStyleUpdate)
+          $("#details" + elementSuffix).css(detailStyleUpdate)
+
+          # and finally, reposition the door based on all of the above updates
+          @putDoorInClosedPosition(doorEl, side)
+
+    calculateTextPositions: (side) ->
+      wordsWidth = @halfDiv - Math.abs(@actualDiagonalInset)
+      if side == BaseView.SIDE_LEFT
+        wordsX = @imageUnderflow + @dynamicImageWidth - Math.abs(@actualDiagonalInset) - wordsWidth
+      else
+        wordsX = @actualDiagonalInset
+      return [wordsX, wordsWidth]
+
 
     buildOutDoors: () ->
       # vertPos = (@slideContainerDiv.height()/2) - (@imgHeight/2)
@@ -128,17 +148,7 @@ define(["view/baseview"], (BaseView) ->
 
           polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
 
-          ###
-          if side == BaseView.SIDE_LEFT
-            wordsX = @cutoffImageAmount - @maxInset + (@slantAdjustment * 2)
-          else
-            wordsX = @maxInset
-          ###
-          wordsWidth = @halfDiv - Math.abs(@actualDiagonalInset)
-          if side == BaseView.SIDE_LEFT
-            wordsX = @imageUnderflow + @dynamicImageWidth - Math.abs(@actualDiagonalInset) - wordsWidth
-          else
-            wordsX = @actualDiagonalInset
+          [wordsX, wordsWidth] = @calculateTextPositions(side)
 
           if (@renderMode == DefaultView.RENDER_MODE_BASIC)
             imgEl = document.createElement("img")
@@ -154,15 +164,13 @@ define(["view/baseview"], (BaseView) ->
 
             # NEED AN EXTRA SVG ELEMENT TO POSITION STUFF FLOATED TO LEFT/RIGHT
             svgAttribs = {width:"100%", height:"100%",baseProfile:"full",version:"1.2"}
-            # underflow is how much smaller the image is than the containing div. Image is centered by default so we only need half. -1 to shift it right.
-            if (side == BaseView.SIDE_LEFT)
-              halfImgUnderflow = @imageUnderflow / 2 * -1
-            else
-              halfImgUnderflow = @imageUnderflow / 2 * 1
 
             svgAttribs.preserveAspectRatio = "xMaxYMin meet"
 
-            svgAttribs.viewBox = halfImgUnderflow + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
+            # underflow is how much smaller the image is than the containing div. Image is centered by default so we only need half. -1 to shift it right.
+            underflowStartPos = @halfImgUnderflow * (if side == BaseView.SIDE_LEFT then -1 else 1)
+
+            svgAttribs.viewBox = underflowStartPos + " 0 " + @targetDiv.width() + " " + @targetDiv.height()
             alignWrapEl = @addNSElement("svg", "alignmentWrapper" + elementSuffix, svgAttribs, doorEl[0])
 
 
@@ -226,6 +234,7 @@ define(["view/baseview"], (BaseView) ->
           detailsStyle = {
             # "background-color": "orange"
             position: "absolute"
+            # "background-color": "green"
             # top: @imgHeight - DefaultView.TEXT_SHADOWBOX_HEIGHT
             top: @targetDiv.height() - @actualShadowboxHeight
             left: wordsX
@@ -264,9 +273,9 @@ define(["view/baseview"], (BaseView) ->
 
           @logToConsole "end of this bit"
           
-      debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
-      debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
-      @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
+      # debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
+      # debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
+      # @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
 
     addControls: (controlType) ->
       controlsEl = $("<div/>").css({
@@ -374,6 +383,8 @@ define(["view/baseview"], (BaseView) ->
         @actualDiagonalInset = @dynamicImageHeight / Math.tan(DefaultView.DIAGONAL_ANGLE * DEG_TO_RAD)
 
       @halfDiag = @actualDiagonalInset / 2
+      @halfImgUnderflow = @imageUnderflow / 2
+      @halfImgWidth = @dynamicImageWidth / 2
 
       @actualShadowboxHeight = @targetDiv.height() * DefaultView.TEXT_SHADOWBOX_PERCENT
 
@@ -400,23 +411,22 @@ define(["view/baseview"], (BaseView) ->
 
       divWidth = @targetDiv.width()
       divHeight = @targetDiv.height()
-      halfImgUnderflow = @imageUnderflow / 2
 
-      leftEdgeCoord = halfImgUnderflow + (@dynamicImageWidth - @halfDiv - @halfDiag)
-      rightEdgeCoord = halfImgUnderflow + @halfDiag + @halfDiv
+      leftEdgeCoord = @halfImgUnderflow + (@dynamicImageWidth - @halfDiv - @halfDiag)
+      rightEdgeCoord = @halfImgUnderflow + @halfDiag + @halfDiv
 
       @leftImagePoly = [
         [leftEdgeCoord, 0]
-        [divWidth - (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset) - halfImgUnderflow, 0]
-        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - halfImgUnderflow, divHeight]
+        [divWidth - (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset) - @halfImgUnderflow, 0]
+        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - @halfImgUnderflow, divHeight]
         [leftEdgeCoord, divHeight]
       ]
 
       @rightImagePoly = [
-        [halfImgUnderflow + (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0), 0]
+        [@halfImgUnderflow + (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0), 0]
         [rightEdgeCoord, 0]
         [rightEdgeCoord, divHeight]
-        [halfImgUnderflow + (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset), divHeight]
+        [@halfImgUnderflow + (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset), divHeight]
       ]
 
       # complete the polys - make a copy of the first point and clone it on the end
@@ -459,16 +469,16 @@ define(["view/baseview"], (BaseView) ->
       diagAdjustment = (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0)
       @leftTextPoly = [
         [leftEdgeCoord, topOfBox] 
-        [divWidth - diagAdjustment - halfImgUnderflow + triangleBase, topOfBox]
-        [divWidth - diagAdjustment - halfImgUnderflow, bottomOfBox]
+        [divWidth - diagAdjustment - @halfImgUnderflow + triangleBase, topOfBox]
+        [divWidth - diagAdjustment - @halfImgUnderflow, bottomOfBox]
         [leftEdgeCoord, bottomOfBox]
       ]
 
       @rightTextPoly = [
-        [halfImgUnderflow + triangleBase, topOfBox]
+        [@halfImgUnderflow + triangleBase, topOfBox]
         [rightEdgeCoord, topOfBox]
         [rightEdgeCoord, bottomOfBox]
-        [halfImgUnderflow, bottomOfBox]
+        [@halfImgUnderflow, bottomOfBox]
       ]
 
 
@@ -488,15 +498,12 @@ define(["view/baseview"], (BaseView) ->
 
       # console.log("when calculating, slide container div is [" + @slideContainerDiv.width() + "]...image raw is [" + @imgWidth + "]...ACTUAL is [" + $(
 
-      halfImgUnderflow = @imageUnderflow / 2
-      halfImgWidth = @dynamicImageWidth / 2
-
       diagShifter = (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
       if (@renderMode == DefaultView.RENDER_MODE_BASIC)
         @leftDoorClosedDestination = centerOfDiv - @imgWidth
         @rightDoorClosedDestination = centerOfDiv
       else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-        @leftDoorClosedDestination = 0 - halfImgUnderflow - halfImgWidth + diagShifter
+        @leftDoorClosedDestination = 0 - @halfImgUnderflow - @halfImgWidth + diagShifter
         @rightDoorClosedDestination = centerOfDiv + (diagShifter * -1)
 
       # sometimes a gap is useful for debugging...
@@ -617,11 +624,9 @@ define(["view/baseview"], (BaseView) ->
         # @logToConsole "NOT DONE YET!"
 
     enforceAspectRatio: () ->
-      # enforce aspect ratio
       @targetDiv.height(@targetDiv.width()/2)
 
     responsiveUpdate: (w, h) ->
-      @logToConsole "viewport dimensions changed to [" + w + "x" + h + "...what shall we do about it?"
       @enforceAspectRatio()
       @slideContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
       @controlContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
