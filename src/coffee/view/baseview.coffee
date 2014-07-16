@@ -1,3 +1,6 @@
+# the parent class that ALL views should inherit from. Think of it as pseudo-abstract; it certainly should not
+# be instantiated and used as-is.
+
 define([], () ->
   class BaseView
     @SVG_NS = "http://www.w3.org/2000/svg"

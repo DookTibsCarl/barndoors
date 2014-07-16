@@ -9,12 +9,13 @@ and does not care about the specifics of the implementation.
 
 ###
 
-define(["view/animatedview", "view/simpleview"], (AnimatedView, SimpleView) ->
+define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/simpleview"], (DiagonalAnimatedView, FullTextBelowAnimatedView, SimpleView) ->
   class ResponsiveViewFactory
     # specify size as a breakpoint. Anything <= a given size falls into that bucket. Final element catches everything regardless
     @BREAKPOINTS = [
-      { size: 808, descriptor: "small" },
-      { descriptor: "normal" }
+      { size: 200, descriptor: "small" },
+      { size: 1000, descriptor: "fullTextBelow" }
+      { descriptor: "diagonal" }
     ]
       
     constructor: () ->
@@ -41,8 +42,10 @@ define(["view/animatedview", "view/simpleview"], (AnimatedView, SimpleView) ->
 
       if (desc == "small")
         rv = new SimpleView(mainAppController, divName, imgAspectRatio)
-      else if (desc == "normal")
-        rv = new AnimatedView(mainAppController, divName, imgAspectRatio)
+      else if (desc == "fullTextBelow")
+        rv = new FullTextBelowAnimatedView(mainAppController, divName, imgAspectRatio)
+      else if (desc == "diagonal")
+        rv = new DiagonalAnimatedView(mainAppController, divName, imgAspectRatio)
       return rv
 
     windowWasResized: (forceChange = false) ->
