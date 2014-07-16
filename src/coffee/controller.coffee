@@ -94,7 +94,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
         @view.pseudoDestructor()
         @view = null
 
-      @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.imageWidth, @appModel.imageHeight)
+      @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.getImageDimensionAspectRatio())
 
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>

@@ -34,14 +34,15 @@ define(["view/defaultview", "view/simpleview"], (DefaultView, SimpleView) ->
     getActiveViewDescriptor: () ->
       return ResponsiveViewFactory.BREAKPOINTS[@breakPointIndex].descriptor
 
-    constructActiveView: (mainAppController, divName, imgWidth, imgHeight) ->
+    constructActiveView: (mainAppController, divName, imgAspectRatio) ->
+      console.log "BUILDING ACTIVE VIEW WITH ASPECT RATIO [" + imgAspectRatio + "]"
       desc = @getActiveViewDescriptor()
       rv = null
 
       if (desc == "small")
-        rv = new SimpleView(mainAppController, divName, imgWidth, imgHeight)
+        rv = new SimpleView(mainAppController, divName, imgAspectRatio)
       else if (desc == "normal")
-        rv = new DefaultView(mainAppController, divName, imgWidth, imgHeight)
+        rv = new DefaultView(mainAppController, divName, imgAspectRatio)
       return rv
 
     windowWasResized: (forceChange = false) ->

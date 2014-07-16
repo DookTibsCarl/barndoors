@@ -23,8 +23,8 @@ define(["view/baseview"], (BaseView) ->
     @EASE_FXN = "swing"
     @ANIMATION_LENGTH_MS = 900
 
-    constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
-      @logToConsole "constructing default view with img size [" + @imgWidth + "]x[" + @imgHeight + "]..."
+    constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
+      @logToConsole "constructing default view with aspect ratio [" + @imageAspectRatio + "]..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
 
@@ -343,9 +343,8 @@ define(["view/baseview"], (BaseView) ->
       # a number of dimensions/calculations are used in a number of places - let's just do them up front.
       @halfDiv = @targetDiv.width()/2
 
-      imageAspectRatio = @imgWidth / @imgHeight
       @dynamicImageHeight = @targetDiv.height()
-      @dynamicImageWidth = @dynamicImageHeight * imageAspectRatio
+      @dynamicImageWidth = @dynamicImageHeight * @imageAspectRatio
       @imageUnderflow = @targetDiv.width() - @dynamicImageWidth
 
       if DefaultView.DIAGONAL_ANGLE > 90
@@ -512,10 +511,12 @@ define(["view/baseview"], (BaseView) ->
 
         if (imgDomEl == null) then continue #only happens during testing...
 
+        imageUrl = slide.getImageUrl("default")
+
         if (@renderMode == DefaultView.RENDER_MODE_BASIC)
-          imgDomEl.setAttribute('src', slide.imgUrl)
+          imgDomEl.setAttribute('src', imageUrl)
         else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
-          imgDomEl.setAttributeNS(BaseView.XLINK_NS, 'href', slide.imgUrl)
+          imgDomEl.setAttributeNS(BaseView.XLINK_NS, 'href', imageUrl)
           imgDomEl.setAttribute('width', "100%")
           imgDomEl.setAttribute('height', "100%")
 

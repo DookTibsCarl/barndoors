@@ -2,7 +2,7 @@
 # around switching between view types on screen resize
 define(["view/baseview"], (BaseView) ->
   class SimpleView extends BaseView
-    constructor: (@mainController, @targetDivName, @imgWidth, @imgHeight) ->
+    constructor: (@mainController, @targetDivName, @imgAspectRatio) ->
       # @$ = jq
       @targetDiv = $("##{@targetDivName}")
       @logToConsole "constructing simple view!"

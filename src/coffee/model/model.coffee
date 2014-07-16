@@ -9,17 +9,45 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
       for pair in configObj.pairs
           leftProps = pair.left
           rightProps = pair.right
-          leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.image, leftProps.title, leftProps.details, leftProps.fontColor)
-          rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.image, rightProps.title, rightProps.details, rightProps.fontColor)
+          leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.images, leftProps.title, leftProps.details, leftProps.fontColor)
+          rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.images, rightProps.title, rightProps.details, rightProps.fontColor)
           pair = new SlidePair(leftSlide, rightSlide)
           pairs.push pair
 
-      model = new Model(pairs, configObj.imageDimensions.width, configObj.imageDimensions.height)
+      model = new Model(pairs, configObj.imageDimensionData)
       model
       
 
-    constructor: (@pairs, @imageWidth, @imageHeight) ->
+    constructor: (@pairs, imageDimensionData) ->
       @activePairIndex = 0
+      @imageDimensions = {}
+      
+      @defaultImageDimensionKey = null
+      for dimensionKey, dimensions of imageDimensionData
+        @imageDimensions[dimensionKey] = {
+          width: dimensions.width
+          height: dimensions.height
+        }
+        if (@defaultImageDimensionKey == null)
+          @defaultImageDimensionKey = dimensionKey
+
+    getDimFromKey: (key = null) ->
+      if (key == null)
+        key = @defaultImageDimensionKey
+      rv = @imageDimensions[key]
+      if (rv == null)
+        console.log("WARNING - dimension key [" + key + "] was not found!!!")
+      return rv
+
+    getImageDimensionWidth: (key) ->
+      return @getDimFromKey(key).width
+
+    getImageDimensionHeight: (key) ->
+      return @getDimFromKey(key).height
+
+    getImageDimensionAspectRatio: (key) ->
+      dim = @getDimFromKey(key)
+      return dim.width / dim.height
 
     getActivePair: ->
       @pairs[@activePairIndex]
@@ -52,14 +80,14 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
         rv = @pairs.length - 1
       return rv
 
+    ###
     debug: ->
-      console.log "###### model with [#{@pairs.length}] pairs #####"
-      console.log "imageWidth: [#{@imageWidth}]"
-      console.log "imageHeight: [#{@imageHeight}]"
+      console.log "***** model with [#{@pairs.length}] pairs *****"
       for pair, i in @pairs
         console.log "[#{i}]: #{pair}"
         
-      console.log "############## done ##########"
+      console.log "*********** done **************"
+    ###
 
   return Model
 )
