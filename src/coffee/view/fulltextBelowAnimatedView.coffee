@@ -13,30 +13,18 @@ define(["view/animatedview"], (AnimatedView) ->
       @imageUnderflow = @targetDiv.width() - @dynamicImageWidth
       @halfImgWidth = @dynamicImageWidth / 2
 
-      # calculate the outlines
-      ###
-      @rightOutlinePoly = [
-        [0, 0]
-        [@halfDiv, 0]
-        [@halfDiv, @targetDiv.height()]
-        [0, @targetDiv.height()]
-      ]
-      @wrapUpPoly(@rightOutlinePoly)
-
-      @leftOutlinePoly = @rightOutlinePoly
-      ###
-
       # now calculate open/closed positions
       centerOfDiv = @slideContainerDiv.width() / 2
-      @leftDoorClosedDestination = centerOfDiv - @targetDiv.width()
+      @leftDoorClosedDestination = 0
       @rightDoorClosedDestination = centerOfDiv
-      @leftDoorOpenDestination = (-1 * @dynamicImageWidth) - @imageUnderflow
+      @leftDoorOpenDestination = -1 * @halfDiv
       @rightDoorOpenDestination = @slideContainerDiv.width()
 
     enforceAspectRatio: () ->
       adjustedHeight = @targetDiv.width()/2
       @maxDesiredImageHeight = adjustedHeight
 
+      # now add some space to hold the description/details text
       # for instance, if old percent was .25. In diagonal mode, we'd see 1/4 of the avilable 
       adjustmentFactor = AnimatedView.TEXT_SHADOWBOX_PERCENT / (1 - AnimatedView.TEXT_SHADOWBOX_PERCENT)
       adjustedHeight += adjustedHeight * adjustmentFactor
@@ -47,13 +35,11 @@ define(["view/animatedview"], (AnimatedView) ->
       doorStyle = {
         position: "inherit",
         display: (if letterLooper == 0 then "block" else "none")
-        width: "100%"
         height: "100%"
         overflow: "hidden"
-
-        # "border-style": "solid"
-        # "border-width": "3px"
-        # "border-color": "white"
+        "border-style": "solid"
+        "border-width": "1px"
+        "border-color": "white"
       }
 
       detailsStyle = {
@@ -76,17 +62,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
       $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
 
-      # if the browser supports it, let's draw an outline
-      ###
-      if (document.createElementNS)
-        svgAttribs = {width:"100%", height:"100%",baseProfile:"full",version:"1.2"}
-        svgEl = @addNSElement("svg", "mover" + elementSuffix, svgAttribs, doorEl[0])
-        @addNSElement("polyline", "outliner" + elementSuffix, {style: "fill:none; stroke:white; stroke-width:3"}, svgEl)
-      ###
-
-
       # use border-box to keep things reasonable
-      for style in [ detailsStyle, titleStyle ]
+      for style in [ doorStyle, detailsStyle, titleStyle ]
         for sanity in [ "", "-moz-", "-webkit-" ]
           style[sanity + "box-sizing"] = "border-box"
 
@@ -97,6 +74,9 @@ define(["view/animatedview"], (AnimatedView) ->
       # @putDoorInOpenPosition(doorEl, side)
 
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
+      # adjust the door
+      $("#door" + elementSuffix).css({ width: @halfDiv })
+
       # adjust the image
       imgEl = document.getElementById("image" + elementSuffix)
       imgEl.width = @dynamicImageWidth
@@ -104,33 +84,25 @@ define(["view/animatedview"], (AnimatedView) ->
 
       foldAmount = @halfDiv * FOLD_PROPORTION
       if (side == AnimatedView.SIDE_LEFT)
-        imgPos = @targetDiv.width() - @dynamicImageWidth
+        imgPos = (@dynamicImageWidth - @halfDiv) * -1
         imgPos += foldAmount
       else
         imgPos = 0
         imgPos -= foldAmount
-
       imgEl.style.left = imgPos + "px"
-
-      # adjust the outliner
-      # polyPoints = if side == AnimatedView.SIDE_LEFT then @leftOutlinePoly else @rightOutlinePoly
-      # @updateNSElement("outliner" + elementSuffix, {points:polyPoints})
 
       # adjust the text
       paddingAmount = @halfDiv * PAD_PROPORTION
-      wordsX = if side == AnimatedView.SIDE_LEFT then @targetDiv.width() - @halfDiv else 0
 
       detailStyleUpdate = {
         padding: paddingAmount
         top: @dynamicImageHeight
-        left: wordsX
         width: @halfDiv
       }
 
       titleStyleUpdate = {
         padding: paddingAmount
         bottom: @targetDiv.height() - @dynamicImageHeight
-        left: wordsX
         width: @halfDiv
       }
 
