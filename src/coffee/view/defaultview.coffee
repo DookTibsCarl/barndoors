@@ -8,7 +8,7 @@ define(["view/baseview"], (BaseView) ->
     @DIAGONAL_ANGLE = 80 # how sharp of an angle, measured from the base of the div, to define the slice?
 
     # @TEXT_SHADOWBOX_HEIGHT = 100
-    @TEXT_SHADOWBOX_PERCENT = 0.33
+    @TEXT_SHADOWBOX_PERCENT = 0.2
     @TEXT_SHADOWBOX_OPACITY = 0.5
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
@@ -320,9 +320,9 @@ define(["view/baseview"], (BaseView) ->
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
         @reRenderJumpControls(@mainController.appModel.activePairIndex)
       else if (controlType == DefaultView.CONTROL_MODE_PREV_NEXT)
-        prevEl = $("<span/>").attr("class", "slidePrevNextControl").html("[<-] ").appendTo(controlsEl)
+        prevEl = $("<span/>").css({cursor:"hand"}).attr("class", "slidePrevNextControl").html("[<-] ").appendTo(controlsEl)
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
-        nextEl = $("<span/>").attr("class", "slidePrevNextControl").html(" [->]").appendTo(controlsEl)
+        nextEl = $("<span/>").css({cursor:"hand"}).attr("class", "slidePrevNextControl").html(" [->]").appendTo(controlsEl)
 
         for el, i in [prevEl, nextEl]
           el.click(() ->
