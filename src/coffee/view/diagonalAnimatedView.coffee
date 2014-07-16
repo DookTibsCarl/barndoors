@@ -88,8 +88,10 @@ define(["view/animatedview"], (AnimatedView) ->
       ]
 
       # complete the polys - make a copy of the first point and clone it on the end
-      @leftImagePoly.push(@leftImagePoly[0])
-      @rightImagePoly.push(@rightImagePoly[0])
+      # @leftImagePoly.push(@leftImagePoly[0])
+      # @rightImagePoly.push(@rightImagePoly[0])
+      @wrapUpPoly(@leftImagePoly)
+      @wrapUpPoly(@rightImagePoly)
 
       topOfBox = @targetDiv.height() - @actualShadowboxHeight
       bottomOfBox = @targetDiv.height()
@@ -139,11 +141,6 @@ define(["view/animatedview"], (AnimatedView) ->
       bbEl.style.left = if side == AnimatedView.SIDE_LEFT then @halfDiv else 0
       bbEl.style.width = @halfDiv
 
-    addMidlineDebugger: () ->
-      debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
-      debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
-      @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
-
     # do some math to figure out what's the offscreen and centered positions for each side of the show
     calculateSlideDestinations: ->
       # set this to adjust how far onscreen (positive number) the starting position for a door should be
@@ -185,10 +182,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
     # as we go through here, some items will get stubbed out and not really fleshed out until we call updateDoorElementsForCurrentDimensions. This keeps
     # the logic for that in one place (it needs to be callable when doing a dynamic resize too) at the cost of a little bouncing around in the codebase...
-    buildOutDoor: (letter, letterLooper, side, otherSide, elementSuffix) ->
+    buildOutDoor: (doorEl, letter, letterLooper, side, otherSide, elementSuffix) ->
       @logToConsole "looping for [" + elementSuffix + "]"
-      # add the necessary structure to the DOM
-      doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
 
       if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
         # "fold" the middle-facing edge under, to come close to the viewport we get from the diagonal look
@@ -281,12 +276,6 @@ define(["view/animatedview"], (AnimatedView) ->
       titleEl.css(titleStyle)
       detailsEl.css(detailsStyle)
 
-
-      # and finally let's save things
-      if (side == AnimatedView.SIDE_LEFT)
-        @leftDoors.push(doorEl)
-      else
-        @rightDoors.push(doorEl)
 
   return DiagonalAnimatedView
 )

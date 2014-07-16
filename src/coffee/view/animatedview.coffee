@@ -51,11 +51,15 @@ define(["view/baseview"], (BaseView) ->
         @controlContainerDiv.remove()
         
       @buildOutDoors()
+      # @addMidlineDebugger()
 
       @addControls(AnimatedView.CONTROL_MODE_PREV_NEXT)
 
       @activeDoorIndex = 0
       @inactiveDoorIndex = 1
+
+    wrapUpPoly: (p) ->
+      p.push(p[0])
 
     decideOnRenderMode: () ->
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
@@ -93,7 +97,16 @@ define(["view/baseview"], (BaseView) ->
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"
           otherSide = if side == BaseView.SIDE_LEFT then "right" else "left"
-          @buildOutDoor(letter, i, side, otherSide, elementSuffix)
+
+          # add the necessary structure to the DOM
+          doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
+          @buildOutDoor(doorEl, letter, i, side, otherSide, elementSuffix)
+
+          # and finally let's save things
+          if (side == AnimatedView.SIDE_LEFT)
+            @leftDoors.push(doorEl)
+          else
+            @rightDoors.push(doorEl)
 
           # finally - some of the elements we created via buildOutDoor may need to be fleshed out with actual x/y/w/h values, polygons for rendering/masking, etc.
           @updateDoorElementsForCurrentDimensions(side, elementSuffix)
@@ -245,7 +258,7 @@ define(["view/baseview"], (BaseView) ->
 
         imageUrl = slide.getImageUrl(@mainController.getImageDimensionType())
 
-        if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
+        if (@renderMode == AnimatedView.RENDER_MODE_BASIC or this.constructor.name != "DiagonalAnimatedView")
           imgDomEl.setAttribute('src', imageUrl)
         else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
           imgDomEl.setAttributeNS(BaseView.XLINK_NS, 'href', imageUrl)
@@ -273,6 +286,12 @@ define(["view/baseview"], (BaseView) ->
       @logToConsole "animating [" + prog + "]/[" + remaining "]"
     ###
 
+    addMidlineDebugger: () ->
+      debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
+      debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
+      @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
+
+
     onAnimationComplete: ->
       @doorsThatFinishedAnimating++
       if @doorsThatFinishedAnimating == 2
@@ -284,26 +303,27 @@ define(["view/baseview"], (BaseView) ->
     responsiveUpdate: (w, h) ->
       @enforceAspectRatio()
       @slideContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
-      @controlContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
+      # @controlContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
+      @controlContainerDiv.width(@targetDiv.width())
 
       @setupCalculations()
       @resizeDoors()
 
     # START - THESE SHOULD BE IMPLEMENTED IN SUBCLASSES
     enforceAspectRatio: () ->
-      @logToConsole("no default implementation for enforceAspectRatio")
+      @logToConsole("no implementation for enforceAspectRatio")
 
     buildOutDoor: (letter, i, side, otherSide, elementSuffix) ->
-      @logToConsole("no default implementation for buildOutDoor")
+      @logToConsole("no implementation for buildOutDoor")
 
     updateSideElementsForCurrentDimensions: (side) ->
-      @logToConsole("no default implementation for updateSideElementsForCurrentDimensions")
+      @logToConsole("no implementation for updateSideElementsForCurrentDimensions")
 
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
-      @logToConsole("no default implementation for updateDoorElementsForCurrentDimensions")
+      @logToConsole("no implementation for updateDoorElementsForCurrentDimensions")
 
     setupCalculations: () ->
-      @logToConsole("no default implementation for setupCalculations")
+      @logToConsole("no implementation for setupCalculations")
     # END - THESE SHOULD BE IMPLEMENTED IN SUBCLASSES
 
 
