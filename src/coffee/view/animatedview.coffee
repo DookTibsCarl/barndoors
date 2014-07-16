@@ -1,7 +1,7 @@
 # different views can do things like slice and dice the image, handle animating, etc.
 # right now this is doing an awful lot...
 define(["view/baseview"], (BaseView) ->
-  class DefaultView extends BaseView
+  class AnimatedView extends BaseView
     DEG_TO_RAD = Math.PI/180
     RAD_TO_DEG = 180/Math.PI
 
@@ -31,24 +31,24 @@ define(["view/baseview"], (BaseView) ->
       @enforceAspectRatio()
 
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
-      @renderMode = DefaultView.RENDER_MODE_DEFAULT
+      @renderMode = AnimatedView.RENDER_MODE_DEFAULT
       if (!document.createElementNS)
-        @renderMode = DefaultView.RENDER_MODE_BASIC
+        @renderMode = AnimatedView.RENDER_MODE_BASIC
 
       nua = navigator.userAgent
       isStockAndroid = ((nua.indexOf('Mozilla/5.0') > -1 and nua.indexOf('Android ') > -1 and nua.indexOf('AppleWebKit') > -1) and !(nua.indexOf('Chrome') > -1))
       if (isStockAndroid)
-        @renderMode = DefaultView.RENDER_MODE_CLIP_PATH
+        @renderMode = AnimatedView.RENDER_MODE_CLIP_PATH
 
       if (navigator.appName == 'Microsoft Internet Explorer')
         re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})")
         if (re.exec(nua) != null)
           ieVer = parseFloat( RegExp.$1 )
           if (ieVer < 8.0)
-            @renderMode = DefaultView.RENDER_MODE_BROWSER_TOO_OLD
+            @renderMode = AnimatedView.RENDER_MODE_BROWSER_TOO_OLD
 
       # console.log "HARDCODED TESTING MODE"
-      # @renderMode = DefaultView.RENDER_MODE_BASIC
+      # @renderMode = AnimatedView.RENDER_MODE_BASIC
 
       $("#debugUserAgent").html(nua)
       $("#debugRenderMode").html(@renderMode)
@@ -69,12 +69,12 @@ define(["view/baseview"], (BaseView) ->
       # TODO - stop giving things unique id's and select them based on class/hierarchy perhaps? Or if not, at least break "door"/"title"/etc. out into consts
 
       # Some modes require some initial setup
-      if (@renderMode == DefaultView.RENDER_MODE_BROWSER_TOO_OLD)
+      if (@renderMode == AnimatedView.RENDER_MODE_BROWSER_TOO_OLD)
         @slideContainerDiv.remove()
         # @slideContainerDiv.html("sorry, browser too old")
         @controlContainerDiv.remove()
         
-      else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+      else if (@renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
         for side, i in BaseView.SIDES
           polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
           svgEl = @addNSElement("svg", "", {width:0, height:0}, @slideContainerDiv[0])
@@ -84,8 +84,8 @@ define(["view/baseview"], (BaseView) ->
 
       @buildOutDoors()
 
-      # @addControls(DefaultView.CONTROL_MODE_PAGINATED)
-      @addControls(DefaultView.CONTROL_MODE_PREV_NEXT)
+      # @addControls(AnimatedView.CONTROL_MODE_PAGINATED)
+      @addControls(AnimatedView.CONTROL_MODE_PREV_NEXT)
 
       @activeDoorIndex = 0
       @inactiveDoorIndex = 1
@@ -109,11 +109,11 @@ define(["view/baseview"], (BaseView) ->
       @updateNSElement("clippath_poly_" + side, {points:polyPoints}) # this is the one used in RENDER_MODE_CLIP_PATH
 
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
-      if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+      if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
         imgEl = document.getElementById("image" + elementSuffix)
         imgEl.height = @targetDiv.height()
         @styleTemplatedBlackBar(side, elementSuffix)
-      else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+      else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
         polyPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
         bbPoints = @translatePointsFromArrayToSVGNotation(if side == BaseView.SIDE_LEFT then @leftTextPoly else @rightTextPoly)
 
@@ -135,7 +135,7 @@ define(["view/baseview"], (BaseView) ->
 
 
     calculateTextPositions: (side) ->
-      if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+      if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
         bumper = @halfDiv * .05 # gives us just a little padding around the words
         wordsWidth = @halfDiv - bumper*2
         if side == BaseView.SIDE_LEFT
@@ -158,7 +158,7 @@ define(["view/baseview"], (BaseView) ->
       # the actual blackbar_template class can't know about the actual dimensions, so we need to update it now
       bbEl.style.top = @targetDiv.height() - @actualShadowboxHeight
       bbEl.style.height = @actualShadowboxHeight
-      bbEl.style.left = if side == DefaultView.SIDE_LEFT then @halfDiv else 0
+      bbEl.style.left = if side == AnimatedView.SIDE_LEFT then @halfDiv else 0
       bbEl.style.width = @halfDiv
 
 
@@ -179,9 +179,9 @@ define(["view/baseview"], (BaseView) ->
           # add the necessary structure to the DOM
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
 
-          if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+          if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
             # "fold" the middle-facing edge under, to come close to the viewport we get from the diagonal look
-            if (side == DefaultView.SIDE_LEFT)
+            if (side == AnimatedView.SIDE_LEFT)
               imagePos = @targetDiv.width() - @dynamicImageWidth + @halfDiag
             else
               imagePos = -1 * @halfDiag
@@ -190,7 +190,7 @@ define(["view/baseview"], (BaseView) ->
             imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px" }, doorEl[0])
             @addElement("div", "blackbox" + elementSuffix, {class: "blackbar_template"}, doorEl[0])
 
-          else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+          else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
             # now build out the svg stuff...this does NOT play nicely with JQuery so we just use plain JavaScript (with a helper fxn) to construct it all
 
             # NEED AN EXTRA SVG ELEMENT TO POSITION STUFF FLOATED TO LEFT/RIGHT
@@ -208,7 +208,7 @@ define(["view/baseview"], (BaseView) ->
             svgAttribs = {width:"100%", height:"100%",baseProfile:"full",version:"1.2"}
             svgEl = @addNSElement("svg", "mover" + elementSuffix, svgAttribs, alignWrapEl)
 
-            if (@renderMode == DefaultView.RENDER_MODE_DEFAULT)
+            if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT)
               svgImageAttribs = { mask: "url(#svgmask" + elementSuffix + ")" }
 
               # svgEl contains a "defs" element...
@@ -220,7 +220,7 @@ define(["view/baseview"], (BaseView) ->
               # and mask contain a polygon
               polygonEl = @addNSElement("polygon", "maskpoly" + elementSuffix, {fill:"white"}, maskEl)
 
-            else if (@renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+            else if (@renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
               svgImageAttribs = { "clip-path": "url(#" + side + "_clip_path)" }
 
             svgImageAttribs.width = "100%"
@@ -229,7 +229,7 @@ define(["view/baseview"], (BaseView) ->
             imgEl = @addNSElement("image", "image" + elementSuffix, svgImageAttribs, svgEl)
 
             # black box el is next
-            bbEl = @addNSElement("polygon", "blackbox" + elementSuffix, {fill:"black", "fill-opacity": DefaultView.TEXT_SHADOWBOX_OPACITY}, svgEl)
+            bbEl = @addNSElement("polygon", "blackbox" + elementSuffix, {fill:"black", "fill-opacity": AnimatedView.TEXT_SHADOWBOX_OPACITY}, svgEl)
 
             # and now the border that appears around the edge of the slide
             @addNSElement("polyline", "outliner" + elementSuffix, {style: "fill:none; stroke:white; stroke-width:3"}, svgEl)
@@ -297,7 +297,7 @@ define(["view/baseview"], (BaseView) ->
 
 
       classHook = this
-      if (controlType == DefaultView.CONTROL_MODE_PAGINATED)
+      if (controlType == AnimatedView.CONTROL_MODE_PAGINATED)
         pairCount = @mainController.appModel.getPairCount()
         for i in [0..pairCount-1]
           jumpEl = $("<span/>").attr("class", "slideJumpControl").appendTo(controlsEl)
@@ -319,7 +319,7 @@ define(["view/baseview"], (BaseView) ->
 
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
         @reRenderJumpControls(@mainController.appModel.activePairIndex)
-      else if (controlType == DefaultView.CONTROL_MODE_PREV_NEXT)
+      else if (controlType == AnimatedView.CONTROL_MODE_PREV_NEXT)
         prevEl = $("<span/>").css({cursor:"hand"}).attr("class", "slidePrevNextControl").html("[<-] ").appendTo(controlsEl)
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
         nextEl = $("<span/>").css({cursor:"hand"}).attr("class", "slidePrevNextControl").html(" [->]").appendTo(controlsEl)
@@ -347,17 +347,17 @@ define(["view/baseview"], (BaseView) ->
       @dynamicImageWidth = @dynamicImageHeight * @imageAspectRatio
       @imageUnderflow = @targetDiv.width() - @dynamicImageWidth
 
-      if DefaultView.DIAGONAL_ANGLE > 90
-        amtAboveNinety = DefaultView.DIAGONAL_ANGLE - 90
-        @actualDiagonalInset = -1 * (@dynamicImageHeight / Math.tan((DefaultView.DIAGONAL_ANGLE - (amtAboveNinety * 2)) * DEG_TO_RAD))
+      if AnimatedView.DIAGONAL_ANGLE > 90
+        amtAboveNinety = AnimatedView.DIAGONAL_ANGLE - 90
+        @actualDiagonalInset = -1 * (@dynamicImageHeight / Math.tan((AnimatedView.DIAGONAL_ANGLE - (amtAboveNinety * 2)) * DEG_TO_RAD))
       else
-        @actualDiagonalInset = @dynamicImageHeight / Math.tan(DefaultView.DIAGONAL_ANGLE * DEG_TO_RAD)
+        @actualDiagonalInset = @dynamicImageHeight / Math.tan(AnimatedView.DIAGONAL_ANGLE * DEG_TO_RAD)
 
       @halfDiag = @actualDiagonalInset / 2
       @halfImgUnderflow = @imageUnderflow / 2
       @halfImgWidth = @dynamicImageWidth / 2
 
-      @actualShadowboxHeight = @targetDiv.height() * DefaultView.TEXT_SHADOWBOX_PERCENT
+      @actualShadowboxHeight = @targetDiv.height() * AnimatedView.TEXT_SHADOWBOX_PERCENT
 
     createClippingPolygons: () ->
       divWidth = @targetDiv.width()
@@ -423,10 +423,10 @@ define(["view/baseview"], (BaseView) ->
       # console.log("when calculating, slide container div is [" + @slideContainerDiv.width() + "]...image raw is [" + @imgWidth + "]...ACTUAL is [" + $(
 
       diagShifter = (@halfDiag * (if @actualDiagonalInset < 0 then -1 else 1))
-      if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+      if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
         @leftDoorClosedDestination = centerOfDiv - @targetDiv.width()
         @rightDoorClosedDestination = centerOfDiv
-      else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+      else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
         @leftDoorClosedDestination = 0 - @halfImgUnderflow - @halfImgWidth + diagShifter
         @rightDoorClosedDestination = centerOfDiv + (diagShifter * -1)
 
@@ -513,9 +513,9 @@ define(["view/baseview"], (BaseView) ->
 
         imageUrl = slide.getImageUrl(@mainController.getImageDimensionType())
 
-        if (@renderMode == DefaultView.RENDER_MODE_BASIC)
+        if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
           imgDomEl.setAttribute('src', imageUrl)
-        else if (@renderMode == DefaultView.RENDER_MODE_DEFAULT or @renderMode == DefaultView.RENDER_MODE_CLIP_PATH)
+        else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
           imgDomEl.setAttributeNS(BaseView.XLINK_NS, 'href', imageUrl)
           imgDomEl.setAttribute('width', "100%")
           imgDomEl.setAttribute('height', "100%")
@@ -528,8 +528,8 @@ define(["view/baseview"], (BaseView) ->
           doorEl.animate({
             "left": destinations[i] + "px",
           }, {
-            "easing": DefaultView.EASE_FXN
-            "duration": DefaultView.ANIMATION_LENGTH_MS
+            "easing": AnimatedView.EASE_FXN
+            "duration": AnimatedView.ANIMATION_LENGTH_MS
             # "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
             "complete": (=> @onAnimationComplete())
           })
@@ -569,5 +569,5 @@ define(["view/baseview"], (BaseView) ->
       # @targetDiv.css({ "background-color": "", "overflow": "", "position": "" })
       super
 
-  return DefaultView
+  return AnimatedView
 )

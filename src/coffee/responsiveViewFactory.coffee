@@ -9,7 +9,7 @@ and does not care about the specifics of the implementation.
 
 ###
 
-define(["view/defaultview", "view/simpleview"], (DefaultView, SimpleView) ->
+define(["view/animatedview", "view/simpleview"], (AnimatedView, SimpleView) ->
   class ResponsiveViewFactory
     # specify size as a breakpoint. Anything <= a given size falls into that bucket. Final element catches everything regardless
     @BREAKPOINTS = [
@@ -42,7 +42,7 @@ define(["view/defaultview", "view/simpleview"], (DefaultView, SimpleView) ->
       if (desc == "small")
         rv = new SimpleView(mainAppController, divName, imgAspectRatio)
       else if (desc == "normal")
-        rv = new DefaultView(mainAppController, divName, imgAspectRatio)
+        rv = new AnimatedView(mainAppController, divName, imgAspectRatio)
       return rv
 
     windowWasResized: (forceChange = false) ->
