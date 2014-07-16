@@ -511,7 +511,7 @@ define(["view/baseview"], (BaseView) ->
 
         if (imgDomEl == null) then continue #only happens during testing...
 
-        imageUrl = slide.getImageUrl("default")
+        imageUrl = slide.getImageUrl(@mainController.getImageDimensionType())
 
         if (@renderMode == DefaultView.RENDER_MODE_BASIC)
           imgDomEl.setAttribute('src', imageUrl)

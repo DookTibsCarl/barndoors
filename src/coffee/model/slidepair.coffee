@@ -6,6 +6,9 @@ define([], () ->
 
     toString: ->
       "\n\t#{@leftSlide}\n\t#{@rightSlide}"
+
+    getAppropriateSlideImageUrls: (dimensionKey) ->
+      return [@leftSlide.getImageUrl(dimensionKey), @rightSlide.getImageUrl(dimensionKey)]
       
 
   return SlidePair

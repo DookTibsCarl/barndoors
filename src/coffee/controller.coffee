@@ -1,4 +1,4 @@
-define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, ResponsiveViewFactory, ImageLoader) ->
+define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityManager" ], (Model, ResponsiveViewFactory, ImageLoader, ImageQualityManager) ->
   class BarnDoorController
     # constructor: (@targetDivName) ->
     constructor: () ->
@@ -46,7 +46,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
         @appModel.advanceToPairIndex(jumpIndex)
 
         activePair = @appModel.getActivePair()
-        @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
+        @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
           updatedIndex = @appModel.activePairIndex
 
           if (forceForwardOrBackward == 0)
@@ -74,6 +74,8 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
 
       @imageLoader = new ImageLoader()
 
+      @imageQualityManager = new ImageQualityManager(@appModel.getAllAvailableImageDimensionTypes())
+
       @viewFactory = new ResponsiveViewFactory()
       $(document).bind('viewHandlerChanged', ((evt, data) =>
         @swapInView()
@@ -97,16 +99,23 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.getImageDimensionAspectRatio())
 
       activePair = @appModel.getActivePair()
-      @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
+      @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.renderInitialView(@appModel.getActivePair())
 
         @preloadNextPair()
       ))
 
+    getCorrectImageUrlsForPair: (pair) ->
+      return pair.getAppropriateSlideImageUrls(@imageQualityManager.getImageTypeForRendering())
+
+    getImageDimensionType: () ->
+      return @imageQualityManager.getImageTypeForRendering()
+      
+
     # loads the next set of images. No callback / fire and forget. If it hasn't finished by the time the n
     preloadNextPair: () ->
       peekPair = @appModel.getLookaheadPair()
-      @imageLoader.ensureImagesLoaded([peekPair.leftSlide.imgUrl, peekPair.rightSlide.imgUrl])
+      @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(peekPair))
 
       ###
       # simulate multiple preload requests with competing callbacks - does the cleanup functionality in "setupCallbacks" work right?
@@ -146,7 +155,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader" ], (Model, Respons
       # @logToConsole "---------------------"
 
       activePair = @appModel.getActivePair()
-      @imageLoader.ensureImagesLoaded([activePair.leftSlide.imgUrl, activePair.rightSlide.imgUrl], ( =>
+      @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.showNextPair(@appModel.activePairIndex, activePair)
         @preloadNextPair()
         @setNextSlideDelay()

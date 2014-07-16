@@ -16,7 +16,6 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
 
       model = new Model(pairs, configObj.imageDimensionData)
       model
-      
 
     constructor: (@pairs, imageDimensionData) ->
       @activePairIndex = 0
@@ -31,12 +30,18 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
         if (@defaultImageDimensionKey == null)
           @defaultImageDimensionKey = dimensionKey
 
+    getAllAvailableImageDimensionTypes: () ->
+      rv = []
+      for key, val of @imageDimensions
+        rv.push(key)
+      rv
+
     getDimFromKey: (key = null) ->
       if (key == null)
         key = @defaultImageDimensionKey
       rv = @imageDimensions[key]
-      if (rv == null)
-        console.log("WARNING - dimension key [" + key + "] was not found!!!")
+      if (rv == null or rv == undefined)
+        console.log("ERROR - dimension key [" + key + "] was not found!!!")
       return rv
 
     getImageDimensionWidth: (key) ->

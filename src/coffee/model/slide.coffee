@@ -10,10 +10,13 @@ define([], () ->
         @imgUrls[imgKey] = imgVal
 
     getImageUrl: (key) ->
-      return @imgUrls[key]
+      rv = @imgUrls[key]
+      if rv == null or rv == undefined
+        console.log "ERROR - image key [" + key + "] was not found on this slide!"
+      return rv
 
     toString: ->
-      "{side=#{@side}, url=#{@imgUrl}, title='#{@title}'}"
+      "{side=#{@side}, url=#{@imgUrls}, title='#{@title}'}"
 
   return Slide
 )
