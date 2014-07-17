@@ -1,9 +1,9 @@
 define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, FullTextBelowAnimatedView) ->
   class CollapsedTextAnimatedView extends FullTextBelowAnimatedView
-    EXPANDER_CLASS = "bdExpander"
+    DRAWER_CLASS = "bdDrawer"
     TITLE_CLASS = "bdTitle"
-    ARROW_CLASS = "bdExpanderArrow"
-    DETAILS_CLASS = "bdExpanderDetails"
+    ARROW_CLASS = "bdDrawerArrow"
+    DETAILS_CLASS = "bdDrawerDetails"
     EXPANDED_TEXT_PROPORTION = .25
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
@@ -27,9 +27,6 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         font: "12px/12px Arial",
         color: "white"
         width: "100%"
-        # height: "100%"
-        # "text-align": "center"
-        # "background-color": "grey"
         "background-color": "orange"
         bottom: 0
       }
@@ -41,18 +38,12 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       }
 
       detailsStyle = {
-        # position: "absolute"
         letterSpacing: "1px",
         font: "12px/12px Arial",
         color: "white"
         "background-color": "#7095B7"
-        # height: "100%"
         "text-align": otherSide
         top: 0
-        
-        "border-style": "solid"
-        "border-width": "5px"
-        "border-color": "green"
       }
 
       titleStyle = {
@@ -63,8 +54,16 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         "text-align": otherSide
       }
 
+      # use border-box to keep things reasonable
+      for style in [ doorStyle, drawerStyle, detailsStyle, arrowStyle, titleStyle ]
+        for sanity in [ "", "-moz-", "-webkit-" ]
+          style[sanity + "box-sizing"] = "border-box"
+
+
+      doorEl.css(doorStyle)
+
       # add the drawer first so it can slide "behind" the image/text
-      drawerEl = $("<div/>").attr("id", "drawer" + elementSuffix).addClass(EXPANDER_CLASS).css(drawerStyle).appendTo(doorEl)
+      drawerEl = $("<div/>").attr("id", "drawer" + elementSuffix).addClass(DRAWER_CLASS).css(drawerStyle).appendTo(doorEl)
       detailsEl = $("<div/>").attr("id", "details" + elementSuffix).addClass(DETAILS_CLASS).css(detailsStyle).appendTo(drawerEl)
       arrowEl = $("<div/>").attr("id", "drawer_arrow" + elementSuffix).addClass(ARROW_CLASS).css(arrowStyle).appendTo(drawerEl)
       arrowEl.click(( => @clickedDrawer(arrowEl)))
@@ -72,15 +71,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       imgEl = $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
       # imgEl.css("display", "none") # hide the image to help setting up the drawer
 
-      # use border-box to keep things reasonable
-      for style in [ doorStyle, drawerStyle, detailsStyle, titleStyle ]
-        for sanity in [ "", "-moz-", "-webkit-" ]
-          style[sanity + "box-sizing"] = "border-box"
-
-      doorEl.css(doorStyle)
-
       titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(doorEl)
-      # detailsEl = $("<div/>").attr("id", "details" + elementSuffix).css(detailsStyle).appendTo(doorEl)
       # @putDoorInOpenPosition(doorEl, side)
 
     clickedDrawer: (drawerEl) ->
