@@ -139,13 +139,13 @@ define(["view/animatedview"], (AnimatedView) ->
       return [wordsX, wordsWidth]
 
     styleTemplatedBlackBar: (side, suffix) ->
-      bbEl = document.getElementById("blackbox" + suffix)
-
-      # the actual blackbar_template class can't know about the actual dimensions, so we need to update it now
-      bbEl.style.top = @targetDiv.height() - @actualShadowboxHeight
-      bbEl.style.height = @actualShadowboxHeight
-      bbEl.style.left = if side == AnimatedView.SIDE_LEFT then @halfDiv else 0
-      bbEl.style.width = @halfDiv
+      barUpdate = {
+        top: @targetDiv.height() - @actualShadowboxHeight
+        height: @actualShadowboxHeight
+        left: if side == AnimatedView.SIDE_LEFT then @halfDiv else 0
+        width: @halfDiv
+      }
+      $("#blackbox" + suffix).css(barUpdate)
 
     # do some math to figure out what's the offscreen and centered positions for each side of the show
     calculateSlideDestinations: ->
