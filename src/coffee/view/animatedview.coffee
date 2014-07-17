@@ -300,7 +300,15 @@ define(["view/baseview"], (BaseView) ->
       else
         # @logToConsole "NOT DONE YET!"
 
+    stopAllDoorAnimations: () ->
+      for doorStorage in [@leftDoors, @rightDoors]
+        for door in doorStorage
+          door.finish()
+      @currentlyAnimating = false
+
+
     responsiveUpdate: (w, h) ->
+      @stopAllDoorAnimations()
       @enforceAspectRatio()
       @slideContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
       # @controlContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())
