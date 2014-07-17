@@ -13,6 +13,10 @@ define(["view/animatedview"], (AnimatedView) ->
       @imageUnderflow = @targetDiv.width() - @dynamicImageWidth
       @halfImgWidth = @dynamicImageWidth / 2
 
+      @foldAmount = @halfDiv * FOLD_PROPORTION
+      @textPadAmount = @halfDiv * PAD_PROPORTION
+
+
       # now calculate open/closed positions
       centerOfDiv = @slideContainerDiv.width() / 2
       @leftDoorClosedDestination = 0
@@ -82,26 +86,23 @@ define(["view/animatedview"], (AnimatedView) ->
       imgEl.width = @dynamicImageWidth
       imgEl.height = @dynamicImageHeight
 
-      foldAmount = @halfDiv * FOLD_PROPORTION
       if (side == AnimatedView.SIDE_LEFT)
         imgPos = (@dynamicImageWidth - @halfDiv) * -1
-        imgPos += foldAmount
+        imgPos += @foldAmount
       else
         imgPos = 0
-        imgPos -= foldAmount
+        imgPos -= @foldAmount
       imgEl.style.left = imgPos + "px"
 
       # adjust the text
-      paddingAmount = @halfDiv * PAD_PROPORTION
-
       detailStyleUpdate = {
-        padding: paddingAmount
+        padding: @textPadAmount
         top: @dynamicImageHeight
         width: @halfDiv
       }
 
       titleStyleUpdate = {
-        padding: paddingAmount
+        padding: @textPadAmount
         bottom: @targetDiv.height() - @dynamicImageHeight
         width: @halfDiv
       }
