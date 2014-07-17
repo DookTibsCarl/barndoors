@@ -31,6 +31,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         width: "100%"
         "background-color": "orange"
         bottom: 0
+        overflow: "hidden"
       }
 
       arrowStyle = {
@@ -47,6 +48,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         "background-color": "#7095B7"
         "text-align": otherSide
         top: 0
+        display: "table-cell"
+        "vertical-align": "middle"
       }
 
       titleWrapperStyle = {
@@ -77,12 +80,16 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       arrowEl.click(( => @clickedDrawer(arrowEl)))
 
       imgEl = $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
-      # imgEl.css("display", "none") # hide the image to help setting up the drawer
 
       titleWrapper = $("<div/>").attr("id", "title_wrapper" + elementSuffix).css(titleWrapperStyle).appendTo(doorEl)
       titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(titleWrapper)
       # titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(doorEl)
       # @putDoorInOpenPosition(doorEl, side)
+
+      ###
+      for hider in [titleEl, imgEl]
+        hider.css("display", "none")
+      ###
 
     clickedDrawer: (drawerEl) ->
       @expandedState = not @expandedState

@@ -5,6 +5,7 @@ define(["view/animatedview"], (AnimatedView) ->
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
+      @enableSvgImageSwaps = true
 
     buildOutDoors: () ->
       # before we build out doors, we want to set up some clip path stuff...

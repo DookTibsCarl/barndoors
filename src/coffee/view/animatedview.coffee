@@ -258,7 +258,7 @@ define(["view/baseview"], (BaseView) ->
 
         imageUrl = slide.getImageUrl(@mainController.getImageDimensionType())
 
-        if (@renderMode == AnimatedView.RENDER_MODE_BASIC or this.constructor.name != "DiagonalAnimatedView")
+        if (@renderMode == AnimatedView.RENDER_MODE_BASIC or not this.enableSvgImageSwaps)
           imgDomEl.setAttribute('src', imageUrl)
         else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
           imgDomEl.setAttributeNS(BaseView.XLINK_NS, 'href', imageUrl)
