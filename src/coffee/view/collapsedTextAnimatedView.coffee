@@ -9,6 +9,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
       @expandedState = false
+      # @expanders = [@slideContainerDiv] # if we don't expand the targetDiv too, the expanded state can overlap elements positioned right below the widget...
+      @expanders = [@targetDiv, @slideContainerDiv]
 
     buildOutDoor: (doorEl, letter, letterLooper, side, otherSide, elementSuffix) ->
       doorStyle = {
@@ -86,14 +88,13 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       @expandedState = not @expandedState
       @setExpanderText()
       
-      @slideContainerDiv.animate({
-        "height": (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight())
-        # "height": @dynamicImageHeight + @desiredDrawerArrowHeight + (if @expandedState then @desiredDrawerDescriptionHeight else 0)
-        # "height": @slideContainerDiv.height() + (@desiredDrawerDescriptionHeight * (if @expandedState then 1 else -1))
-      }, {
-        "easing": AnimatedView.EASE_FXN
-        "duration": 100
-      })
+      for animater in @expanders
+        animater.animate({
+          "height": (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight())
+        }, {
+          "easing": AnimatedView.EASE_FXN
+          "duration": 100
+        })
 
     setExpanderText: () ->
       if (@expandedState)
@@ -122,8 +123,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       console.log "desired dims [" + @maxDesiredImageHeight + "], actual w=[" + @targetDiv.width()/2 + "],h=[" + @targetDiv.height() + "], pad amt [" + bottomPadding + "]"
       @targetDiv.height(@targetDiv.height() - bottomPadding/2)
 
-      if (@expandedState)
-        @slideContainerDiv.height(@dynamicImageHeight + @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight)
+      # if (@expandedState)
+        # @targetDiv.height(@dynamicImageHeight + @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight)
 
     # *B*
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
@@ -134,7 +135,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       $("#title" + elementSuffix).css({bottom: 0})
 
       if (@expandedState)
-        @slideContainerDiv.height(@getExpandedSlideContainerHeight())
+        for animater in @expanders
+          animater.height(@getExpandedSlideContainerHeight())
 
       @setExpanderText()
 
