@@ -48,6 +48,7 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
         rv = new FullTextBelowAnimatedView(mainAppController, divName, imgAspectRatio)
       else if (desc == "diagonal")
         rv = new DiagonalAnimatedView(mainAppController, divName, imgAspectRatio)
+
       return rv
 
     windowWasResized: (forceChange = false) ->

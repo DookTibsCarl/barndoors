@@ -82,17 +82,17 @@ define(["view/animatedview"], (AnimatedView) ->
       $("#door" + elementSuffix).css({ width: @halfDiv })
 
       # adjust the image
-      imgEl = document.getElementById("image" + elementSuffix)
-      imgEl.width = @dynamicImageWidth
-      imgEl.height = @dynamicImageHeight
-
       if (side == AnimatedView.SIDE_LEFT)
         imgPos = (@dynamicImageWidth - @halfDiv) * -1
         imgPos += @foldAmount
       else
         imgPos = 0
         imgPos -= @foldAmount
-      imgEl.style.left = imgPos + "px"
+
+      # max-width is not needed in standalone dev environment, but on the reason page I developed against, there was a "img { max-width=100% }" css rule
+      # that was causing issues
+      $("#image" + elementSuffix).width(@dynamicImageWidth).height(@dynamicImageHeight).css({left: imgPos, "max-width": @targetDiv.width()})
+
 
       # adjust the text
       detailStyleUpdate = {

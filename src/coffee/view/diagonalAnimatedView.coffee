@@ -193,8 +193,8 @@ define(["view/animatedview"], (AnimatedView) ->
         else
           imagePos = -1 * @halfDiag
 
-        # imgEl = @addElement("img", "image" + elementSuffix, {style: "float:" + otherSide }, doorEl[0])
-        imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px" }, doorEl[0])
+        # imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px" }, doorEl[0])
+        imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px; max-width: " + @targetDiv.width() + "px" }, doorEl[0])
         @addElement("div", "blackbox" + elementSuffix, {class: "blackbar_template"}, doorEl[0])
 
       else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)

@@ -84,7 +84,7 @@ define(["view/baseview"], (BaseView) ->
 
       # testing modes
       # @renderMode = AnimatedView.RENDER_MODE_BASIC
-      @renderMode = AnimatedView.RENDER_MODE_CLIP_PATH
+      # @renderMode = AnimatedView.RENDER_MODE_CLIP_PATH
 
     # handles setting up container elements for left/right, setting up suffixes, etc. actual building of the DOM is left to subclasses
     buildOutDoors: () ->
