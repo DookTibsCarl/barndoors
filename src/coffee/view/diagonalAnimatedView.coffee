@@ -24,8 +24,13 @@ define(["view/animatedview"], (AnimatedView) ->
 
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
       if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
-        imgEl = document.getElementById("image" + elementSuffix)
-        imgEl.height = @targetDiv.height()
+        # "fold" the middle-facing edge under, to come close to the viewport we get from the diagonal look
+        if (side == AnimatedView.SIDE_LEFT)
+          imagePos = @targetDiv.width() - @dynamicImageWidth + @halfDiag
+        else
+          imagePos = -1 * @halfDiag
+        $("#image" + elementSuffix).width(@dynamicImageWidth).height(@dynamicImageHeight).css({left: imagePos, "max-width": @targetDiv.width()})
+
         @styleTemplatedBlackBar(side, elementSuffix)
       else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
         polyPoints = @translatePointsFromArrayToSVGNotation(if side == AnimatedView.SIDE_LEFT then @leftImagePoly else @rightImagePoly)
@@ -187,14 +192,8 @@ define(["view/animatedview"], (AnimatedView) ->
       @logToConsole "looping for [" + elementSuffix + "]"
 
       if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
-        # "fold" the middle-facing edge under, to come close to the viewport we get from the diagonal look
-        if (side == AnimatedView.SIDE_LEFT)
-          imagePos = @targetDiv.width() - @dynamicImageWidth + @halfDiag
-        else
-          imagePos = -1 * @halfDiag
-
         # imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px" }, doorEl[0])
-        imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute; left: " + imagePos + "px; max-width: " + @targetDiv.width() + "px" }, doorEl[0])
+        imgEl = @addElement("img", "image" + elementSuffix, {style: "position: absolute" }, doorEl[0])
         @addElement("div", "blackbox" + elementSuffix, {class: "blackbar_template"}, doorEl[0])
 
       else if (@renderMode == AnimatedView.RENDER_MODE_DEFAULT or @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
