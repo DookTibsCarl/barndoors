@@ -34,7 +34,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       arrowStyle = {
         cursor: "pointer"
         bottom: 0
-        "background-color": "pink"
+        "background-color": "grey"
+        "text-align": "center"
       }
 
       detailsStyle = {
@@ -44,6 +45,11 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         "background-color": "#7095B7"
         "text-align": otherSide
         top: 0
+      }
+
+      titleWrapperStyle = {
+        position: "absolute"
+        width: "100%"
       }
 
       titleStyle = {
@@ -71,7 +77,9 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       imgEl = $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
       # imgEl.css("display", "none") # hide the image to help setting up the drawer
 
-      titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(doorEl)
+      titleWrapper = $("<div/>").attr("id", "title_wrapper" + elementSuffix).css(titleWrapperStyle).appendTo(doorEl)
+      titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(titleWrapper)
+      # titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(doorEl)
       # @putDoorInOpenPosition(doorEl, side)
 
     clickedDrawer: (drawerEl) ->
@@ -79,29 +87,31 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       @setExpanderText()
       
       @slideContainerDiv.animate({
+        "height": (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight())
         # "height": @dynamicImageHeight + @desiredDrawerArrowHeight + (if @expandedState then @desiredDrawerDescriptionHeight else 0)
-        "height": @slideContainerDiv.height() + (@desiredDrawerDescriptionHeight * (if @expandedState then 1 else -1))
+        # "height": @slideContainerDiv.height() + (@desiredDrawerDescriptionHeight * (if @expandedState then 1 else -1))
       }, {
         "easing": AnimatedView.EASE_FXN
-        "progress": ((a,p,r) => @onAnimationProgress(a,p,r))
         "duration": 100
       })
 
-    onAnimationProgress: (anim, prog, remaining) ->
-      # the title is positioned based on "bottom" - when the slide container div gets taller, this would move the title down. This corrects for that.
-      updatedTitlePos = @slideContainerDiv.height() - @dynamicImageHeight
-      $("." + TITLE_CLASS).css("bottom", updatedTitlePos)
-
     setExpanderText: () ->
       if (@expandedState)
-        $("." + ARROW_CLASS).html("COLLAPSE").css("color", "purple")
+        $("." + ARROW_CLASS).html("^")
       else
-        $("." + ARROW_CLASS).html("EXPAND").css("color", "yellow")
+        $("." + ARROW_CLASS).html("v")
 
     setupCalculations: () ->
       super
       @desiredDrawerArrowHeight = @targetDiv.height() - @maxDesiredImageHeight
       @desiredDrawerDescriptionHeight = @maxDesiredImageHeight * EXPANDED_TEXT_PROPORTION
+
+    getExpandedSlideContainerHeight: () ->
+      return @getCollapsedSlideContainerHeight() + @desiredDrawerDescriptionHeight
+
+    getCollapsedSlideContainerHeight: () ->
+      return @dynamicImageHeight + @desiredDrawerArrowHeight
+
 
     # for a couple of things (*A*, *B*, the parent class does MOST of what we want...we can let it do its work first, and then just make some tweaks.
     # *A*
@@ -112,11 +122,19 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       console.log "desired dims [" + @maxDesiredImageHeight + "], actual w=[" + @targetDiv.width()/2 + "],h=[" + @targetDiv.height() + "], pad amt [" + bottomPadding + "]"
       @targetDiv.height(@targetDiv.height() - bottomPadding/2)
 
+      if (@expandedState)
+        @slideContainerDiv.height(@dynamicImageHeight + @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight)
+
     # *B*
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
       super(side, elementSuffix)
-      $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight })
+      $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight, padding: @textPadAmount })
       $("#details" + elementSuffix).css({height: @desiredDrawerDescriptionHeight })
+      $("#title_wrapper" + elementSuffix).css({height: @dynamicImageHeight})
+      $("#title" + elementSuffix).css({bottom: 0})
+
+      if (@expandedState)
+        @slideContainerDiv.height(@getExpandedSlideContainerHeight())
 
       @setExpanderText()
 
