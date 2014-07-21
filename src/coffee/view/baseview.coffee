@@ -10,6 +10,11 @@ define([], () ->
     @SIDE_RIGHT = "right"
     @SIDES = [ @SIDE_LEFT, @SIDE_RIGHT ]
 
+    # how many pixels of div height do we want for each pixel of font height? Larger numbers for ratio means a smaller font. Min/max set bounds. Subclasses can override these.
+    @TITLE_FONT_SCALE_DATA = { ratio: 10, min: 20, max: 999 }
+    @DESC_FONT_SCALE_DATA = { ratio: 30, min: 10, max: 999 }
+
+
     logToConsole: (s) ->
       console.log(this.constructor.name + "::" + s)
 
@@ -55,6 +60,13 @@ define([], () ->
         [x, y] = p
         rv += (if i == 0 then "" else ",") + x + " " + y
       rv
+
+    figureScaledFontSize: (scaleData, comparisonHeight) ->
+      rv = comparisonHeight / scaleData.ratio
+      rv = Math.max(rv, scaleData.min)
+      rv = Math.min(rv, scaleData.max)
+      return rv + "px"
+
 
     # takes a 5 point polygon (upper left, upper right, lower right, lower left, back to upper left) and shifts it by some adjustment
     squeezePoly: (p, topAdjust, bottomAdjust, leftAdjust, rightAdjust) ->

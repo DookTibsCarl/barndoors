@@ -49,7 +49,7 @@ define(["view/animatedview"], (AnimatedView) ->
       detailsStyle = {
         position: "absolute"
         letterSpacing: "1px",
-        font: "12px/12px Arial",
+        # font: "12px/12px Arial",
         color: "white"
         "background-color": "#7095B7"
         height: "100%"
@@ -60,8 +60,9 @@ define(["view/animatedview"], (AnimatedView) ->
         position: "absolute"
         letterSpacing: "1px"
         color: "white"
-        font: "bold 30px/30px Helvetica, Sans-Serif"
+        # font: "bold 30px/30px Helvetica, Sans-Serif"
         "text-align": otherSide
+        "line-height": "90%"
       }
 
       $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
@@ -99,12 +100,14 @@ define(["view/animatedview"], (AnimatedView) ->
         padding: @textPadAmount
         top: @dynamicImageHeight
         width: @halfDiv
+        "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight)
       }
 
       titleStyleUpdate = {
         padding: @textPadAmount
         bottom: @targetDiv.height() - @dynamicImageHeight
         width: @halfDiv
+        "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @dynamicImageHeight)
       }
 
       $("#title" + elementSuffix).css(titleStyleUpdate)

@@ -43,7 +43,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       detailsStyle = {
         letterSpacing: "1px",
-        font: "12px/12px Arial",
+        # font: "12px/12px Arial",
         color: "white"
         "background-color": "#7095B7"
         "text-align": otherSide
@@ -61,8 +61,9 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         position: "absolute"
         letterSpacing: "1px"
         color: "white"
-        font: "bold 30px/30px Helvetica, Sans-Serif"
+        # font: "bold 30px/30px Helvetica, Sans-Serif"
         "text-align": otherSide
+        "line-height": "90%"
       }
 
       # use border-box to keep things reasonable
@@ -137,9 +138,9 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
       super(side, elementSuffix)
       $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight, padding: @textPadAmount })
-      $("#details" + elementSuffix).css({height: @desiredDrawerDescriptionHeight })
+      $("#details" + elementSuffix).css({height: @desiredDrawerDescriptionHeight, "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight) })
       $("#title_wrapper" + elementSuffix).css({height: @dynamicImageHeight})
-      $("#title" + elementSuffix).css({bottom: 0})
+      $("#title" + elementSuffix).css({bottom: 0, "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @dynamicImageHeight) })
 
       if (@expandedState)
         for animater in @expanders

@@ -3,6 +3,7 @@ define(["view/animatedview"], (AnimatedView) ->
     DEG_TO_RAD = Math.PI/180
     RAD_TO_DEG = 180/Math.PI
 
+
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
       @enableSvgImageSwaps = true
@@ -46,11 +47,10 @@ define(["view/animatedview"], (AnimatedView) ->
 
       # update where the title/description go
       [wordsX, wordsWidth] = @calculateTextPositions(side)
-      titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight }
-      detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight }
+      titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight, "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @targetDiv.height()) }
+      detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight, "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @targetDiv.height()) }
       $("#title" + elementSuffix).css(titleStyleUpdate)
       $("#details" + elementSuffix).css(detailStyleUpdate)
-      
 
     performPrecalculations: () ->
       # a number of dimensions/calculations are used in a number of places - let's just do them up front.
@@ -252,14 +252,15 @@ define(["view/animatedview"], (AnimatedView) ->
         position: "absolute"
         letterSpacing: "1px"
         color: "white"
-        font: "bold 30px/30px Helvetica, Sans-Serif"
+        # font: "bold 30px/30px Helvetica, Sans-Serif"
         "text-align": otherSide
+        "line-height": "90%"
       }
 
       detailsStyle = {
         position: "absolute"
         letterSpacing: "1px",
-        font: "12px/12px Arial",
+        # font: "12px/12px Arial",
         color: "white"
         "text-align": otherSide
       }
