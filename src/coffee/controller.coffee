@@ -76,7 +76,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
       @imageQualityManager = new ImageQualityManager(@appModel.getAllAvailableImageDimensionTypes())
 
-      @viewFactory = new ResponsiveViewFactory()
+      @viewFactory = new ResponsiveViewFactory(@configuration.targetDivName)
       $(document).bind('viewHandlerChanged', ((evt, data) =>
         @swapInView()
       ))

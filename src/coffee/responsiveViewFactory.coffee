@@ -19,7 +19,7 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       { descriptor: "diagonal" }
     ]
       
-    constructor: () ->
+    constructor: (@targetDivId) ->
       # @$ = jq
 
       @breakPointIndex = 0
@@ -52,10 +52,17 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       return rv
 
     windowWasResized: (forceChange = false) ->
-      w = $(window).width()
-      h = $(window).height()
-      $("#debugWindowWidth").text(w)
-      $("#debugWindowHeight").text(h)
+      # w = $(window).width()
+      # h = $(window).height()
+
+      elForDims = $("#" + @targetDivId)
+      w = elForDims.width()
+      h = elForDims.height()
+      $("#debugRVFWidth").text(w)
+      $("#debugRVFHeight").text(h)
+
+      if elForDims.length == 0
+        $("#debugRVFWidth").text("NOT SET")
 
       oldIdx = @breakPointIndex
       updatedIdx = @findBreakpointIndex(w)
@@ -66,7 +73,19 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
         $("#debugRespView").text(@getActiveViewDescriptor())
         $(document).trigger('viewHandlerChanged', { 'viewDescriptor': @getActiveViewDescriptor() })
       else
-        $(document).trigger('screenSizeChanged', { 'width': w, 'height': h })
+        # what are the absolute smallest and largest values for the width? need this to calculate font scaling
+        # absMin = 300
+        # absMax = 1147
+        $(document).trigger('screenSizeChanged', {
+          'width': w
+          'height': h
+          # 'minForView': (if updatedIdx == 0 then absMin else (ResponsiveViewFactory.BREAKPOINTS[updatedIdx-1]).size + 1)
+          # 'maxForView': (if updatedIdx == (ResponsiveViewFactory.BREAKPOINTS.length - 1) then absMax else (ResponsiveViewFactory.BREAKPOINTS[updatedIdx]).size)
+
+          # 261x21 ratio currently for font...bold title
+          # 261x15 for non-bold title
+          # 261x5 for description
+        })
         
 
   return ResponsiveViewFactory
