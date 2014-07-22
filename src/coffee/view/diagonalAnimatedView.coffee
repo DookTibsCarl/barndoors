@@ -3,6 +3,12 @@ define(["view/animatedview"], (AnimatedView) ->
     DEG_TO_RAD = Math.PI/180
     RAD_TO_DEG = 180/Math.PI
 
+    # the diagonal line makes word positioning a little tricky. The default is, draw vertical lines from the start/end of the diagonal.
+    # These define the end (on the left) and the start (on the right) of the word boxes. But, we may want a little more hand-tuning. These
+    # values blah blah
+    # Values of 1 mean do nothing. A smaller value moves the text "away" from the diagonal split.
+    LEFTSIDE_TEXT_MIDDLE_OFFSET_RATIO = .96
+    RIGHTSIDE_TEXT_MIDDLE_OFFSET_RATIO = 1
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
@@ -136,6 +142,15 @@ define(["view/animatedview"], (AnimatedView) ->
         else
           wordsX = @actualDiagonalInset
 
+
+        if (side == AnimatedView.SIDE_LEFT and LEFTSIDE_TEXT_MIDDLE_OFFSET_RATIO != 1)
+          wordsWidth *= LEFTSIDE_TEXT_MIDDLE_OFFSET_RATIO
+        else if (side == AnimatedView.SIDE_RIGHT and RIGHTSIDE_TEXT_MIDDLE_OFFSET_RATIO != 1)
+          oldWidth = wordsWidth
+          wordsWidth *= RIGHTSIDE_TEXT_MIDDLE_OFFSET_RATIO
+          diffAmt = oldWidth - wordsWidth
+          wordsX += diffAmt
+
       return [wordsX, wordsWidth]
 
     styleTemplatedBlackBar: (side, suffix) ->
@@ -255,6 +270,7 @@ define(["view/animatedview"], (AnimatedView) ->
         # font: "bold 30px/30px Helvetica, Sans-Serif"
         "text-align": otherSide
         "line-height": "90%"
+        # "background-color": "purple"
       }
 
       detailsStyle = {
@@ -263,6 +279,7 @@ define(["view/animatedview"], (AnimatedView) ->
         # font: "12px/12px Arial",
         color: "white"
         "text-align": otherSide
+        # "background-color": "orange"
       }
 
       doorStyle = {
