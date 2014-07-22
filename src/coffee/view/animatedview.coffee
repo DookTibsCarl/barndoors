@@ -2,7 +2,7 @@
 
 define(["view/baseview"], (BaseView) ->
   class AnimatedView extends BaseView
-    @DIAGONAL_ANGLE = 86 # how sharp of an angle, measured from the base of the div, to define the slice?
+    @DIAGONAL_ANGLE = 80.84 # how sharp of an angle, measured from the base of the div, to define the slice?
 
     # @TEXT_SHADOWBOX_HEIGHT = 100
     @TEXT_SHADOWBOX_PERCENT = 0.2
