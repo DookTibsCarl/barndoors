@@ -78,6 +78,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       drawerEl = $("<div/>").attr("id", "drawer" + elementSuffix).addClass(DRAWER_CLASS).css(drawerStyle).appendTo(doorEl)
       detailsEl = $("<div/>").attr("id", "details" + elementSuffix).addClass(DETAILS_CLASS).css(detailsStyle).appendTo(drawerEl)
       arrowEl = $("<div/>").attr("id", "drawer_arrow" + elementSuffix).addClass(ARROW_CLASS).css(arrowStyle).appendTo(drawerEl)
+      $("<img/>").css({height: "50%", "margin-top": "2%"}).appendTo(arrowEl)
+
       arrowEl.click(( => @clickedDrawer(arrowEl)))
 
       imgEl = $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
@@ -105,10 +107,11 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         })
 
     setExpanderText: () ->
-      if (@expandedState)
-        $("." + ARROW_CLASS).html("^")
-      else
-        $("." + ARROW_CLASS).html("v")
+      allArrowImagess = $("." + ARROW_CLASS + " > img")
+
+      arrowImage = if @expandedState then "up" else "down"
+      arrowAlt = if @expandedState then "hide" else "show"
+      allArrowImagess.attr({"src": "/global_stock/images/barndoors/barndoors-" + arrowImage + ".png", "alt": arrowAlt})
 
     setupCalculations: () ->
       super

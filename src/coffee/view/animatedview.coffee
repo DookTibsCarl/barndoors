@@ -130,6 +130,8 @@ define(["view/baseview"], (BaseView) ->
       controlsEl = $("<div/>").css({
                                     "position": "relative"
                                     "float": "right"
+                                    "margin-top": "1%"
+                                    "margin-right": "1%"
                                     # this top position puts controls just below the slide container
                                     # "top":@slideContainerDiv.height()
                                   }).attr("id", "barndoorControls").appendTo(@controlContainerDiv)
@@ -159,10 +161,24 @@ define(["view/baseview"], (BaseView) ->
         @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
         @reRenderJumpControls(@mainController.appModel.activePairIndex)
       else if (controlType == AnimatedView.CONTROL_MODE_PREV_NEXT)
-        prevEl = $("<span/>").css({cursor:"hand"}).attr("class", "slidePrevNextControl").html("[<-] ").appendTo(controlsEl)
-        @playPauseEl = $("<span/>").css({cursor: "hand", "background-color": "grey"}).appendTo(controlsEl)
-        nextEl = $("<span/>").css({cursor:"hand"}).attr("class", "slidePrevNextControl").html(" [->]").appendTo(controlsEl)
+        imgStyle = {
+          "margin-left": "auto"
+          "margin-right": "auto"
+          display: "block"
+          height: "60%"
+          "margin-top": "18%"
+        }
 
+        prevEl = $("<a/>").addClass("round_button").appendTo(controlsEl)
+        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).css(imgStyle).appendTo(prevEl)
+
+        playPauseElWrapper = $("<a/>").addClass("round_button").appendTo(controlsEl)
+        @playPauseEl = $("<img/>").css(imgStyle).appendTo(playPauseElWrapper)
+        @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
+
+        nextEl = $("<a/>").addClass("round_button").appendTo(controlsEl)
+        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).css(imgStyle).appendTo(nextEl)
+        
         for el, i in [prevEl, nextEl]
           el.click(() ->
             if ! classHook.currentlyAnimating
@@ -174,7 +190,7 @@ define(["view/baseview"], (BaseView) ->
       else
         @logToConsole("unsupported control type [" + controlType + "] supplied...")
         
-      @playPauseEl.click(() ->
+      playPauseElWrapper.click(() ->
         classHook.togglePlayPause()
       )
 
@@ -194,7 +210,10 @@ define(["view/baseview"], (BaseView) ->
       this.positionSlides(false)
 
     updatePlayPauseStatus: (isPlaying) ->
-      @playPauseEl.html(if isPlaying then "PAUSE" else "PLAY")
+      if (isPlaying)
+        @playPauseEl.attr({"src": "/global_stock/images/barndoors/barndoors-pause.png", "alt": "pause"})
+      else
+        @playPauseEl.attr({"src": "/global_stock/images/barndoors/barndoors-play.png", "alt": "play"})
 
     reRenderJumpControls: (index) ->
       @logToConsole "update jumpers [" + index + "]"
