@@ -12,7 +12,12 @@ define([], () ->
     getImageUrl: (key) ->
       rv = @imgUrls[key]
       if rv == null or rv == undefined
-        console.log "ERROR - image key [" + key + "] was not found on this slide!"
+        if (key == "default")
+          console.log "ERROR - image key [" + key + "] was not found on this slide!"
+        else
+          console.log "WARNING - image key [" + key + "] was not found for this slide; trying default instead"
+          rv = @getImageUrl("default")
+
       return rv
 
     toString: ->
