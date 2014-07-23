@@ -44,11 +44,13 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
         console.log("ERROR - dimension key [" + key + "] was not found!!!")
       return rv
 
+    ###
     getImageDimensionWidth: (key) ->
       return @getDimFromKey(key).width
 
     getImageDimensionHeight: (key) ->
       return @getDimFromKey(key).height
+    ###
 
     getImageDimensionAspectRatio: (key) ->
       dim = @getDimFromKey(key)
