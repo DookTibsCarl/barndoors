@@ -1,6 +1,6 @@
 define(["view/animatedview"], (AnimatedView) ->
   class FullTextBelowAnimatedView extends AnimatedView
-    FOLD_PROPORTION = .12 # how much of the "middle" of the images should get folder "under"?
+    FOLD_PROPORTION = .05 # how much of the "middle" of the images should get folder "under"?
     PAD_PROPORTION = .03  # how much padding do you want on the textfields?
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
