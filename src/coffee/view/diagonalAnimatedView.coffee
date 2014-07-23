@@ -7,7 +7,7 @@ define(["view/animatedview"], (AnimatedView) ->
     # These define the end (on the left) and the start (on the right) of the word boxes. But, we may want a little more hand-tuning. These
     # values blah blah
     # Values of 1 mean do nothing. A smaller value moves the text "away" from the diagonal split.
-    LEFTSIDE_TEXT_MIDDLE_OFFSET_RATIO = .9
+    LEFTSIDE_TEXT_MIDDLE_OFFSET_RATIO = .95
     RIGHTSIDE_TEXT_MIDDLE_OFFSET_RATIO = 1
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
