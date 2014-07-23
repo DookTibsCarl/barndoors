@@ -5,8 +5,9 @@ define(["view/baseview"], (BaseView) ->
     @DIAGONAL_ANGLE = 84.77 # how sharp of an angle, measured from the base of the div, to define the slice?
 
     # @TEXT_SHADOWBOX_HEIGHT = 100
-    @TEXT_SHADOWBOX_PERCENT = 0.2
+    @TEXT_SHADOWBOX_PERCENT = 0.16
     @TEXT_SHADOWBOX_OPACITY = 0.5
+
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
     @CONTROL_MODE_PREV_NEXT = "prevNextControls"
@@ -17,8 +18,8 @@ define(["view/baseview"], (BaseView) ->
     @RENDER_MODE_BASIC = "basicMode"         # basic render mode - does NOT use svg's. Has most features except lacks diagonal slice. Works for IE8
     @RENDER_MODE_BROWSER_TOO_OLD = "tooOld"  # browser has been deemed too old to do much of anything.
 
-    @EASE_FXN = "swing"
-    @ANIMATION_LENGTH_MS = 900
+    # @EASE_FXN = "swing"
+    @ANIMATION_LENGTH_MS = 700
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       @logToConsole "constructing default view with aspect ratio [" + @imageAspectRatio + "]..."
@@ -292,7 +293,7 @@ define(["view/baseview"], (BaseView) ->
           doorEl.animate({
             "left": destinations[i] + "px",
           }, {
-            "easing": AnimatedView.EASE_FXN
+            # "easing": AnimatedView.EASE_FXN
             "duration": AnimatedView.ANIMATION_LENGTH_MS
             # "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
             "complete": (=> @onAnimationComplete())

@@ -74,8 +74,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
       doorEl.css(doorStyle)
 
-      titleEl = $("<div/>").attr("id", "title" + elementSuffix).css(titleStyle).appendTo(doorEl)
-      detailsEl = $("<div/>").attr("id", "details" + elementSuffix).css(detailsStyle).appendTo(doorEl)
+      titleEl = $("<div/>").attr("id", "title" + elementSuffix).css(titleStyle).addClass("title").appendTo(doorEl)
+      detailsEl = $("<div/>").attr("id", "details" + elementSuffix).css(detailsStyle).addClass("details").appendTo(doorEl)
       # @putDoorInOpenPosition(doorEl, side)
 
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->

@@ -1,10 +1,10 @@
 define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, FullTextBelowAnimatedView) ->
   class CollapsedTextAnimatedView extends FullTextBelowAnimatedView
     DRAWER_CLASS = "bdDrawer"
-    TITLE_CLASS = "bdTitle"
+    TITLE_CLASS = "title"
     ARROW_CLASS = "bdDrawerArrow"
-    DETAILS_CLASS = "bdDrawerDetails"
-    EXPANDED_TEXT_PROPORTION = .25
+    DETAILS_CLASS = "details"
+    EXPANDED_TEXT_PROPORTION = .4
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
@@ -79,6 +79,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       detailsEl = $("<div/>").attr("id", "details" + elementSuffix).addClass(DETAILS_CLASS).css(detailsStyle).appendTo(drawerEl)
       arrowEl = $("<div/>").attr("id", "drawer_arrow" + elementSuffix).addClass(ARROW_CLASS).css(arrowStyle).appendTo(drawerEl)
       $("<img/>").css({height: "50%", "margin-top": "2%"}).appendTo(arrowEl)
+      # $("<img/>").css({height: 12, "margin-top": "-2px"}).appendTo(arrowEl)
 
       arrowEl.click(( => @clickedDrawer(arrowEl)))
 
@@ -116,6 +117,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     setupCalculations: () ->
       super
       @desiredDrawerArrowHeight = @targetDiv.height() - @maxDesiredImageHeight
+      # @desiredDrawerArrowHeight = 23
       @desiredDrawerDescriptionHeight = @maxDesiredImageHeight * EXPANDED_TEXT_PROPORTION
 
     getExpandedSlideContainerHeight: () ->

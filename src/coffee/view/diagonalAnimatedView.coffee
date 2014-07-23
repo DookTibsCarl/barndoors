@@ -53,8 +53,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
       # update where the title/description go
       [wordsX, wordsWidth] = @calculateTextPositions(side)
-      titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight, "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @targetDiv.height()) }
-      detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight, "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @targetDiv.height()) }
+      titleStyleUpdate = { left: wordsX, width:wordsWidth, bottom: @actualShadowboxHeight + (AnimatedView.TITLE_DISTANCE_FROM_BLACKBAR_PADDING_RATIO * @actualShadowboxHeight), "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @targetDiv.height()) }
+      detailStyleUpdate = { left: wordsX, width:wordsWidth, top: @targetDiv.height() - @actualShadowboxHeight + (AnimatedView.DETAILS_DISTANCE_FROM_BLACKBAR_PADDING_RATIO * @actualShadowboxHeight), "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @targetDiv.height()) }
       $("#title" + elementSuffix).css(titleStyleUpdate)
       $("#details" + elementSuffix).css(detailStyleUpdate)
 
@@ -258,8 +258,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
       this.putDoorInOpenPosition(doorEl, side)
 
-      titleEl = $("<div/>").attr("id", "title" + elementSuffix).appendTo(doorEl)
-      detailsEl = $("<div/>").attr("id", "details" + elementSuffix).appendTo(doorEl)
+      titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass("title").appendTo(doorEl)
+      detailsEl = $("<div/>").attr("id", "details" + elementSuffix).addClass("details").appendTo(doorEl)
 
       # style things appropriately
 

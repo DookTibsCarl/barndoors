@@ -1,0 +1,46 @@
+for IE: add a second text title area that can be completely blurred, hide it from screen readers, only do this for IE8&9 and below
+figure out max size for collapsed/fullbelow views and size the desc field dynamically
+make the up/down tray&arrow fixed height (23px for the tray, ??? for the arrow)
+
+
+
+
+These were old tests before i branched - as of 2014-07-09 this worked on all these browsers. Only caveat is 
+IE8 doesn't have diagonal slice.
+------
+DESKTOP
+
+Safari
+5: slice doesn't work
+6: ok
+7: ok
+
+Chrome
+14: slice doesn't work
+20, 21, 22: slice doesn't work
+23: left slice works, right slice is blank
+24: ok
+25: ok
+30: ok
+35: ok
+
+Firefox
+3.6: blank
+4: ok
+5: ok
+10: ok
+20: ok
+30: ok
+
+Opera
+11.1: blank
+11.6, 12, 12.15: slice doesn't work
+15: ok
+16: ok
+22: ok
+
+IE
+8: blank - having trouble with image preloads/loads in general. attr.src problematic maybe? (console.log for starters)
+9: slice doesn't work, also uses console.log
+10/Desk: slice doesn't work
+11/Desk: slice doesn't work
