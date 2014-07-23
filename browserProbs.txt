@@ -1,6 +1,6 @@
 for IE: add a second text title area that can be completely blurred, hide it from screen readers, only do this for IE8&9 and below
-figure out max size for collapsed/fullbelow views and size the desc field dynamically
-make the up/down tray&arrow fixed height (23px for the tray, ??? for the arrow)
+figure out max size for collapsed/fullbelow views and size the desc field dynamically -- do this before the next one!
+	make the up/down tray&arrow fixed height (23px for the tray, ??? for the arrow)
 
 
 
