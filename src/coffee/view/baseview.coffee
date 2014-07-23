@@ -12,7 +12,7 @@ define([], () ->
 
     # how many pixels of div height do we want for each pixel of font height? Larger numbers for ratio means a smaller font. Min/max set bounds. Subclasses can override these.
     @TITLE_FONT_SCALE_DATA = { ratio: 10, min: 20, max: 999 }
-    @DESC_FONT_SCALE_DATA = { ratio: 30, min: 10, max: 999 }
+    @DESC_FONT_SCALE_DATA = { ratio: 30, min: 6, max: 999 }
 
 
     logToConsole: (s) ->
