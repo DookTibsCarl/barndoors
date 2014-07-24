@@ -5,6 +5,9 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       # set a local alias for jQuery
       # @$ = jq
 
+      console.log "Setting Jquery interval to 50..."
+      jQuery.fx.interval = 50
+
       @autoplayTimeout = null
       $(document).on("jumpToSlideIndex", (evt) => (
         @handleJump(evt.jumpIndex)

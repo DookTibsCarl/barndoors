@@ -8,6 +8,9 @@ define(["view/baseview"], (BaseView) ->
     @TEXT_SHADOWBOX_PERCENT = 0.16
     @TEXT_SHADOWBOX_OPACITY = 0.5
 
+    USE_JQUERY_FOR_ANIMATION = "useJquery"
+    USE_CSS_FOR_ANIMATION = "useCss"
+    ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
     @CONTROL_MODE_PREV_NEXT = "prevNextControls"
@@ -18,13 +21,15 @@ define(["view/baseview"], (BaseView) ->
     @RENDER_MODE_BASIC = "basicMode"         # basic render mode - does NOT use svg's. Has most features except lacks diagonal slice. Works for IE8
     @RENDER_MODE_BROWSER_TOO_OLD = "tooOld"  # browser has been deemed too old to do much of anything.
 
-    # @EASE_FXN = "swing"
+    # @JQUERY_EASE_FXN = "swing"
+    @CSS_EASE_FXN = "ease-in-out" # default / linear / ease-in / ease-out / ease-in-out
     @ANIMATION_LENGTH_MS = 700
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       @logToConsole "constructing default view with aspect ratio [" + @imageAspectRatio + "]..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
+      @targetDiv.css("-webkit-transform", "translateZ(0)")
 
       @enforceAspectRatio()
       @decideOnRenderMode()
@@ -170,15 +175,18 @@ define(["view/baseview"], (BaseView) ->
           "margin-top": "18%"
         }
 
-        prevEl = $("<a/>").addClass("round_button").appendTo(controlsEl)
-        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).css(imgStyle).appendTo(prevEl)
+        prevEl = $("<a/>").addClass("round_button").addClass("previous").appendTo(controlsEl)
+        # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).css(imgStyle).appendTo(prevEl)
+        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).appendTo(prevEl)
 
-        playPauseElWrapper = $("<a/>").addClass("round_button").appendTo(controlsEl)
-        @playPauseEl = $("<img/>").css(imgStyle).appendTo(playPauseElWrapper)
+        playPauseElWrapper = $("<a/>").addClass("round_button").addClass("playpause").appendTo(controlsEl)
+        # @playPauseEl = $("<img/>").css(imgStyle).appendTo(playPauseElWrapper)
+        @playPauseEl = $("<img/>").appendTo(playPauseElWrapper)
         @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
 
-        nextEl = $("<a/>").addClass("round_button").appendTo(controlsEl)
-        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).css(imgStyle).appendTo(nextEl)
+        nextEl = $("<a/>").addClass("round_button").addClass("next").appendTo(controlsEl)
+        # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).css(imgStyle).appendTo(nextEl)
+        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).appendTo(nextEl)
         
         for el, i in [prevEl, nextEl]
           el.click(() ->
@@ -196,9 +204,11 @@ define(["view/baseview"], (BaseView) ->
       )
 
     putDoorInOpenPosition: (doorEl, side) ->
+      # @clearCssAnimationPropsFromElement(doorEl)
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
 
     putDoorInClosedPosition: (doorEl, side) ->
+      # @clearCssAnimationPropsFromElement(doorEl)
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorClosedDestination else @rightDoorClosedDestination))
 
 
@@ -265,6 +275,7 @@ define(["view/baseview"], (BaseView) ->
 
       @currentlyAnimating = doAnimate
       @doorsThatFinishedAnimating = 0
+
       for doorEl, i in animaters
         suffix = "_" + BaseView.SIDES[i] + "_" + @activeDoorIndex
         slide = slides[i]
@@ -290,16 +301,31 @@ define(["view/baseview"], (BaseView) ->
         detailsEl.html(slide.details)
 
         if doAnimate
-          doorEl.animate({
-            "left": destinations[i] + "px",
-          }, {
-            # "easing": AnimatedView.EASE_FXN
-            "duration": AnimatedView.ANIMATION_LENGTH_MS
-            # "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
-            "complete": (=> @onAnimationComplete())
-          })
+          if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
+            console.log "current pos for [" + suffix + "]: " + doorEl.position().left + "..."
+            distance = destinations[i] - doorEl.position().left
+            animationDuration = AnimatedView.ANIMATION_LENGTH_MS / 1000
+            console.log "destianation is [" + @destinations[i] + "]; distance is [" + distance + "]"
+            for prefix in ["-webkit-", "-moz-", "-o-", "-ms-", ""]
+              doorEl.css(prefix + "transition", animationDuration + "s " + AnimatedView.CSS_EASE_FXN)
+              doorEl.css(prefix + "transform", "translate(" + distance + "px, 0)")
+          else if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
+            doorEl.animate({
+              "left": destinations[i] + "px",
+            }, {
+              # "easing": AnimatedView.JQUERY_EASE_FXN
+              "duration": AnimatedView.ANIMATION_LENGTH_MS
+              # "progress": if i == 1 then ((a,p,r) => @onAnimationProgress(a,p,r)) else null
+              "complete": (=> @onJqueryAnimationComplete())
+            })
         else
           doorEl.css("left", destinations[i] + "px")
+
+      if doAnimate and ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
+        console.log "SETTING LISTENER"
+        doorEl.one('transitionend webkitTransitionEnd oTransitionEnd otransitionend MSTransitionEnd', ( => @onCssAnimationComplete()))
+        # doorEl.one('webkitTransitionEnd', ( => @onCssAnimationComplete()))
+        # setTimeout(( => @onCssAnimationComplete()), AnimatedView.ANIMATION_LENGTH_MS + 10) # the +10 makes sure the animation has *really* completed before we call onCssAnimationComplete
 
     ###
     onAnimationProgress: (anim, prog, remaining) ->
@@ -311,8 +337,33 @@ define(["view/baseview"], (BaseView) ->
       debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
       @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
 
+    clearCssAnimationPropsFromAllDoors: ->
+      for letter, i in ["A","B"]
+        for side in BaseView.SIDES
+          elementSuffix = "_#{side}_#{i}"
+          doorEl = $("#door" + elementSuffix)
+          @clearCssAnimationPropsFromElement(doorEl)
 
-    onAnimationComplete: ->
+
+    clearCssAnimationPropsFromElement: (el) ->
+      for prefix in ["-webkit-", "-moz-", "-o-", "-ms-", ""]
+        el.css("left", el.position().left)
+        el.css(prefix + "transition", "")
+        el.css(prefix + "transform", "")
+
+
+    onCssAnimationComplete: ->
+      if @currentlyAnimating
+        console.log("FINISHED ANIM!")
+        @clearCssAnimationPropsFromAllDoors()
+        @currentlyAnimating = false
+      ###
+      @doorsThatFinishedAnimating++
+      console.log("FINISHED CSS ANIM [" + @doorsThatFinishedAnimating + "]!")
+      @currentlyAnimating = false
+      ###
+
+    onJqueryAnimationComplete: ->
       @doorsThatFinishedAnimating++
       if @doorsThatFinishedAnimating == 2
         @currentlyAnimating = false
