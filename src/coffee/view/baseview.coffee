@@ -50,7 +50,7 @@ define([], () ->
     showNextPair: (index, pair, reversing = false) ->
       @logToConsole "showNextPair not implemented for [" + this.constructor.name + "]"
 
-    responsiveUpdate: (w, h) ->
+    responsiveUpdate: () ->
       @logToConsole "responsiveUpdate not implemented for [" + this.constructor.name + "]"
 
     updatePlayPauseStatus: (isPlaying) ->

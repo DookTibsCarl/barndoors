@@ -35,6 +35,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
       @targetDiv.height(adjustedHeight)
 
+      @logToConsole("aspect restricted window to [" + @targetDiv.width() + "]x[" + @targetDiv.height() + "]")
+
     buildOutDoor: (doorEl, letter, letterLooper, side, otherSide, elementSuffix) ->
       doorStyle = {
         position: "inherit",

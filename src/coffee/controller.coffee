@@ -87,7 +87,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
       $(document).bind('screenSizeChanged', ((evt, data) =>
         console.log("screen size changed to [" + data.width + "]x[" + data.height + "]");
-        @view?.responsiveUpdate(data.width, data.height)
+        @view?.responsiveUpdate()
       ))
 
       # @autoplayTimeout = setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides)

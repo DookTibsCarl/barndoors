@@ -11,7 +11,7 @@ define(["view/baseview"], (BaseView) ->
     USE_JQUERY_FOR_ANIMATION = "useJquery"
     USE_CSS_FOR_ANIMATION = "useCss"
     ANIMATION_TECHNIQUE = USE_CSS_FOR_ANIMATION
-    #ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+    # ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
     @CONTROL_MODE_PREV_NEXT = "prevNextControls"
@@ -34,15 +34,8 @@ define(["view/baseview"], (BaseView) ->
       @targetDiv = $("##{@targetDivName}")
 
 
-      # -webkit-transform for isntance will enable 3d acceleration on the ios (and fixes some z-ordering bug)
-      ###
-      for prefix in CSS_ANIMATION_PREFIXES
-        @targetDiv.css(prefix + "transform", "translateZ(0)")
-      ###
-      @targetDiv.css("-webkit-transform", "translateZ(0)")
-
-      @enforceAspectRatio()
       @decideOnRenderMode()
+      @decideOnAnimationMode()
 
       @leftDoors = []
       @rightDoors = []
@@ -77,6 +70,24 @@ define(["view/baseview"], (BaseView) ->
     wrapUpPoly: (p) ->
       p.push(p[0])
 
+    decideOnAnimationMode: () ->
+      if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
+        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+
+      if (@renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
+        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+
+      console.log("decided on animation mode [" + ANIMATION_TECHNIQUE + "]")
+      $("#debugAnimationMode").html(ANIMATION_TECHNIQUE)
+
+      if (ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION)
+        # -webkit-transform for isntance will enable 3d acceleration on the ios (and fixes some z-ordering bug)
+        ###
+        for prefix in CSS_ANIMATION_PREFIXES
+          @targetDiv.css(prefix + "transform", "translateZ(0)")
+        ###
+        @targetDiv.css("-webkit-transform", "translateZ(0)")
+
     decideOnRenderMode: () ->
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
       @renderMode = AnimatedView.RENDER_MODE_DEFAULT
@@ -101,6 +112,8 @@ define(["view/baseview"], (BaseView) ->
       # testing modes
       # @renderMode = AnimatedView.RENDER_MODE_BASIC
       # @renderMode = AnimatedView.RENDER_MODE_CLIP_PATH
+      console.log("decided on rendering mode: [" + @renderMode + "]")
+
 
     # handles setting up container elements for left/right, setting up suffixes, etc. actual building of the DOM is left to subclasses
     buildOutDoors: () ->
@@ -232,7 +245,8 @@ define(["view/baseview"], (BaseView) ->
 
 
     renderInitialView: (pair) ->
-      @logToConsole "rendering with [" + pair + "]..."
+      @logToConsole "initial render with [" + pair + "]..."
+      @responsiveUpdate() # initial dimension-aware setup...
       @leftSlide = pair.leftSlide
       @rightSlide = pair.rightSlide
 
@@ -320,9 +334,7 @@ define(["view/baseview"], (BaseView) ->
 
         if doAnimate
           if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
-            # console.log "current pos for [" + suffix + "]: " + doorEl.position().left + "..."
             distance = destinations[i] - doorEl.position().left
-            # console.log "destianation is [" + destinations[i] + "]; distance is [" + distance + "]"
             @setCssAnimationPropsForElement(doorEl, distance, AnimatedView.ANIMATION_LENGTH_MS)
           else if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
             doorEl.animate({
@@ -337,7 +349,6 @@ define(["view/baseview"], (BaseView) ->
           doorEl.css("left", destinations[i] + "px")
 
       if doAnimate and ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
-        console.log "SETTING LISTENER"
         doorEl.one('transitionend webkitTransitionEnd oTransitionEnd otransitionend MSTransitionEnd', ( => @onCssAnimationComplete()))
         # setTimeout(( => @onCssAnimationComplete()), AnimatedView.ANIMATION_LENGTH_MS + 10) # the +10 makes sure the animation has *really* completed before we call onCssAnimationComplete
 
@@ -393,7 +404,7 @@ define(["view/baseview"], (BaseView) ->
       @currentlyAnimating = false
 
 
-    responsiveUpdate: (w, h) ->
+    responsiveUpdate: () ->
       @stopAllDoorAnimations()
       @enforceAspectRatio()
       @slideContainerDiv.width(@targetDiv.width()).height(@targetDiv.height())

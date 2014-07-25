@@ -26,6 +26,8 @@ define(["../../lib/js/imagesloaded"], (imagesLoaded) ->
     ensureImagesLoaded: (urls, callback = null) ->
       @logToConsole("loading images: [" + urls + "]")
       if ImageLoader.DISABLE_PRELOADS
+        @logToConsole("preloads disabled")
+        @logToConsole(if callback == null then "no callback configured" else "firing callback")
         if (callback != null)
           callback()
         return
@@ -36,6 +38,7 @@ define(["../../lib/js/imagesloaded"], (imagesLoaded) ->
         
       imagesLoaded("#" + ImageLoader.PRELOADER_DIV_ID, => (
         tempImage.remove() for tempImage in tempImages
+        @logToConsole("all images loaded; " + (if callback == null then "no callback configured" else "firing callback"))
         if callback then callback()
       ))
 

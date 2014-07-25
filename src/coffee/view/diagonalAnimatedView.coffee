@@ -204,6 +204,7 @@ define(["view/animatedview"], (AnimatedView) ->
 
     enforceAspectRatio: () ->
       @targetDiv.height(@targetDiv.width()/2)
+      @logToConsole("aspect restricted window to [" + @targetDiv.width() + "]x[" + @targetDiv.height() + "]")
 
     # as we go through here, some items will get stubbed out and not really fleshed out until we call updateDoorElementsForCurrentDimensions. This keeps
     # the logic for that in one place (it needs to be callable when doing a dynamic resize too) at the cost of a little bouncing around in the codebase...

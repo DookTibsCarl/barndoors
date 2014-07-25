@@ -135,6 +135,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       bottomPadding = @targetDiv.height() - @maxDesiredImageHeight
       console.log "desired dims [" + @maxDesiredImageHeight + "], actual w=[" + @targetDiv.width()/2 + "],h=[" + @targetDiv.height() + "], pad amt [" + bottomPadding + "]"
       @targetDiv.height(@targetDiv.height() - bottomPadding/2)
+      @logToConsole("aspect restricted window to [" + @targetDiv.width() + "]x[" + @targetDiv.height() + "]")
 
       # if (@expandedState)
         # @targetDiv.height(@dynamicImageHeight + @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight)
