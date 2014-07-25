@@ -180,6 +180,10 @@ define(["view/animatedview"], (AnimatedView) ->
         @leftDoorClosedDestination = 0 - @halfImgUnderflow - @halfImgWidth + diagShifter
         @rightDoorClosedDestination = centerOfDiv + (diagShifter * -1)
 
+      # rounding these prevents the slight "snap" on platforms like ipad when setting the position after a css animation
+      @leftDoorClosedDestination = Math.round(@leftDoorClosedDestination)
+      @rightDoorClosedDestination = Math.round(@rightDoorClosedDestination)
+
       # sometimes a gap is useful for debugging...
       gap = 0
       if gap > 0

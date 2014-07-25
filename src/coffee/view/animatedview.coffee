@@ -11,6 +11,7 @@ define(["view/baseview"], (BaseView) ->
     USE_JQUERY_FOR_ANIMATION = "useJquery"
     USE_CSS_FOR_ANIMATION = "useCss"
     ANIMATION_TECHNIQUE = USE_CSS_FOR_ANIMATION
+    #ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
     @CONTROL_MODE_PREV_NEXT = "prevNextControls"
@@ -338,7 +339,6 @@ define(["view/baseview"], (BaseView) ->
       if doAnimate and ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
         console.log "SETTING LISTENER"
         doorEl.one('transitionend webkitTransitionEnd oTransitionEnd otransitionend MSTransitionEnd', ( => @onCssAnimationComplete()))
-        # doorEl.one('webkitTransitionEnd', ( => @onCssAnimationComplete()))
         # setTimeout(( => @onCssAnimationComplete()), AnimatedView.ANIMATION_LENGTH_MS + 10) # the +10 makes sure the animation has *really* completed before we call onCssAnimationComplete
 
     ###
