@@ -1,5 +1,10 @@
 # the parent class for all views that do a close/open animation as their show.
 
+# TODO - iPad 1 busted
+# TODO - START PAUSED
+# TODO - COOKIE PAUSE PREFERENCE
+# TODO - TRY MODERNIZR IN REQUIRE.JS
+
 define(["view/baseview"], (BaseView) ->
   class AnimatedView extends BaseView
     @DIAGONAL_ANGLE = 84.77 # how sharp of an angle, measured from the base of the div, to define the slice?
@@ -32,6 +37,8 @@ define(["view/baseview"], (BaseView) ->
       @logToConsole "constructing default view with aspect ratio [" + @imageAspectRatio + "]..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
+
+      @resizeDoorDestinations = []
 
       @browserData = @getUserAgentData()
 
@@ -226,22 +233,10 @@ define(["view/baseview"], (BaseView) ->
       )
 
     putDoorInOpenPosition: (doorEl, side) ->
-      # @clearCssAnimationPropsFromElement(doorEl)
-
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
-      ###
-      if (ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION)
-        doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
-      else if (ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION)
-        distance = doorEl.position().left - (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination)
-        @setCssAnimationPropsForElement(doorEl, distance, 0)
-      ###
 
     putDoorInClosedPosition: (doorEl, side) ->
-      # @clearCssAnimationPropsFromElement(doorEl)
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorClosedDestination else @rightDoorClosedDestination))
-
-
 
     renderInitialView: (pair) ->
       @logToConsole "initial render with [" + pair + "]..."
@@ -334,6 +329,10 @@ define(["view/baseview"], (BaseView) ->
         if doAnimate
           if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
             distance = destinations[i] - doorEl.position().left
+
+            # remember this for later - we need it if user resizes during the animation
+            @resizeDoorDestinations[i] = destinations[i]
+
             @setCssAnimationPropsForElement(doorEl, distance, AnimatedView.ANIMATION_LENGTH_MS)
           else if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
             doorEl.animate({
@@ -368,7 +367,6 @@ define(["view/baseview"], (BaseView) ->
           doorEl = $("#door" + elementSuffix)
           @clearCssAnimationPropsFromElement(doorEl)
 
-
     setCssAnimationPropsForElement: (el, distance, duration) ->
       animationDuration = duration / 1000
       for prefix in CSS_ANIMATION_PREFIXES
@@ -397,9 +395,16 @@ define(["view/baseview"], (BaseView) ->
         # @logToConsole "NOT DONE YET!"
 
     stopAllDoorAnimations: () ->
-      for doorStorage in [@leftDoors, @rightDoors]
+      for doorStorage, i in [@leftDoors, @rightDoors]
         for door in doorStorage
-          door.finish()
+          if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
+            door.finish()
+          else if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
+            @clearCssAnimationPropsFromElement(door)
+
+            if (@resizeDoorDestinations.length > 0)
+              door.css("left", @resizeDoorDestinations[i])
+    
       @currentlyAnimating = false
 
 
