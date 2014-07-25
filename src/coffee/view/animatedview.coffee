@@ -1,9 +1,10 @@
 # the parent class for all views that do a close/open animation as their show.
 
-# TODO - iPad 1 busted
 # TODO - START PAUSED
 # TODO - COOKIE PAUSE PREFERENCE
 # TODO - TRY MODERNIZR IN REQUIRE.JS
+# TODO - SMART TEXT HEIGHTS
+# TODO - fixed height drawer
 
 define(["view/baseview"], (BaseView) ->
   class AnimatedView extends BaseView
@@ -90,6 +91,10 @@ define(["view/baseview"], (BaseView) ->
       if (@browserData.name == "IE" and @browserData.version <= 9.0)
         ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
 
+      # older ios (iPad 1 for instance, 5.1 Safari) don't render css anim correctly.
+      if (@browserData.isLikelyMobile and @browserData.name == "Safari" && @browserData.version <= 6.0)
+        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+
       console.log("decided on animation mode [" + ANIMATION_TECHNIQUE + "]")
       $("#debugAnimationMode").html(ANIMATION_TECHNIQUE)
 
@@ -136,6 +141,11 @@ define(["view/baseview"], (BaseView) ->
           # add the necessary structure to the DOM
           doorEl = $("<div/>").attr("id", "door" + elementSuffix).appendTo(@slideContainerDiv)
           @buildOutDoor(doorEl, letter, i, side, otherSide, elementSuffix)
+
+          ###
+          if i == 1
+            doorEl.css("top", 100)
+          ###
 
           # and finally let's save things
           if (side == AnimatedView.SIDE_LEFT)
@@ -333,6 +343,7 @@ define(["view/baseview"], (BaseView) ->
             # remember this for later - we need it if user resizes during the animation
             @resizeDoorDestinations[i] = destinations[i]
 
+            # @visDebug("Animating [" + doorEl.attr('id') + "]")
             @setCssAnimationPropsForElement(doorEl, distance, AnimatedView.ANIMATION_LENGTH_MS)
           else if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
             doorEl.animate({
@@ -359,8 +370,13 @@ define(["view/baseview"], (BaseView) ->
       debugEl = @addNSElement("svg", "debugger", {style: "position:absolute", width:"100%", height:"100%",baseProfile:"full",version:"1.2"}, @targetDiv[0])
       debugPoints = @targetDiv.width()/2 + " 0, " + @targetDiv.width()/2 + " " + @targetDiv.height()
       @addNSElement("polyline", "midpointer", {points:debugPoints, style: "fill:none; stroke:red; stroke-width:3"}, debugEl)
+    
+    visDebug: (s) ->
+      debugConsole = $("#debugConsole")
+      debugConsole.html(s + "<BR>" + debugConsole.html())
 
     clearCssAnimationPropsFromAllDoors: ->
+      # @visDebug("CLEARING OUT!")
       for letter, i in ["A","B"]
         for side in BaseView.SIDES
           elementSuffix = "_#{side}_#{i}"

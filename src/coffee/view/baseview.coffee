@@ -166,7 +166,7 @@ define([], () ->
         if (re.exec(ua) != null)
           version = parseFloat( RegExp.$1 )
       else if (browserName == "Safari")
-        re  = new RegExp("Version/([.0-9]+) Safari")
+        re  = new RegExp("Version/([.0-9]+) (Mobile|Safari)")
         if (re.exec(ua) != null)
           version = parseFloat( RegExp.$1 )
       else if (browserName == "Chrome")
@@ -175,6 +175,9 @@ define([], () ->
           version = parseFloat( RegExp.$1 )
       else
         version = -1
+
+      # is it likely to be mobile?
+      isLikelyMobile = ua.indexOf("Mobi") != -1
 
       # get rendering engine...
       if (ua.indexOf("Gecko/") != -1)
@@ -193,12 +196,13 @@ define([], () ->
       # special case - builtin android browser
       isStockAndroid = ((ua.indexOf('Mozilla/5.0') > -1 and ua.indexOf('Android ') > -1 and ua.indexOf('AppleWebKit') > -1) and !(ua.indexOf('Chrome') > -1))
 
-      $("#debugUserAgent").html("browser [" + browserName + "], version [" + version + "], renderingEngine [" + renderingEngine + "]<br>(" + ua + ")")
+      $("#debugUserAgent").html("browser [" + browserName + "], version [" + version + "], renderingEngine [" + renderingEngine + "], mobile [" + isLikelyMobile + "], stock android [" + isStockAndroid + "]<br>(" + ua + ")")
       return {
         name: browserName
         version: version
         renderingEngine: renderingEngine
         isStockAndroid: isStockAndroid
+        isLikelyMobile: isLikelyMobile
       }
 
   return BaseView
