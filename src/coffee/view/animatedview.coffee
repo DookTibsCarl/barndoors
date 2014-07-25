@@ -10,7 +10,7 @@ define(["view/baseview"], (BaseView) ->
 
     USE_JQUERY_FOR_ANIMATION = "useJquery"
     USE_CSS_FOR_ANIMATION = "useCss"
-    ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+    ANIMATION_TECHNIQUE = USE_CSS_FOR_ANIMATION
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
     @CONTROL_MODE_PREV_NEXT = "prevNextControls"
@@ -25,10 +25,19 @@ define(["view/baseview"], (BaseView) ->
     @CSS_EASE_FXN = "ease-in-out" # default / linear / ease-in / ease-out / ease-in-out
     @ANIMATION_LENGTH_MS = 700
 
+    CSS_ANIMATION_PREFIXES = ["-webkit-", "-moz-", "-o-", "-ms-", ""]
+
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       @logToConsole "constructing default view with aspect ratio [" + @imageAspectRatio + "]..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
+
+
+      # -webkit-transform for isntance will enable 3d acceleration on the ios (and fixes some z-ordering bug)
+      ###
+      for prefix in CSS_ANIMATION_PREFIXES
+        @targetDiv.css(prefix + "transform", "translateZ(0)")
+      ###
       @targetDiv.css("-webkit-transform", "translateZ(0)")
 
       @enforceAspectRatio()
@@ -205,7 +214,15 @@ define(["view/baseview"], (BaseView) ->
 
     putDoorInOpenPosition: (doorEl, side) ->
       # @clearCssAnimationPropsFromElement(doorEl)
+
       doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
+      ###
+      if (ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION)
+        doorEl.css("left", (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination))
+      else if (ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION)
+        distance = doorEl.position().left - (if side == BaseView.SIDE_LEFT then @leftDoorOpenDestination else @rightDoorOpenDestination)
+        @setCssAnimationPropsForElement(doorEl, distance, 0)
+      ###
 
     putDoorInClosedPosition: (doorEl, side) ->
       # @clearCssAnimationPropsFromElement(doorEl)
@@ -302,13 +319,10 @@ define(["view/baseview"], (BaseView) ->
 
         if doAnimate
           if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
-            console.log "current pos for [" + suffix + "]: " + doorEl.position().left + "..."
+            # console.log "current pos for [" + suffix + "]: " + doorEl.position().left + "..."
             distance = destinations[i] - doorEl.position().left
-            animationDuration = AnimatedView.ANIMATION_LENGTH_MS / 1000
-            console.log "destianation is [" + @destinations[i] + "]; distance is [" + distance + "]"
-            for prefix in ["-webkit-", "-moz-", "-o-", "-ms-", ""]
-              doorEl.css(prefix + "transition", animationDuration + "s " + AnimatedView.CSS_EASE_FXN)
-              doorEl.css(prefix + "transform", "translate(" + distance + "px, 0)")
+            # console.log "destianation is [" + destinations[i] + "]; distance is [" + distance + "]"
+            @setCssAnimationPropsForElement(doorEl, distance, AnimatedView.ANIMATION_LENGTH_MS)
           else if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
             doorEl.animate({
               "left": destinations[i] + "px",
@@ -345,23 +359,24 @@ define(["view/baseview"], (BaseView) ->
           @clearCssAnimationPropsFromElement(doorEl)
 
 
+    setCssAnimationPropsForElement: (el, distance, duration) ->
+      animationDuration = duration / 1000
+      for prefix in CSS_ANIMATION_PREFIXES
+        el.css(prefix + "transition", animationDuration + "s " + AnimatedView.CSS_EASE_FXN)
+        el.css(prefix + "transform", "translate(" + distance + "px, 0)")
+
     clearCssAnimationPropsFromElement: (el) ->
-      for prefix in ["-webkit-", "-moz-", "-o-", "-ms-", ""]
-        el.css("left", el.position().left)
+      el.css("left", el.position().left)
+      for prefix in CSS_ANIMATION_PREFIXES
         el.css(prefix + "transition", "")
         el.css(prefix + "transform", "")
 
 
     onCssAnimationComplete: ->
       if @currentlyAnimating
-        console.log("FINISHED ANIM!")
+        console.log("FINISHED ANIM FIREFOX WORKS?!")
         @clearCssAnimationPropsFromAllDoors()
         @currentlyAnimating = false
-      ###
-      @doorsThatFinishedAnimating++
-      console.log("FINISHED CSS ANIM [" + @doorsThatFinishedAnimating + "]!")
-      @currentlyAnimating = false
-      ###
 
     onJqueryAnimationComplete: ->
       @doorsThatFinishedAnimating++
