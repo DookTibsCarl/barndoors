@@ -33,6 +33,7 @@ define(["view/baseview"], (BaseView) ->
       @logToConsole "sides are [" + BaseView.SIDES + "]"
       @targetDiv = $("##{@targetDivName}")
 
+      @browserData = @getUserAgentData()
 
       @decideOnRenderMode()
       @decideOnAnimationMode()
@@ -71,10 +72,15 @@ define(["view/baseview"], (BaseView) ->
       p.push(p[0])
 
     decideOnAnimationMode: () ->
+      # our default is CSS animation, but various older browsers can't handle it. Use Jquery as a backup
       if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
         ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
 
       if (@renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
+        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+
+      # ie9 and below don't support css animation
+      if (@browserData.name == "IE" and @browserData.version <= 9.0)
         ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
 
       console.log("decided on animation mode [" + ANIMATION_TECHNIQUE + "]")
@@ -94,25 +100,18 @@ define(["view/baseview"], (BaseView) ->
       if (!document.createElementNS)
         @renderMode = AnimatedView.RENDER_MODE_BASIC
 
-      nua = navigator.userAgent
-      isStockAndroid = ((nua.indexOf('Mozilla/5.0') > -1 and nua.indexOf('Android ') > -1 and nua.indexOf('AppleWebKit') > -1) and !(nua.indexOf('Chrome') > -1))
-      if (isStockAndroid)
+      if (@browserData.isStockAndroid)
         @renderMode = AnimatedView.RENDER_MODE_CLIP_PATH
 
-      if (navigator.appName == 'Microsoft Internet Explorer')
-        re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})")
-        if (re.exec(nua) != null)
-          ieVer = parseFloat( RegExp.$1 )
-          if (ieVer < 8.0)
-            @renderMode = AnimatedView.RENDER_MODE_BROWSER_TOO_OLD
-
-      $("#debugUserAgent").html(nua)
-      $("#debugRenderMode").html(@renderMode)
+      if (@browserData.name == "IE" and @browserData.version < 8.0)
+        @renderMode = AnimatedView.RENDER_MODE_BROWSER_TOO_OLD
 
       # testing modes
       # @renderMode = AnimatedView.RENDER_MODE_BASIC
       # @renderMode = AnimatedView.RENDER_MODE_CLIP_PATH
+
       console.log("decided on rendering mode: [" + @renderMode + "]")
+      $("#debugRenderMode").html(@renderMode)
 
 
     # handles setting up container elements for left/right, setting up suffixes, etc. actual building of the DOM is left to subclasses

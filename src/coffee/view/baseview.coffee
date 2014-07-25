@@ -139,5 +139,67 @@ define([], () ->
       for n, v of attribs
         o.setAttribute(n, v)
 
+    # see https://developer.mozilla.org/en-US/docs/Browser_detection_using_the_user_agent
+    getUserAgentData: () ->
+      ua = navigator.userAgent
+      # get browser...
+      if (ua.indexOf("Firefox/") != -1 and ua.indexOf("Seamonkey/") == -1)
+        browserName = "Firefox"
+      else if (ua.indexOf("Seamonkey/") != -1)
+        browserName = "Seamonkey"
+      else if (ua.indexOf("Safari/") != -1 and (ua.indexOf("Chrome/") == -1 and ua.indexOf("Chromium/") == -1))
+        browserName = "Safari"
+      else if (ua.indexOf("Chrome/") != -1 and ua.indexOf("Chromium/") == -1)
+        browserName = "Chrome"
+      else if (ua.indexOf("Chromium/") != -1)
+        browserName = "Chromium"
+      else if (ua.indexOf("MSIE") != -1)
+        browserName = "IE"
+      else if (ua.indexOf("OPR/") != -1 or ua.indexOf("Opera/") != -1)
+        browserName = "Opera"
+      else
+        browserName = "unknown"
+
+      # get some kind of version we care about...
+      if (browserName == "IE")
+        re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})")
+        if (re.exec(ua) != null)
+          version = parseFloat( RegExp.$1 )
+      else if (browserName == "Safari")
+        re  = new RegExp("Version/([.0-9]+) Safari")
+        if (re.exec(ua) != null)
+          version = parseFloat( RegExp.$1 )
+      else if (browserName == "Chrome")
+        re  = new RegExp("Chrome/([.0-9]+) ")
+        if (re.exec(ua) != null)
+          version = parseFloat( RegExp.$1 )
+      else
+        version = -1
+
+      # get rendering engine...
+      if (ua.indexOf("Gecko/") != -1)
+        renderingEngine = "Gecko"
+      else if (ua.indexOf("AppleWebKit/") != -1)
+        renderingEngine = "WebKit"
+      else if (ua.indexOf("Opera/") != -1)
+        renderingEngine = "Presto"
+      else if (ua.indexOf("Trident/") != -1)
+        renderingEngine = "Trident"
+      else if (ua.indexOf("Chrome/") != -1)
+        renderingEngine = "Blink"
+      else
+        renderingEngine = "unknown"
+
+      # special case - builtin android browser
+      isStockAndroid = ((ua.indexOf('Mozilla/5.0') > -1 and ua.indexOf('Android ') > -1 and ua.indexOf('AppleWebKit') > -1) and !(ua.indexOf('Chrome') > -1))
+
+      $("#debugUserAgent").html("browser [" + browserName + "], version [" + version + "], renderingEngine [" + renderingEngine + "]<br>(" + ua + ")")
+      return {
+        name: browserName
+        version: version
+        renderingEngine: renderingEngine
+        isStockAndroid: isStockAndroid
+      }
+
   return BaseView
 )
