@@ -108,8 +108,11 @@ define(["view/animatedview"], (AnimatedView) ->
       topOfBox = @targetDiv.height() - @actualShadowboxHeight
       bottomOfBox = @targetDiv.height()
 
-      angle = Math.atan(divHeight / @actualDiagonalInset) * RAD_TO_DEG
-      triangleBase = @actualShadowboxHeight / Math.tan(angle * DEG_TO_RAD)
+      if (divHeight != 0)
+        angle = Math.atan(divHeight / @actualDiagonalInset) * RAD_TO_DEG
+        triangleBase = @actualShadowboxHeight / Math.tan(angle * DEG_TO_RAD)
+      else
+        triangleBase = 0
 
       diagAdjustment = (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0)
       @leftTextPoly = [
