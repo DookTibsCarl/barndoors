@@ -11,7 +11,7 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
           rightProps = pair.right
           leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.images, leftProps.title, leftProps.details, leftProps.fontColor)
           rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.images, rightProps.title, rightProps.details, rightProps.fontColor)
-          pair = new SlidePair(leftSlide, rightSlide)
+          pair = new SlidePair(pair.pairId, pair.pairDescriptor, leftSlide, rightSlide)
           pairs.push pair
 
       model = new Model(pairs, configObj.imageDimensionData)
@@ -58,6 +58,9 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
 
     getActivePair: ->
       @pairs[@activePairIndex]
+
+    getActivePairDescriptor: ->
+      return @getActivePair().getPairDescriptor()
 
     getLookaheadPair: ->
       lookaheadIdx = @activePairIndex + 1

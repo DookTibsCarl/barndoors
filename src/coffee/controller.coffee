@@ -62,6 +62,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
 
           @view?.showNextPair(updatedIndex, activePair, reverseAnim)
+          @googleAnalyticsSpan.html(@appModel.getActivePairDescriptor())
           @preloadNextPair()
 
           if not @isSlideshowPaused()
@@ -74,6 +75,9 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       @logToConsole "setup with view factory changed name..."
 
       @targetDivName = @configuration.targetDivName
+
+      # define a span where we can stuff the current pair data. Simplifies analyics tracking.
+      @googleAnalyticsSpan = $("<span/>").css("display","none").attr("id", "barndoorCurrentPair").appendTo($("#" + @targetDivName))
 
       @appModel = Model.buildModelFromConfigurationObject(@configuration)
       # @appModel.debug()
@@ -117,6 +121,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.renderInitialView(@appModel.getActivePair())
+        @googleAnalyticsSpan.html(@appModel.getActivePairDescriptor())
 
         @preloadNextPair()
       ))
@@ -176,6 +181,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.showNextPair(@appModel.activePairIndex, activePair)
+        @googleAnalyticsSpan.html(@appModel.getActivePairDescriptor())
         @preloadNextPair()
         @setNextSlideDelay()
       ))

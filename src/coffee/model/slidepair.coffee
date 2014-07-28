@@ -2,7 +2,13 @@ define([], () ->
   # may include things like desired mask dimensions, priority weight, etc.
 
   class SlidePair
-    constructor: (@leftSlide, @rightSlide) ->
+    constructor: (@pairId, @pairDescriptor, @leftSlide, @rightSlide) ->
+
+    getPairDescriptor: () ->
+      return @pairDescriptor
+
+    getPairId: () ->
+      return @pairId
 
     toString: ->
       "\n\t#{@leftSlide}\n\t#{@rightSlide}"
