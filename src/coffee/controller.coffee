@@ -1,5 +1,6 @@
-define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityManager" ], (Model, ResponsiveViewFactory, ImageLoader, ImageQualityManager) ->
+define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityManager", "cookieUtils" ], (Model, ResponsiveViewFactory, ImageLoader, ImageQualityManager, CookieUtils) ->
   class BarnDoorController
+    AUTOPLAY_COOKIE_NAME = "barndoor_homepage_autoplay"
     # constructor: (@targetDivName) ->
     constructor: () ->
       # set a local alias for jQuery
@@ -32,10 +33,12 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       if @isSlideshowPaused()
         # play - restart the slideshow with a shorter duration than usual
         @setNextSlideDelay(@configuration.timeBetweenSlides / 2)
+        CookieUtils.eraseCookie(AUTOPLAY_COOKIE_NAME)
       else
         # pause - stop the autoplay
         clearTimeout(@autoplayTimeout)
         @autoplayTimeout = null
+        CookieUtils.createCookie(AUTOPLAY_COOKIE_NAME, "false", CookieUtils.createExpiryTimeInDays(20 * 365)) # expire in 20 years
 
       # either way we need to notify our views as some of them include an interface for play/pause
       @view?.updatePlayPauseStatus(not @isSlideshowPaused())
@@ -91,10 +94,17 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       ))
 
       # @autoplayTimeout = setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides)
-      if (@configuration.autoplay != "false")
-        @setNextSlideDelay()
+      autoplayCookiePref = CookieUtils.readCookie(AUTOPLAY_COOKIE_NAME)
+
+      if (autoplayCookiePref == undefined or autoplayCookiePref != "false")
+        @logToConsole("no cookie or indeterminate value. Proceeding to check configuration for autoplay verdict")
+        if (@configuration.autoplay != "false")
+          @logToConsole("autoplay enabled...")
+          @setNextSlideDelay()
+        else
+          @logToConsole("autoplay disabled...")
       else
-        @logToConsole("autoplay disabled...")
+        @logToConsole("cookie preference is preventing slideshow autoplay")
       @view?.updatePlayPauseStatus(not @isSlideshowPaused())
 
     swapInView: () ->

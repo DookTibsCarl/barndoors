@@ -1,7 +1,5 @@
 # the parent class for all views that do a close/open animation as their show.
 
-# TODO - START PAUSED
-# TODO - COOKIE PAUSE PREFERENCE
 # TODO - TRY MODERNIZR IN REQUIRE.JS
 # TODO - SMART TEXT HEIGHTS
 # TODO - fixed height drawer
