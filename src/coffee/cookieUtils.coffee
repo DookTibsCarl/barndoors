@@ -13,7 +13,7 @@ define([], () ->
         expires = "; expires=" + d.toGMTString()
       else
         expires = ""
-      document.cookie = name + "=" + value + expires + "; path=/"
+      document.cookie = name + "=" + value + expires + "; path=/; domain=.carleton.edu"
       # console.log("after create cookie: [" + document.cookie + "]")
 
     @readCookie: (name) ->
