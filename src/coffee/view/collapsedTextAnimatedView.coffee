@@ -29,14 +29,15 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         font: "12px/12px Arial",
         color: "white"
         width: "100%"
-        "background-color": "orange"
+        # "background-color": "orange"
+        "background-color": "#7095B7"
         bottom: 0
         overflow: "hidden"
       }
 
       arrowStyle = {
         cursor: "pointer"
-        bottom: 0
+        # bottom: 0
         "background-color": "grey"
         "text-align": "center"
       }
@@ -47,7 +48,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         color: "white"
         "background-color": "#7095B7"
         "text-align": otherSide
-        top: 0
+        # top: 0
         display: "table-cell"
         "vertical-align": "middle"
       }
@@ -78,12 +79,12 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       drawerEl = $("<div/>").attr("id", "drawer" + elementSuffix).addClass(DRAWER_CLASS).css(drawerStyle).appendTo(doorEl)
       detailsEl = $("<div/>").attr("id", "details" + elementSuffix).addClass(DETAILS_CLASS).css(detailsStyle).appendTo(drawerEl)
       arrowEl = $("<div/>").attr("id", "drawer_arrow" + elementSuffix).addClass(ARROW_CLASS).css(arrowStyle).appendTo(drawerEl)
-      $("<img/>").css({height: "50%", "margin-top": "2%"}).appendTo(arrowEl)
-      # $("<img/>").css({height: 12, "margin-top": "-2px"}).appendTo(arrowEl)
+      # $("<img/>").css({height: "50%", "margin-top": "2%"}).appendTo(arrowEl)
+      $("<img/>").css({height: 12, "margin-top": "8px"}).appendTo(arrowEl)
 
       arrowEl.click(( => @clickedDrawer(arrowEl)))
 
-      imgEl = $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute" }).appendTo(doorEl)
+      imgEl = $("<img/>").attr({ id: "image" + elementSuffix }).css({ position: "absolute", "box-sizing": "border-box" }).appendTo(doorEl)
 
       titleWrapper = $("<div/>").attr("id", "title_wrapper" + elementSuffix).css(titleWrapperStyle).appendTo(doorEl)
       titleEl = $("<div/>").attr("id", "title" + elementSuffix).addClass(TITLE_CLASS).css(titleStyle).appendTo(titleWrapper)
@@ -116,8 +117,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
     setupCalculations: () ->
       super
-      @desiredDrawerArrowHeight = @targetDiv.height() - @maxDesiredImageHeight
-      # @desiredDrawerArrowHeight = 23
+      # @desiredDrawerArrowHeight = @targetDiv.height() - @maxDesiredImageHeight
+      # this moved down into enforceAspectRatio - we need to know the height there.
       @desiredDrawerDescriptionHeight = @maxDesiredImageHeight * EXPANDED_TEXT_PROPORTION
 
     getExpandedSlideContainerHeight: () ->
@@ -132,10 +133,15 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     # we want half as much of an area at the bottom on this type of view as we do on the one where text is always displayed
     enforceAspectRatio: () ->
       super
+      @desiredDrawerArrowHeight = 25
+      @targetDiv.height(@maxDesiredImageHeight + @desiredDrawerArrowHeight)
+
+      ###
       bottomPadding = @targetDiv.height() - @maxDesiredImageHeight
       console.log "desired dims [" + @maxDesiredImageHeight + "], actual w=[" + @targetDiv.width()/2 + "],h=[" + @targetDiv.height() + "], pad amt [" + bottomPadding + "]"
       @targetDiv.height(@targetDiv.height() - bottomPadding/2)
       @logToConsole("aspect restricted window to [" + @targetDiv.width() + "]x[" + @targetDiv.height() + "]")
+      ###
 
       # if (@expandedState)
         # @targetDiv.height(@dynamicImageHeight + @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight)
@@ -143,7 +149,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     # *B*
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
       super(side, elementSuffix)
-      $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight, padding: @textPadAmount })
+      $("#drawer" + elementSuffix).css({height: @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight })
+      $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight, xpadding: @textPadAmount })
       $("#details" + elementSuffix).css({height: @desiredDrawerDescriptionHeight, "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight) })
       $("#title_wrapper" + elementSuffix).css({height: @dynamicImageHeight})
       $("#title" + elementSuffix).css({bottom: 0, "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @dynamicImageHeight) })
