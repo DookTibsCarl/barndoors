@@ -91,7 +91,10 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       ))
 
       # @autoplayTimeout = setTimeout((=> this.continueSlideshow()), @configuration.timeBetweenSlides)
-      @setNextSlideDelay()
+      if (@configuration.autoplay != "false")
+        @setNextSlideDelay()
+      else
+        @logToConsole("autoplay disabled...")
       @view?.updatePlayPauseStatus(not @isSlideshowPaused())
 
     swapInView: () ->
