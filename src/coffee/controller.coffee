@@ -121,6 +121,9 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
         @preloadNextPair()
       ))
 
+    getAssetServerUrl: () ->
+      return @configuration.assetServerUrl
+
     getCorrectImageUrlsForPair: (pair) ->
       return pair.getAppropriateSlideImageUrls(@imageQualityManager.getImageTypeForRendering())
 

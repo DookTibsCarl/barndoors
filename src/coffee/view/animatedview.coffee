@@ -214,7 +214,7 @@ define(["view/baseview"], (BaseView) ->
 
         prevEl = $("<a/>").addClass("round_button").addClass("previous").appendTo(controlsEl)
         # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).css(imgStyle).appendTo(prevEl)
-        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).appendTo(prevEl)
+        $("<img/>").attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).appendTo(prevEl)
 
         playPauseElWrapper = $("<a/>").addClass("round_button").addClass("playpause").appendTo(controlsEl)
         # @playPauseEl = $("<img/>").css(imgStyle).appendTo(playPauseElWrapper)
@@ -223,7 +223,7 @@ define(["view/baseview"], (BaseView) ->
 
         nextEl = $("<a/>").addClass("round_button").addClass("next").appendTo(controlsEl)
         # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).css(imgStyle).appendTo(nextEl)
-        $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).appendTo(nextEl)
+        $("<img/>").attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).appendTo(nextEl)
         
         for el, i in [prevEl, nextEl]
           el.click(() ->
@@ -256,9 +256,9 @@ define(["view/baseview"], (BaseView) ->
 
     updatePlayPauseStatus: (isPlaying) ->
       if (isPlaying)
-        @playPauseEl.attr({"src": "/global_stock/images/barndoors/barndoors-pause.png", "alt": "pause"})
+        @playPauseEl.attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-pause.png", "alt": "pause"})
       else
-        @playPauseEl.attr({"src": "/global_stock/images/barndoors/barndoors-play.png", "alt": "play"})
+        @playPauseEl.attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-play.png", "alt": "play"})
 
     reRenderJumpControls: (index) ->
       @logToConsole "update jumpers [" + index + "]"

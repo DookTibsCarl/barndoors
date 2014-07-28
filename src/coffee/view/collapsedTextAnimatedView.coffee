@@ -119,7 +119,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       arrowImage = if @expandedState then "up" else "down"
       arrowAlt = if @expandedState then "hide" else "show"
-      allArrowImagess.attr({"src": "/global_stock/images/barndoors/barndoors-" + arrowImage + ".png", "alt": arrowAlt})
+      allArrowImagess.attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-" + arrowImage + ".png", "alt": arrowAlt})
 
     setupCalculations: () ->
       super
