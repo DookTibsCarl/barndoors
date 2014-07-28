@@ -12,10 +12,10 @@ define(["view/baseview"], (BaseView) ->
     @TEXT_SHADOWBOX_PERCENT = 0.16
     @TEXT_SHADOWBOX_OPACITY = 0.5
 
-    USE_JQUERY_FOR_ANIMATION = "useJquery"
-    USE_CSS_FOR_ANIMATION = "useCss"
-    ANIMATION_TECHNIQUE = USE_CSS_FOR_ANIMATION
-    # ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+    @USE_JQUERY_FOR_ANIMATION = "useJquery"
+    @USE_CSS_FOR_ANIMATION = "useCss"
+    @ANIMATION_TECHNIQUE = AnimatedView.USE_CSS_FOR_ANIMATION
+    # @ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
     @CONTROL_MODE_PAGINATED = "paginatedControls"
     @CONTROL_MODE_PREV_NEXT = "prevNextControls"
@@ -26,7 +26,7 @@ define(["view/baseview"], (BaseView) ->
     @RENDER_MODE_BASIC = "basicMode"         # basic render mode - does NOT use svg's. Has most features except lacks diagonal slice. Works for IE8
     @RENDER_MODE_BROWSER_TOO_OLD = "tooOld"  # browser has been deemed too old to do much of anything.
 
-    # @JQUERY_EASE_FXN = "swing"
+    @JQUERY_EASE_FXN = "swing"
     @CSS_EASE_FXN = "ease-in-out" # default / linear / ease-in / ease-out / ease-in-out
     @ANIMATION_LENGTH_MS = 700
 
@@ -80,23 +80,23 @@ define(["view/baseview"], (BaseView) ->
     decideOnAnimationMode: () ->
       # our default is CSS animation, but various older browsers can't handle it. Use Jquery as a backup
       if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
-        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+        AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
       if (@renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
-        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+        AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
       # ie9 and below don't support css animation
       if (@browserData.name == "IE" and @browserData.version <= 9.0)
-        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+        AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
       # older ios (iPad 1 for instance, 5.1 Safari) don't render css anim correctly.
       if (@browserData.isLikelyMobile and @browserData.name == "Safari" && @browserData.version <= 6.0)
-        ANIMATION_TECHNIQUE = USE_JQUERY_FOR_ANIMATION
+        AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
-      console.log("decided on animation mode [" + ANIMATION_TECHNIQUE + "]")
-      $("#debugAnimationMode").html(ANIMATION_TECHNIQUE)
+      console.log("decided on animation mode [" + AnimatedView.ANIMATION_TECHNIQUE + "]")
+      $("#debugAnimationMode").html(AnimatedView.ANIMATION_TECHNIQUE)
 
-      if (ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION)
+      if (AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_CSS_FOR_ANIMATION)
         # -webkit-transform for isntance will enable 3d acceleration on the ios (and fixes some z-ordering bug)
         ###
         for prefix in CSS_ANIMATION_PREFIXES
@@ -335,15 +335,15 @@ define(["view/baseview"], (BaseView) ->
         detailsEl.html(slide.details)
 
         if doAnimate
-          if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
+          if AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_CSS_FOR_ANIMATION
             distance = destinations[i] - doorEl.position().left
 
             # remember this for later - we need it if user resizes during the animation
             @resizeDoorDestinations[i] = destinations[i]
 
             # @visDebug("Animating [" + doorEl.attr('id') + "]")
-            @setCssAnimationPropsForElement(doorEl, distance, AnimatedView.ANIMATION_LENGTH_MS)
-          else if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
+            @setCssTranslationPropsForElement(doorEl, distance, 0, AnimatedView.ANIMATION_LENGTH_MS)
+          else if AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_JQUERY_FOR_ANIMATION
             doorEl.animate({
               "left": destinations[i] + "px",
             }, {
@@ -355,7 +355,7 @@ define(["view/baseview"], (BaseView) ->
         else
           doorEl.css("left", destinations[i] + "px")
 
-      if doAnimate and ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
+      if doAnimate and AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_CSS_FOR_ANIMATION
         doorEl.one('transitionend webkitTransitionEnd oTransitionEnd otransitionend MSTransitionEnd', ( => @onCssAnimationComplete()))
         # setTimeout(( => @onCssAnimationComplete()), AnimatedView.ANIMATION_LENGTH_MS + 10) # the +10 makes sure the animation has *really* completed before we call onCssAnimationComplete
 
@@ -381,11 +381,20 @@ define(["view/baseview"], (BaseView) ->
           doorEl = $("#door" + elementSuffix)
           @clearCssAnimationPropsFromElement(doorEl)
 
-    setCssAnimationPropsForElement: (el, distance, duration) ->
+    setCssTranslationPropsForElement: (el, xShift, yShift, duration) ->
       animationDuration = duration / 1000
       for prefix in CSS_ANIMATION_PREFIXES
         el.css(prefix + "transition", animationDuration + "s " + AnimatedView.CSS_EASE_FXN)
-        el.css(prefix + "transform", "translate(" + distance + "px, 0)")
+        el.css(prefix + "transform", "translate(" + xShift + "px, " + yShift + "px)")
+
+    ###
+    # attempting to implement css animation for the expansion/collapse of the phone view
+    setCssHeight: (el, height, duration) ->
+      animationDuration = duration / 1000
+      for prefix in CSS_ANIMATION_PREFIXES
+        el.css("max-height", height)
+        el.css(prefix + "transition", "max-height " + animationDuration + "s")
+    ###
 
     clearCssAnimationPropsFromElement: (el) ->
       el.css("left", el.position().left)
@@ -411,9 +420,9 @@ define(["view/baseview"], (BaseView) ->
     stopAllDoorAnimations: () ->
       for doorStorage, i in [@leftDoors, @rightDoors]
         for door in doorStorage
-          if ANIMATION_TECHNIQUE == USE_JQUERY_FOR_ANIMATION
+          if AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_JQUERY_FOR_ANIMATION
             door.finish()
-          else if ANIMATION_TECHNIQUE == USE_CSS_FOR_ANIMATION
+          else if AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_CSS_FOR_ANIMATION
             @clearCssAnimationPropsFromElement(door)
 
             if (@resizeDoorDestinations.length > 0)

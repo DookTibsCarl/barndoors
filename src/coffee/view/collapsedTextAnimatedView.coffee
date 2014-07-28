@@ -4,7 +4,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     TITLE_CLASS = "title"
     ARROW_CLASS = "bdDrawerArrow"
     DETAILS_CLASS = "details"
-    EXPANDED_TEXT_PROPORTION = .4
+    EXPANDED_TEXT_PROPORTION = .6
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
@@ -99,12 +99,18 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     clickedDrawer: (drawerEl) ->
       @expandedState = not @expandedState
       @setExpanderText()
-      
+
       for animater in @expanders
+        ###
+        if (AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_CSS_FOR_ANIMATION)
+          @setCssHeight(animater, (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight()), 100)
+        else if (AnimatedView.ANIMATION_TECHNIQUE == AnimatedView.USE_JQUERY_FOR_ANIMATION)
+        ###
+
         animater.animate({
           "height": (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight())
         }, {
-          "easing": AnimatedView.EASE_FXN
+          "easing": AnimatedView.JQUERY_EASE_FXN
           "duration": 100
         })
 
