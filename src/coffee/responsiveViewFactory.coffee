@@ -30,7 +30,30 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       # acting screwy when getting stopped in the middle of a display sleep, etc. Adding a couple of methods here
       # to force redraws when things like browser tab is hidden/reshown, etc.
       @watchWindowForVisibilityStatusChanges()
+      @heartbeat()
 
+    HEARTBEAT_DELAY = 30 * 1000
+    LAST_HEARTBEAT = -1
+    heartbeat: () ->
+      if (!Date.now)
+        # shim for Date.now
+        Date.now = (() ->
+          return new Date().getTime()
+        )
+
+      if LAST_HEARTBEAT == -1
+        LAST_HEARTBEAT = Date.now()
+
+      nowStamp = Date.now()
+
+      stampDiff = nowStamp - LAST_HEARTBEAT
+
+      if (stampDiff > HEARTBEAT_DELAY * 1.5)
+        console.log("[" + stampDiff + "] elapsed since last heartbeat; significantly exceeds threshold [" + HEARTBEAT_DELAY + "]; possibly waking up from sleep? screen redraw.")
+        @triggerScreenSizeRefresh()
+
+      LAST_HEARTBEAT = nowStamp
+      setTimeout((=> this.heartbeat()), HEARTBEAT_DELAY)
 
     watchWindowForVisibilityStatusChanges: () ->
       console.log("Setting up visibility checks...")
@@ -76,6 +99,7 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
         else
           if (smart and not factoryHandle.mainController.isSlideshowPaused())
             console.log "pausing slideshow when window hides"
+            factoryHandle.triggerScreenSizeRefresh()
             factoryHandle.restartSlideshowOnResume = true
             $.event.trigger({ type: "toggleAutoplaySlideshow" })
           else 
