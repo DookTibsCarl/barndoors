@@ -62,6 +62,13 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
     getActivePairDescriptor: ->
       return @getActivePair().getPairDescriptor()
 
+    getActivePairAndNeighborsDescriptor: ->
+      delim = "---"
+      prevPair = @pairs[@getPrevPairIndex()]
+      currPair = @getActivePair()
+      nextPair = @pairs[@getNextPairIndex()]
+      return prevPair.getPairDescriptor() + delim + currPair.getPairDescriptor() + delim + nextPair.getPairDescriptor()
+
     getLookaheadPair: ->
       lookaheadIdx = @activePairIndex + 1
       if (lookaheadIdx >= @pairs.length)

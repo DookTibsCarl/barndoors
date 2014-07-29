@@ -64,7 +64,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
 
           @view?.showNextPair(updatedIndex, activePair, reverseAnim)
-          @googleAnalyticsSpan.html(@appModel.getActivePairDescriptor())
+          @googleAnalyticsSpan.html(@appModel.getActivePairAndNeighborsDescriptor())
           @preloadNextPair()
 
           if not @isSlideshowPaused()
@@ -128,7 +128,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.renderInitialView(@appModel.getActivePair())
-        @googleAnalyticsSpan.html(@appModel.getActivePairDescriptor())
+        @googleAnalyticsSpan.html(@appModel.getActivePairAndNeighborsDescriptor())
 
         @preloadNextPair()
       ))
@@ -188,7 +188,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.showNextPair(@appModel.activePairIndex, activePair)
-        @googleAnalyticsSpan.html(@appModel.getActivePairDescriptor())
+        @googleAnalyticsSpan.html(@appModel.getActivePairAndNeighborsDescriptor())
         @preloadNextPair()
         @setNextSlideDelay()
       ))
