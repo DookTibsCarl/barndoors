@@ -29,6 +29,7 @@ define([], () ->
     togglePlayPause: (index) ->
       $.event.trigger({
         type: "toggleAutoplaySlideshow"
+        updateAutoplayCookie: "true"
       })
 
     jumpToIndex: (index) ->

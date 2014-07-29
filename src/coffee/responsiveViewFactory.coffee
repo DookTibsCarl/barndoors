@@ -19,12 +19,89 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       { descriptor: "diagonal" }
     ]
       
-    constructor: (@targetDivId) ->
+    constructor: (@mainController, @targetDivId) ->
       # @$ = jq
 
       @breakPointIndex = 0
       $(window).resize((=> @windowWasResized()))
       @windowWasResized(true)
+
+      # got a couple of bugs involving display artifacts when running for a long time; I think related to css animations
+      # acting screwy when getting stopped in the middle of a display sleep, etc. Adding a couple of methods here
+      # to force redraws when things like browser tab is hidden/reshown, etc.
+      @watchWindowForVisibilityStatusChanges()
+
+
+    watchWindowForVisibilityStatusChanges: () ->
+      console.log("Setting up visibility checks...")
+      hidden = "hidden"
+
+      factoryHandle = this
+
+      onChange = ((evt) ->
+        # console.log "onChange firing!"
+        # console.log evt
+
+        v = "visible"
+        h = "hidden"
+        evtMap = {
+          focus: v
+          focusin: v
+          pageshow: v
+          blur: h
+          focusout: h
+          pagehide: h
+        }
+
+        evt = evt or window.event
+        smart = false
+        # console.log ("event type is [" + evt.type + "]")
+        if (evtMap[evt.type] != undefined)
+          console.log "FALLBACK: [" + evtMap[evt.type] + "]!"
+          changeType = evtMap[evt.type]
+        else
+          smart = true
+          console.log "MODERN: " + (if (this[hidden]) then h else v)
+          changeType = (if (this[hidden]) then h else v)
+
+        # force a redraw when we become visible again
+        if (changeType == v)
+          console.log "explicit redraw after window becomes visible again"
+          factoryHandle.triggerScreenSizeRefresh()
+
+          if (smart and factoryHandle.restartSlideshowOnResume)
+            console.log "restarting slideshow after revisible"
+            $.event.trigger({ type: "toggleAutoplaySlideshow" })
+            factoryHandle.restartSlideshowOnResume = false
+        else
+          if (smart and not factoryHandle.mainController.isSlideshowPaused())
+            console.log "pausing slideshow when window hides"
+            factoryHandle.restartSlideshowOnResume = true
+            $.event.trigger({ type: "toggleAutoplaySlideshow" })
+          else 
+            factoryHandle.restartSlideshowOnResume = false
+      )
+
+      if hidden of document
+        # console.log("HIT A - vis")
+        document.addEventListener("visibilitychange", onChange)
+      else if (hidden = "mozHidden") of document
+        # console.log("HIT B - moz")
+        document.addEventListener("mozvisibilitychange", onChange)
+      else if (hidden = "webkitHidden") of document
+        # console.log("HIT C - webkit")
+        document.addEventListener("webkitvisibilitychange", onChange)
+      else if (hidden = "msHidden") of document
+        # console.log("HIT D - ms")
+        document.addEventListener("msvisibilitychange", onChange)
+      else if ('onfocusin' of document)
+        # console.log("HIT E - old ie")
+        # IE 9 and lower
+        document.onfocusin = document.onfocusout = onChange
+      else
+        # console.log("HIT F - backup")
+        # all others
+        window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onChange
 
     findBreakpointIndex: (width) ->
       for bp, i in ResponsiveViewFactory.BREAKPOINTS
@@ -51,6 +128,17 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
 
       return rv
 
+    triggerScreenSizeRefresh: () ->
+      elForDims = $("#" + @targetDivId)
+      w = elForDims.width()
+      h = elForDims.height()
+
+      $(document).trigger('screenSizeChanged', {
+        'width': w
+        'height': h
+      })
+      
+
     windowWasResized: (forceChange = false) ->
       # w = $(window).width()
       # h = $(window).height()
@@ -76,16 +164,7 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
         # what are the absolute smallest and largest values for the width? need this to calculate font scaling
         # absMin = 300
         # absMax = 1147
-        $(document).trigger('screenSizeChanged', {
-          'width': w
-          'height': h
-          # 'minForView': (if updatedIdx == 0 then absMin else (ResponsiveViewFactory.BREAKPOINTS[updatedIdx-1]).size + 1)
-          # 'maxForView': (if updatedIdx == (ResponsiveViewFactory.BREAKPOINTS.length - 1) then absMax else (ResponsiveViewFactory.BREAKPOINTS[updatedIdx]).size)
-
-          # 261x21 ratio currently for font...bold title
-          # 261x15 for non-bold title
-          # 261x5 for description
-        })
+        @triggerScreenSizeRefresh()
         
 
   return ResponsiveViewFactory

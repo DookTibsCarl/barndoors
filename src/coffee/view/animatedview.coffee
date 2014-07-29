@@ -386,6 +386,7 @@ define(["view/baseview"], (BaseView) ->
 
     setCssTranslationPropsForElement: (el, xShift, yShift, duration) ->
       animationDuration = duration / 1000
+      console.log("actually animating [" + el.attr('id') + "] from [" + el.position().left + "] to [" + xShift + "]...")
       for prefix in CSS_ANIMATION_PREFIXES
         el.css(prefix + "transition", animationDuration + "s " + AnimatedView.CSS_EASE_FXN)
         el.css(prefix + "transform", "translate(" + xShift + "px, " + yShift + "px)")
@@ -408,7 +409,7 @@ define(["view/baseview"], (BaseView) ->
 
     onCssAnimationComplete: ->
       if @currentlyAnimating
-        console.log("FINISHED ANIM FIREFOX WORKS?!")
+        console.log("CSS animation completed...")
         @clearCssAnimationPropsFromAllDoors()
         @currentlyAnimating = false
 

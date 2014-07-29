@@ -33,12 +33,14 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       if @isSlideshowPaused()
         # play - restart the slideshow with a shorter duration than usual
         @setNextSlideDelay(@configuration.timeBetweenSlides / 2)
-        CookieUtils.eraseCookie(AUTOPLAY_COOKIE_NAME)
+        if (evt.updateAutoplayCookie != null and evt.updateAutoplayCookie == "true")
+          CookieUtils.eraseCookie(AUTOPLAY_COOKIE_NAME)
       else
         # pause - stop the autoplay
         clearTimeout(@autoplayTimeout)
         @autoplayTimeout = null
-        CookieUtils.createCookie(AUTOPLAY_COOKIE_NAME, "false", CookieUtils.createExpiryTimeInDays(20 * 365)) # expire in 20 years
+        if (evt.updateAutoplayCookie != null and evt.updateAutoplayCookie == "true")
+          CookieUtils.createCookie(AUTOPLAY_COOKIE_NAME, "false", CookieUtils.createExpiryTimeInDays(20 * 365)) # expire in 20 years
 
       # either way we need to notify our views as some of them include an interface for play/pause
       @view?.updatePlayPauseStatus(not @isSlideshowPaused())
@@ -86,7 +88,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
       @imageQualityManager = new ImageQualityManager(@appModel.getAllAvailableImageDimensionTypes())
 
-      @viewFactory = new ResponsiveViewFactory(@configuration.targetDivName)
+      @viewFactory = new ResponsiveViewFactory(this, @configuration.targetDivName)
       $(document).bind('viewHandlerChanged', ((evt, data) =>
         @swapInView()
       ))
