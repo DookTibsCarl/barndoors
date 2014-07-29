@@ -216,9 +216,9 @@ define(["view/baseview"], (BaseView) ->
         # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).css(imgStyle).appendTo(prevEl)
         $("<img/>").attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).appendTo(prevEl)
 
-        playPauseElWrapper = $("<a/>").addClass("round_button").addClass("playpause").appendTo(controlsEl)
-        # @playPauseEl = $("<img/>").css(imgStyle).appendTo(playPauseElWrapper)
-        @playPauseEl = $("<img/>").appendTo(playPauseElWrapper)
+        @playPauseElWrapper = $("<a/>").addClass("round_button").addClass("playpause").appendTo(controlsEl)
+        # @playPauseEl = $("<img/>").css(imgStyle).appendTo(@playPauseElWrapper)
+        @playPauseEl = $("<img/>").appendTo(@playPauseElWrapper)
         @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
 
         nextEl = $("<a/>").addClass("round_button").addClass("next").appendTo(controlsEl)
@@ -236,7 +236,7 @@ define(["view/baseview"], (BaseView) ->
       else
         @logToConsole("unsupported control type [" + controlType + "] supplied...")
         
-      playPauseElWrapper.click(() ->
+      @playPauseElWrapper.click(() ->
         classHook.togglePlayPause()
       )
 
@@ -255,10 +255,13 @@ define(["view/baseview"], (BaseView) ->
       this.positionSlides(false)
 
     updatePlayPauseStatus: (isPlaying) ->
+      # @playPauseElWrapper.removeClass("isPlaying isPaused")
       if (isPlaying)
         @playPauseEl.attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-pause.png", "alt": "pause"})
+        # @playPauseElWrapper.addClass("isPlaying")
       else
         @playPauseEl.attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-play.png", "alt": "play"})
+        # @playPauseElWrapper.addClass("isPaused")
 
     reRenderJumpControls: (index) ->
       @logToConsole "update jumpers [" + index + "]"

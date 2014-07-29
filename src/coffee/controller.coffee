@@ -118,6 +118,11 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
       @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.getImageDimensionAspectRatio())
 
+      # google analytics needs to attach to various things that we have setup; can't do that til the view is built
+      $.event.trigger({
+        type: "barndoorConstructionComplete"
+      })
+
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
         @view?.renderInitialView(@appModel.getActivePair())
