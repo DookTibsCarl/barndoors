@@ -43,6 +43,7 @@ define(["view/animatedview"], (AnimatedView) ->
         display: (if letterLooper == 0 then "block" else "none")
         height: "100%"
         overflow: "hidden"
+        # "background-color": "purple"
         "border-style": "solid"
         "border-width": "1px"
         "border-color": "white"
@@ -86,8 +87,9 @@ define(["view/animatedview"], (AnimatedView) ->
 
       # adjust the image
       if (side == AnimatedView.SIDE_LEFT)
-        imgPos = (@dynamicImageWidth - @halfDiv) * -1
-        imgPos += @foldAmount
+        # imgPos = (@dynamicImageWidth - @halfDiv) * -1
+        # imgPos += @foldAmount
+        imgPos = 0
       else
         imgPos = 0
         imgPos -= @foldAmount
