@@ -20,6 +20,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
       $(document).on("moveToPrevSlideIndex", (evt) => (
         @handleJump(@appModel.getPrevPairIndex(), -1)
+        # @view.checkFontHeights()
       ))
 
       $(document).on("toggleAutoplaySlideshow", (evt) => (
@@ -82,7 +83,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       # define an outer/inner wrapper streucture such that we can scale the outer one to window width, but fix the inner one to an even width if desired
       outermostWrapperName = @configuration.targetDivName
       @outermostWrapperDiv = $("#" + outermostWrapperName)
-      @outermostWrapperDiv.css("height", "0")
+      @outermostWrapperDiv.css("height", "auto")
 
       @targetDivName = outermostWrapperName + "_even"
       @targetDiv = $("<div/>").attr("id", @targetDivName).appendTo(@outermostWrapperDiv)
@@ -132,6 +133,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
         @view = null
 
       @view = @viewFactory.constructActiveView(this, @targetDivName, @appModel.getImageDimensionAspectRatio())
+      @view.supplyAllDetailText(@appModel.getDetailTextForAllSlides())
 
       # google analytics needs to attach to various things that we have setup; can't do that til the view is built
       $.event.trigger({

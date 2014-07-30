@@ -54,6 +54,9 @@ define([], () ->
     responsiveUpdate: () ->
       @logToConsole "responsiveUpdate not implemented for [" + this.constructor.name + "]"
 
+    supplyAllDetailText: (@allDetailText) ->
+      @logToConsole(this.constructor.name + ": storing all detail text:")
+
     updatePlayPauseStatus: (isPlaying) ->
       @logToConsole "updatePlayPauseStatus not implemented for [" + this.constructor.name + "]"
 
@@ -67,11 +70,15 @@ define([], () ->
         rv += (if i == 0 then "" else ",") + x + " " + y
       rv
 
-    figureScaledFontSize: (scaleData, comparisonHeight) ->
+    figureScaledFontSize: (scaleData, comparisonHeight, appendPx = true) ->
       rv = comparisonHeight / scaleData.ratio
       rv = Math.max(rv, scaleData.min)
       rv = Math.min(rv, scaleData.max)
-      return rv + "px"
+
+      if (appendPx)
+        return rv + "px"
+      else
+        return rv
 
 
     # takes a 5 point polygon (upper left, upper right, lower right, lower left, back to upper left) and shifts it by some adjustment

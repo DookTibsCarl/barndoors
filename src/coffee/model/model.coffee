@@ -7,12 +7,12 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
     @buildModelFromConfigurationObject: (configObj) ->
       pairs = []
       for pair in configObj.pairs
-          leftProps = pair.left
-          rightProps = pair.right
-          leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.images, leftProps.title, leftProps.details, leftProps.fontColor)
-          rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.images, rightProps.title, rightProps.details, rightProps.fontColor)
-          pair = new SlidePair(pair.pairId, pair.pairDescriptor, leftSlide, rightSlide)
-          pairs.push pair
+        leftProps = pair.left
+        rightProps = pair.right
+        leftSlide = new Slide(Slide.SIDES.LEFT, leftProps.images, leftProps.title, leftProps.details, leftProps.fontColor)
+        rightSlide = new Slide(Slide.SIDES.RIGHT, rightProps.images, rightProps.title, rightProps.details, rightProps.fontColor)
+        pair = new SlidePair(pair.pairId, pair.pairDescriptor, leftSlide, rightSlide)
+        pairs.push pair
 
       model = new Model(pairs, configObj.imageDimensionData)
       model
@@ -20,6 +20,11 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
     constructor: (@pairs, imageDimensionData) ->
       @activePairIndex = 0
       @imageDimensions = {}
+
+      @collectedDetailText = []
+      for pair in @pairs
+        for slide in [pair.leftSlide, pair.rightSlide]
+          @collectedDetailText.push(slide.details)
       
       @defaultImageDimensionKey = null
       for dimensionKey, dimensions of imageDimensionData
@@ -35,6 +40,9 @@ define(["model/slide", "model/slidepair"], (Slide, SlidePair) ->
       for key, val of @imageDimensions
         rv.push(key)
       rv
+
+    getDetailTextForAllSlides: () ->
+      return @collectedDetailText
 
     getDimFromKey: (key = null) ->
       if (key == null)

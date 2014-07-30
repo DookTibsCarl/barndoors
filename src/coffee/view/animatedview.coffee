@@ -212,7 +212,7 @@ define(["view/baseview"], (BaseView) ->
           "margin-top": "18%"
         }
 
-        prevEl = $("<a/>").addClass("round_button").addClass("previous").appendTo(controlsEl)
+        prevEl = $("<a/>").addClass("round_button").addClass("prevNextNav previous").appendTo(controlsEl)
         # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).css(imgStyle).appendTo(prevEl)
         $("<img/>").attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-previous.png", "alt": "previous"}).appendTo(prevEl)
 
@@ -221,7 +221,7 @@ define(["view/baseview"], (BaseView) ->
         @playPauseEl = $("<img/>").appendTo(@playPauseElWrapper)
         @updatePlayPauseStatus(not @mainController.isSlideshowPaused())
 
-        nextEl = $("<a/>").addClass("round_button").addClass("next").appendTo(controlsEl)
+        nextEl = $("<a/>").addClass("round_button").addClass("prevNextNav next").appendTo(controlsEl)
         # $("<img/>").attr({"src": "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).css(imgStyle).appendTo(nextEl)
         $("<img/>").attr({"src": @mainController.getAssetServerUrl() + "/global_stock/images/barndoors/barndoors-next.png", "alt": "next"}).appendTo(nextEl)
         
