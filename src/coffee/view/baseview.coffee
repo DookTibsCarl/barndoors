@@ -12,7 +12,7 @@ define([], () ->
 
     # how many pixels of div height do we want for each pixel of font height? Larger numbers for ratio means a smaller font. Min/max set bounds. Subclasses can override these.
     @TITLE_FONT_SCALE_DATA = { ratio: 10, min: 20, max: 999 }
-    @DESC_FONT_SCALE_DATA = { ratio: 35, min: 10, max: 999 }
+    @DESC_FONT_SCALE_DATA = { ratio: 35, min: 14, max: 999 }
 
     # set these to zero to disable
     @TITLE_DISTANCE_FROM_BLACKBAR_PADDING_RATIO = .2 # when positioning "title" text,shift it up this value * actual height of the black bar

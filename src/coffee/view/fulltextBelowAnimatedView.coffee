@@ -7,7 +7,6 @@ define(["view/animatedview"], (AnimatedView) ->
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
-      @requiredDetailVerticalSpace = -1
 
     setupCalculations: () ->
       @halfDiv = @targetDiv.width()/2
@@ -136,10 +135,10 @@ define(["view/animatedview"], (AnimatedView) ->
       # CALCULATE THE rEQUIRED HEIGHT OF THE DETAILS TEXT - START
       if (@requiredDetailVerticalSpace == -1)
         console.log("!!!!! recalculating required detail vertical space!")
-        @requiredDetailVerticalSpace = @smartFontUpdate()
+        @requiredDetailVerticalSpace = @getActualDetailsTextMaxHeight()
 
         # update - if we leave top/bottom padding on, it screws up the height
-        # calculations in smartFontUpdate. Workaround: smartFontUpdate now 
+        # calculations in getActualDetailsTextMaxHeight. Workaround: getActualDetailsTextMaxHeight now 
         # sets those to zero and calculates the required height. We then re-add
         # the padding to the top and bottom, and bump the requiredDetailVerticalSpace
         # variable to match.
@@ -166,39 +165,6 @@ define(["view/animatedview"], (AnimatedView) ->
         console.log("CHECKING FONT ON [" + (if i == 0 then "left" else "right") + "] SIDE!")
         details = d.children(".details")
         console.log("details is actually [" + details.height() + "] pixels tall")
-
-    smartFontUpdate: () ->
-      if not @allDetailText
-        return 0
-
-      # upsize stuff to 
-      @slideContainerDiv.height(@slideContainerDiv.height()*2)
-      @targetDiv.height(@targetDiv.height()*2)
-
-      tester = $("#details_left_0")
-      savedCopy = tester.html()
-      tester.css({"height": "auto", "padding-top": "", "padding-bottom": ""})
-      maxHeight = 0
-      for desc, i in @allDetailText
-        # console.log("[" + i + "] -> [" + desc + "]")
-        tester.html(desc)
-        console.log("height now [" + tester.height() + "]")
-        maxHeight = Math.max(maxHeight, tester.height())
-
-      maxHeight = Math.ceil(maxHeight)
-
-      # console.log("found max height [" + maxHeight + "]")
-
-      # can't figure out one bug - occasionally a line appears too low.
-      # never mind - turned off vertical padding and that seems to have adjusted things well
-      # maxHeight += Math.ceil((.35 * @figureScaledFontSize(FullTextBelowAnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight, false)))
-
-      tester.html(savedCopy)
-
-      return maxHeight
-
-
-
 
   return FullTextBelowAnimatedView
 )

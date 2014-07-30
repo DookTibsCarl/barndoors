@@ -35,6 +35,7 @@ define(["view/baseview"], (BaseView) ->
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       @logToConsole "constructing default view with aspect ratio [" + @imageAspectRatio + "]..."
       @logToConsole "sides are [" + BaseView.SIDES + "]"
+      @requiredDetailVerticalSpace = -1
       @targetDiv = $("##{@targetDivName}")
 
       @resizeDoorDestinations = []
@@ -461,6 +462,37 @@ define(["view/baseview"], (BaseView) ->
     setupCalculations: () ->
       @logToConsole("no implementation for setupCalculations")
     # END - THESE SHOULD BE IMPLEMENTED IN SUBCLASSES
+
+    getActualDetailsTextMaxHeight: () ->
+      if not @allDetailText
+        return 0
+
+      # upsize stuff to 
+      @slideContainerDiv.height(@slideContainerDiv.height()*2)
+      @targetDiv.height(@targetDiv.height()*2)
+
+      tester = $("#details_left_0")
+      savedCopy = tester.html()
+      # tester.css({"height": "auto", "padding-top": "", "padding-bottom": ""})
+      tester.css({"height": "auto", "padding-top": "", "padding-bottom": ""})
+      maxHeight = 0
+      for desc, i in @allDetailText
+        # console.log("[" + i + "] -> [" + desc + "]")
+        tester.html(desc)
+        # console.log("height now [" + tester.height() + "]")
+        maxHeight = Math.max(maxHeight, tester.height())
+
+      maxHeight = Math.ceil(maxHeight)
+
+      # console.log("found max height [" + maxHeight + "]")
+
+      # can't figure out one bug - occasionally a line appears too low.
+      # never mind - turned off vertical padding and that seems to have adjusted things well
+      # maxHeight += Math.ceil((.35 * @figureScaledFontSize(FullTextBelowAnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight, false)))
+
+      tester.html(savedCopy)
+
+      return maxHeight
 
 
     pseudoDestructor: ->

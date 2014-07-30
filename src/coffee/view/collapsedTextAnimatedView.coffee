@@ -6,6 +6,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     DETAILS_CLASS = "details"
     EXPANDED_TEXT_PROPORTION = .6
 
+    @DESC_FONT_SCALE_DATA = { ratio: 15, min: 14, max: 999 }
+
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
       @expandedState = false
@@ -18,6 +20,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         display: (if letterLooper == 0 then "block" else "none")
         height: "100%"
         overflow: "hidden"
+        # "background-color": "purple"
         "border-style": "solid"
         "border-width": "1px"
         "border-color": "white"
@@ -37,7 +40,9 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       arrowStyle = {
         cursor: "pointer"
-        # bottom: 0
+        position: "absolute"
+        bottom: 0
+        width: "100%"
         "background-color": "grey"
         "text-align": "center"
       }
@@ -48,7 +53,9 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         # color: "white"
         # "background-color": "#7095B7"
         "text-align": otherSide
-        # top: 0
+        position: "absolute"
+        overflow: "hidden"
+        top: 0
         display: "table-cell"
         "vertical-align": "middle"
       }
@@ -63,6 +70,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         # letterSpacing: "1px"
         # color: "white"
         # font: "bold 30px/30px Helvetica, Sans-Serif"
+        bottom: 0
         "text-align": otherSide
         "line-height": "90%"
       }
@@ -108,7 +116,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
         ###
 
         animater.animate({
-          "height": (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight())
+          height: @getCurrentStateSlideContainerHeight()
         }, {
           "easing": AnimatedView.JQUERY_EASE_FXN
           "duration": 100
@@ -123,9 +131,15 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
     setupCalculations: () ->
       super
-      # @desiredDrawerArrowHeight = @targetDiv.height() - @maxDesiredImageHeight
       # this moved down into enforceAspectRatio - we need to know the height there.
-      @desiredDrawerDescriptionHeight = @maxDesiredImageHeight * EXPANDED_TEXT_PROPORTION
+      # @desiredDrawerArrowHeight = @targetDiv.height() - @maxDesiredImageHeight
+
+      # this is gonna have to move elsewhere...
+      # @desiredDrawerDescriptionHeight = @maxDesiredImageHeight * EXPANDED_TEXT_PROPORTION
+      @desiredDrawerDescriptionHeight = 0
+
+    getCurrentStateSlideContainerHeight: () ->
+      return (if @expandedState then @getExpandedSlideContainerHeight() else @getCollapsedSlideContainerHeight())
 
     getExpandedSlideContainerHeight: () ->
       return @getCollapsedSlideContainerHeight() + @desiredDrawerDescriptionHeight
@@ -134,7 +148,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       return @dynamicImageHeight + @desiredDrawerArrowHeight
 
 
-    # for a couple of things (*A*, *B*, the parent class does MOST of what we want...we can let it do its work first, and then just make some tweaks.
+    # for some things (*X*, etc the parent class does MOST of what we want...we can let it do its work first, and then just make some tweaks.
     # *A*
     # we want half as much of an area at the bottom on this type of view as we do on the one where text is always displayed
     enforceAspectRatio: () ->
@@ -144,7 +158,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       ###
       bottomPadding = @targetDiv.height() - @maxDesiredImageHeight
-      console.log "desired dims [" + @maxDesiredImageHeight + "], actual w=[" + @targetDiv.width()/2 + "],h=[" + @targetDiv.height() + "], pad amt [" + bottomPadding + "]"
+      @logToConsole "desired dims [" + @maxDesiredImageHeight + "], actual w=[" + @targetDiv.width()/2 + "],h=[" + @targetDiv.height() + "], pad amt [" + bottomPadding + "]"
       @targetDiv.height(@targetDiv.height() - bottomPadding/2)
       @logToConsole("aspect restricted window to [" + @targetDiv.width() + "]x[" + @targetDiv.height() + "]")
       ###
@@ -152,20 +166,57 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       # if (@expandedState)
         # @targetDiv.height(@dynamicImageHeight + @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight)
 
-    # *B*
+    # calling super implementation was making things extremely roundabout. Copying some code for now.
     updateDoorElementsForCurrentDimensions: (side, elementSuffix) ->
-      super(side, elementSuffix)
-      $("#drawer" + elementSuffix).css({height: @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight })
-      $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight, xpadding: @textPadAmount })
-      $("#details" + elementSuffix).css({height: @desiredDrawerDescriptionHeight, "font-size": @figureScaledFontSize(AnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight) })
+      # adjust the door
+      $("#door" + elementSuffix).css({ width: @halfDiv })
+
+      imgPos = if (side == AnimatedView.SIDE_LEFT) then 0 else -1 * @foldEmount
+      $("#image" + elementSuffix).width(@dynamicImageWidth).height(@dynamicImageHeight).css({left: imgPos, "max-width": @targetDiv.width()})
+
       $("#title_wrapper" + elementSuffix).css({height: @dynamicImageHeight})
-      $("#title" + elementSuffix).css({bottom: 0, "font-size": @figureScaledFontSize(AnimatedView.TITLE_FONT_SCALE_DATA, @dynamicImageHeight) })
 
-      if (@expandedState)
-        for animater in @expanders
-          animater.height(@getExpandedSlideContainerHeight())
+      titleStyleUpdate = {
+        padding: @textPadAmount
+        width: @halfDiv
+        "font-size": @figureScaledFontSize(FullTextBelowAnimatedView.TITLE_FONT_SCALE_DATA, @dynamicImageHeight)
+      }
+      $("#title" + elementSuffix).css(titleStyleUpdate)
 
-      @setExpanderText()
+      # now figure out necessary details height...
+      drawerDiv = $("#drawer" + elementSuffix).css({height: @desiredDrawerArrowHeight })
+      $("#drawer_arrow" + elementSuffix).css({height: @desiredDrawerArrowHeight })
+
+      detailStyleUpdateBefore = {
+        "padding-left": @textPadAmount
+        "padding-right": @textPadAmount
+        # top: @dynamicImageHeight
+        top: 0
+        width: @halfDiv
+        height: 0
+        "font-size": @figureScaledFontSize(FullTextBelowAnimatedView.DESC_FONT_SCALE_DATA, @dynamicImageHeight)
+      }
+      detailsDiv = $("#details" + elementSuffix).css(detailStyleUpdateBefore)
+
+      @setExpanderText() # sets the arrow
+
+      # CALCULATE THE rEQUIRED HEIGHT OF THE DETAILS TEXT - START
+      if (@requiredDetailVerticalSpace == -1)
+        @logToConsole("!!!!! recalculating required detail vertical space!")
+        @requiredDetailVerticalSpace = @getActualDetailsTextMaxHeight()
+
+        @requiredDetailVerticalSpace += Math.ceil(@textPadAmount * 2)
+
+        # set this now; various calcs depend on it
+        @desiredDrawerDescriptionHeight = @requiredDetailVerticalSpace
+        if @expanders?
+          for animater in @expanders
+            heightForAnimater = @getCurrentStateSlideContainerHeight()
+            animater.height(heightForAnimater)
+
+      # now that we have the max height figured, gotta re-update a few things...
+      drawerDiv.css({height: @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight})
+      detailsDiv.css({"height": @requiredDetailVerticalSpace, "padding-bottom": @textPadAmount, "padding-top": @textPadAmount})
 
 
   return CollapsedTextAnimatedView
