@@ -15,10 +15,12 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       ))
 
       $(document).on("moveToNextSlideIndex", (evt) => (
+        $.event.trigger({ type: "ga_barndoorMovingToNext" })
         @handleJump(@appModel.getNextPairIndex(), 1)
       ))
 
       $(document).on("moveToPrevSlideIndex", (evt) => (
+        $.event.trigger({ type: "ga_barndoorMovingToPrev" })
         @handleJump(@appModel.getPrevPairIndex(), -1)
         # @view.checkFontHeights()
       ))
@@ -136,9 +138,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       @view.supplyAllDetailText(@appModel.getDetailTextForAllSlides())
 
       # google analytics needs to attach to various things that we have setup; can't do that til the view is built
-      $.event.trigger({
-        type: "barndoorConstructionComplete"
-      })
+      $.event.trigger({ type: "ga_barndoorConstructionComplete" })
 
       activePair = @appModel.getActivePair()
       @imageLoader.ensureImagesLoaded(@getCorrectImageUrlsForPair(activePair), ( =>
