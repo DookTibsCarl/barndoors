@@ -14,13 +14,14 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
   class ResponsiveViewFactory
     # specify size as a breakpoint. Anything <= a given size falls into that bucket. Final element catches everything regardless
     @BREAKPOINTS = [
-      { size: 539, descriptor: "expandable" },
-      { size: 799, descriptor: "fullTextBelow" }
-      { descriptor: "diagonal" }
+      { size: 539, descriptor: "expandable", containerDivClass: "small" },
+      { size: 799, descriptor: "fullTextBelow", containerDivClass: "medium" }
+      { descriptor: "diagonal", containerDivClass: "large" }
     ]
       
-    constructor: (@mainController, @targetDivId) ->
+    constructor: (@mainController, targetDivId) ->
       # @$ = jq
+      @targetDiv = $("#" + targetDivId)
 
       @breakPointIndex = 0
       $(window).resize((=> @windowWasResized()))
@@ -150,12 +151,17 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       else if (desc == "diagonal")
         rv = new DiagonalAnimatedView(mainAppController, divName, imgAspectRatio)
 
+      for bp in ResponsiveViewFactory.BREAKPOINTS
+        @targetDiv.removeClass(bp.containerDivClass)
+        if (bp.descriptor == desc)
+          @targetDiv.addClass(bp.containerDivClass)
+          
+
       return rv
 
     triggerScreenSizeRefresh: () ->
-      elForDims = $("#" + @targetDivId)
-      w = elForDims.width()
-      h = elForDims.height()
+      w = @targetDiv.width()
+      h = @targetDiv.height()
 
       $(document).trigger('screenSizeChanged', {
         'width': w
@@ -167,13 +173,12 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       # w = $(window).width()
       # h = $(window).height()
 
-      elForDims = $("#" + @targetDivId)
-      w = elForDims.width()
-      h = elForDims.height()
+      w = @targetDiv.width()
+      h = @targetDiv.height()
       $("#debugRVFWidth").text(w)
       $("#debugRVFHeight").text(h)
 
-      if elForDims.length == 0
+      if @targetDiv.length == 0
         $("#debugRVFWidth").text("NOT SET")
 
       oldIdx = @breakPointIndex

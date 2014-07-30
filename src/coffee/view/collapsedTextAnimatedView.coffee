@@ -25,12 +25,12 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       drawerStyle = {
         position: "absolute"
-        letterSpacing: "1px",
+        # letterSpacing: "1px",
         font: "12px/12px Arial",
-        color: "white"
+        # color: "white"
         width: "100%"
         # "background-color": "orange"
-        "background-color": "#7095B7"
+        # "background-color": "#7095B7"
         bottom: 0
         overflow: "hidden"
       }
@@ -43,10 +43,10 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       }
 
       detailsStyle = {
-        letterSpacing: "1px",
+        # letterSpacing: "1px",
         # font: "12px/12px Arial",
-        color: "white"
-        "background-color": "#7095B7"
+        # color: "white"
+        # "background-color": "#7095B7"
         "text-align": otherSide
         # top: 0
         display: "table-cell"
@@ -60,8 +60,8 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       titleStyle = {
         position: "absolute"
-        letterSpacing: "1px"
-        color: "white"
+        # letterSpacing: "1px"
+        # color: "white"
         # font: "bold 30px/30px Helvetica, Sans-Serif"
         "text-align": otherSide
         "line-height": "90%"

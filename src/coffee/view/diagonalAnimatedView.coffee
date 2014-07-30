@@ -273,8 +273,8 @@ define(["view/animatedview"], (AnimatedView) ->
 
       titleStyle = {
         position: "absolute"
-        letterSpacing: "1px"
-        color: "white"
+        # letterSpacing: "1px"
+        # color: "white"
         # font: "bold 30px/30px Helvetica, Sans-Serif"
         "text-align": otherSide
         "line-height": "90%"
@@ -283,9 +283,9 @@ define(["view/animatedview"], (AnimatedView) ->
 
       detailsStyle = {
         position: "absolute"
-        letterSpacing: "1px",
+        # letterSpacing: "1px",
         # font: "12px/12px Arial",
-        color: "white"
+        # color: "white"
         "text-align": otherSide
         # "background-color": "orange"
       }
