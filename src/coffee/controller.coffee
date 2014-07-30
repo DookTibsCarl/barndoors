@@ -15,12 +15,12 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       ))
 
       $(document).on("moveToNextSlideIndex", (evt) => (
-        $.event.trigger({ type: "ga_barndoorMovingToNewPair" })
+        $.event.trigger({ type: "ga_barndoorMovingToNewPair", movementDescriptor:"next" })
         @handleJump(@appModel.getNextPairIndex(), 1)
       ))
 
       $(document).on("moveToPrevSlideIndex", (evt) => (
-        $.event.trigger({ type: "ga_barndoorMovingToNewPair" })
+        $.event.trigger({ type: "ga_barndoorMovingToNewPair", movementDescriptor:"previous" })
         @handleJump(@appModel.getPrevPairIndex(), -1)
         # @view.checkFontHeights()
       ))
