@@ -216,7 +216,10 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
 
       # now that we have the max height figured, gotta re-update a few things...
       drawerDiv.css({height: @desiredDrawerArrowHeight + @desiredDrawerDescriptionHeight})
-      detailsDiv.css({"height": @requiredDetailVerticalSpace, "padding-bottom": @textPadAmount, "padding-top": @textPadAmount})
+      if @renderMode == AnimatedView.RENDER_MODE_CLIP_PATH
+        detailsDiv.css({"height": @requiredDetailVerticalSpace})
+      else
+        detailsDiv.css({"height": @requiredDetailVerticalSpace, "padding-bottom": @textPadAmount, "padding-top": @textPadAmount})
 
 
   return CollapsedTextAnimatedView
