@@ -82,7 +82,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       # define an outer/inner wrapper streucture such that we can scale the outer one to window width, but fix the inner one to an even width if desired
       outermostWrapperName = @configuration.targetDivName
       @outermostWrapperDiv = $("#" + outermostWrapperName)
-      @outermostWrapperDiv.css({"height", "100%"})
+      @outermostWrapperDiv.css("height", "0")
 
       @targetDivName = outermostWrapperName + "_even"
       @targetDiv = $("<div/>").attr("id", @targetDivName).appendTo(@outermostWrapperDiv)
