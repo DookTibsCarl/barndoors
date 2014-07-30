@@ -76,10 +76,19 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       # @logToConsole "setup: there are #{@configuration.pairs.length} image pairs. Each image is #{@configuration.imageDimensions.width} pixels wide"
       @logToConsole "setup with view factory changed name..."
 
-      @targetDivName = @configuration.targetDivName
+      # @targetDivName = @configuration.targetDivName
+      # @targetDiv = $("#" + @targetDivName)
+
+      # define an outer/inner wrapper streucture such that we can scale the outer one to window width, but fix the inner one to an even width if desired
+      outermostWrapperName = @configuration.targetDivName
+      @outermostWrapperDiv = $("#" + outermostWrapperName)
+      @outermostWrapperDiv.css({"height", "100%"})
+
+      @targetDivName = outermostWrapperName + "_even"
+      @targetDiv = $("<div/>").attr("id", @targetDivName).appendTo(@outermostWrapperDiv)
 
       # define a span where we can stuff the current pair data. Simplifies analyics tracking.
-      @googleAnalyticsSpan = $("<span/>").css("display","none").attr("id", "barndoorCurrentPair").appendTo($("#" + @targetDivName))
+      @googleAnalyticsSpan = $("<span/>").css("display","none").attr("id", "barndoorCurrentPair").appendTo(@targetDiv)
 
       @appModel = Model.buildModelFromConfigurationObject(@configuration)
       # @appModel.debug()
@@ -88,7 +97,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
 
       @imageQualityManager = new ImageQualityManager(@appModel.getAllAvailableImageDimensionTypes())
 
-      @viewFactory = new ResponsiveViewFactory(this, @configuration.targetDivName)
+      @viewFactory = new ResponsiveViewFactory(this, outermostWrapperName, @targetDivName)
       $(document).bind('viewHandlerChanged', ((evt, data) =>
         @swapInView()
       ))
@@ -112,6 +121,10 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
       else
         @logToConsole("cookie preference is preventing slideshow autoplay")
       @view?.updatePlayPauseStatus(not @isSlideshowPaused())
+
+    debugWrapperWidths: () ->
+      output = "OUTER WRAPPER: " + @outermostWrapperDiv.width() + " /  INNER EVEN: " + @targetDiv.width()
+      $("#debugEvenWidth").html(output)
 
     swapInView: () ->
       if @view?

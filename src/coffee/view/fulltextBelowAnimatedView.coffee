@@ -25,6 +25,11 @@ define(["view/animatedview"], (AnimatedView) ->
       @rightDoorOpenDestination = @slideContainerDiv.width()
 
     enforceAspectRatio: () ->
+      # console.log("enforcing aspect ratio on [" + @targetDiv.attr('id') + "]")
+      parentDivWidth = @targetDiv.parent().width()
+      if (parentDivWidth % 2 == 1) then @targetDiv.width(parentDivWidth + 1) else @targetDiv.width(parentDivWidth)
+      @mainController.debugWrapperWidths()
+
       adjustedHeight = @targetDiv.width()/2
       @maxDesiredImageHeight = adjustedHeight
 

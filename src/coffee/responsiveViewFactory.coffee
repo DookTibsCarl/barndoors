@@ -19,8 +19,9 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       { descriptor: "diagonal", containerDivClass: "large" }
     ]
       
-    constructor: (@mainController, targetDivId) ->
+    constructor: (@mainController, outerWrapperDivId, targetDivId) ->
       # @$ = jq
+      @outerWrapperDiv = $("#" + outerWrapperDivId)
       @targetDiv = $("#" + targetDivId)
 
       @breakPointIndex = 0
@@ -160,8 +161,8 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       return rv
 
     triggerScreenSizeRefresh: () ->
-      w = @targetDiv.width()
-      h = @targetDiv.height()
+      w = @outerWrapperDiv.width()
+      h = @outerWrapperDiv.height()
 
       $(document).trigger('screenSizeChanged', {
         'width': w
@@ -173,12 +174,12 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       # w = $(window).width()
       # h = $(window).height()
 
-      w = @targetDiv.width()
-      h = @targetDiv.height()
+      w = @outerWrapperDiv.width()
+      h = @outerWrapperDiv.height()
       $("#debugRVFWidth").text(w)
       $("#debugRVFHeight").text(h)
 
-      if @targetDiv.length == 0
+      if @outerWrapperDiv.length == 0
         $("#debugRVFWidth").text("NOT SET")
 
       oldIdx = @breakPointIndex

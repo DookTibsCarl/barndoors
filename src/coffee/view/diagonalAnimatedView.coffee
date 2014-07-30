@@ -14,6 +14,8 @@ define(["view/animatedview"], (AnimatedView) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
       @enableSvgImageSwaps = true
 
+      @targetDiv.width("auto")
+
     buildOutDoors: () ->
       # before we build out doors, we want to set up some clip path stuff...
       if (@renderMode == AnimatedView.RENDER_MODE_CLIP_PATH)
