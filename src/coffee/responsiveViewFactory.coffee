@@ -24,8 +24,10 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       @outerWrapperDiv = $("#" + outerWrapperDivId)
       @targetDiv = $("#" + targetDivId)
 
+      @savedWidth = -1
+
       @breakPointIndex = 0
-      $(window).resize((=> @windowWasResized()))
+      $(window).resize(((evt) => @windowWasResized(false, evt)))
       @windowWasResized(true)
 
       # got a couple of bugs involving display artifacts when running for a long time; I think related to css animations
@@ -170,12 +172,27 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
       })
       
 
-    windowWasResized: (forceChange = false) ->
+    windowWasResized: (forceChange = false, evt = null) ->
+      ###
+      if (not forceChange and evt.target != window)
+        console.log "spurious IE8 windowResize!"
+        return
+      ###
       # w = $(window).width()
       # h = $(window).height()
 
       w = @outerWrapperDiv.width()
       h = @outerWrapperDiv.height()
+
+      if (@savedWidth == w)
+        # IE8 fires window.resize events anytime ANYTHING gets resized - causes havoc with respond.js for instance.
+        # console.log "spurious IE8 resize")
+        # or, normal browser that just changed height - no need to redraw
+        # console.log "skipping redraw!"
+        return
+
+      @savedWidth = w
+
       $("#debugRVFWidth").text(w)
       $("#debugRVFHeight").text(h)
 
