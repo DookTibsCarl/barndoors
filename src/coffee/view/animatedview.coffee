@@ -96,6 +96,10 @@ define(["view/baseview"], (BaseView) ->
       if (@browserData.isLikelyMobile and @browserData.name == "Safari" && @browserData.version <= 6.0)
         AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
+      # Safari 5 on the desktop is also borked
+      if (@browserData.name == "Safari" and @browserData.version < 6.0)
+        AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
+
       console.log("decided on animation mode [" + AnimatedView.ANIMATION_TECHNIQUE + "]")
       $("#debugAnimationMode").html(AnimatedView.ANIMATION_TECHNIQUE)
 
