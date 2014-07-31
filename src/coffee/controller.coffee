@@ -35,7 +35,7 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
     handleToggleAutoplay: (evt) ->
       if @isSlideshowPaused()
         # play - restart the slideshow with a shorter duration than usual
-        @setNextSlideDelay(@configuration.timeBetweenSlides / 2)
+        @setNextSlideDelay(500)#@configuration.timeBetweenSlides / 4)
         if (evt.updateAutoplayCookie != null and evt.updateAutoplayCookie == "true")
           CookieUtils.eraseCookie(AUTOPLAY_COOKIE_NAME)
       else
