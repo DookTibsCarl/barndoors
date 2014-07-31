@@ -90,7 +90,8 @@ define(["view/animatedview"], (AnimatedView) ->
       @leftImagePoly = [
         [leftEdgeCoord, 0]
         [divWidth - (if @actualDiagonalInset > 0 then 0 else -1 * @actualDiagonalInset) - @halfImgUnderflow, 0]
-        [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - @halfImgUnderflow, divHeight]
+        [Math.floor(divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - @halfImgUnderflow), divHeight]
+        # [divWidth - (if @actualDiagonalInset > 0 then @actualDiagonalInset else 0) - @halfImgUnderflow, divHeight]
         [leftEdgeCoord, divHeight]
       ]
 
