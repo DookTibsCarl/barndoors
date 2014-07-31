@@ -18,8 +18,6 @@ define([], () ->
     @TITLE_DISTANCE_FROM_BLACKBAR_PADDING_RATIO = .2 # when positioning "title" text,shift it up this value * actual height of the black bar
     @DETAILS_DISTANCE_FROM_BLACKBAR_PADDING_RATIO = .22 # when positioning "details" text,shift it down this value * actual height of the black bar
 
-
-
     logToConsole: (s) ->
       console.log(this.constructor.name + "::" + s)
 
@@ -179,6 +177,10 @@ define([], () ->
           version = parseFloat( RegExp.$1 )
       else if (browserName == "Firefox")
         re  = new RegExp("rv:([.0-9]+)")
+        if (re.exec(ua) != null)
+          version = parseFloat( RegExp.$1 )
+      else if (browserName == "Opera")
+        re  = new RegExp("Version/([.0-9]+)")
         if (re.exec(ua) != null)
           version = parseFloat( RegExp.$1 )
       else if (browserName == "Chrome")

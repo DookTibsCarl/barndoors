@@ -148,6 +148,10 @@ define(["model/model", "responsiveViewFactory", "imageLoader", "imageQualityMana
         @preloadNextPair()
       ))
 
+    getActiveViewDescriptor: () ->
+      return @viewFactory.getActiveViewDescriptor()
+
+
     getAssetServerUrl: () ->
       return @configuration.assetServerUrl
 

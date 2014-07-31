@@ -112,6 +112,7 @@ define(["view/baseview"], (BaseView) ->
         @targetDiv.css("-webkit-transform", "translateZ(0)")
 
     decideOnRenderMode: () ->
+      console.log("deciding on render mode for [" + @mainController.getActiveViewDescriptor() + "]...")
       # basic mode is for stuff like IE8 - skip the svg, don't do the fancy diagonal slice, etc.
       @renderMode = AnimatedView.RENDER_MODE_DEFAULT
       if (!document.createElementNS)
@@ -122,6 +123,10 @@ define(["view/baseview"], (BaseView) ->
 
       if (@browserData.name == "IE" and @browserData.version < 8.0)
         @renderMode = AnimatedView.RENDER_MODE_BROWSER_TOO_OLD
+
+      # old versions of Opera don't quite render the diagonal view correctly. Newer versions of Opera, or small/medium views, work fine
+      if (@browserData.name == "Opera" and @browserData.version < 15.0 and @mainController.getActiveViewDescriptor() == "diagonal")
+        @renderMode = AnimatedView.RENDER_MODE_BASIC
 
       # testing modes
       # @renderMode = AnimatedView.RENDER_MODE_BASIC
