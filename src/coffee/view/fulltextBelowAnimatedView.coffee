@@ -8,6 +8,13 @@ define(["view/animatedview"], (AnimatedView) ->
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)
 
+    decideOnAnimationMode: () ->
+      super
+      if (@browserData.renderingEngine == "Gecko" && @browserData.version < 26)
+        # Firefox <= 25 has a bug when rendering small/medium views with CSS animation. Newer FF, or diagonal view, work fine.
+        AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
+      $("#debugAnimationMode").html("FULLTEXT CUSTOM: " + AnimatedView.ANIMATION_TECHNIQUE)
+
     setupCalculations: () ->
       @halfDiv = @targetDiv.width()/2
       @dynamicImageHeight = @maxDesiredImageHeight

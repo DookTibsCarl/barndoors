@@ -79,6 +79,8 @@ define(["view/baseview"], (BaseView) ->
       p.push(p[0])
 
     decideOnAnimationMode: () ->
+      AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_CSS_FOR_ANIMATION
+
       # our default is CSS animation, but various older browsers can't handle it. Use Jquery as a backup
       if (@renderMode == AnimatedView.RENDER_MODE_BASIC)
         AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
