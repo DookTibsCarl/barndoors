@@ -3,7 +3,7 @@ define(["view/animatedview"], (AnimatedView) ->
     FOLD_PROPORTION = .05 # how much of the "middle" of the images should get folder "under"?
     PAD_PROPORTION = .03  # how much padding do you want on the textfields?
 
-    @DESC_FONT_SCALE_DATA = { ratio: 25, min: 14, max: 999 }
+    @DESC_FONT_SCALE_DATA = { ratio: 27, min: 14, max: 14 }
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)

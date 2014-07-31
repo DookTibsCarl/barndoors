@@ -6,7 +6,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
     DETAILS_CLASS = "details"
     EXPANDED_TEXT_PROPORTION = .6
 
-    @DESC_FONT_SCALE_DATA = { ratio: 15, min: 14, max: 999 }
+    @DESC_FONT_SCALE_DATA = { ratio: 15, min: 14, max: 14 }
 
     constructor: (@mainController, @targetDivName, @imageAspectRatio) ->
       super(@mainController, @targetDivName, @imageAspectRatio)

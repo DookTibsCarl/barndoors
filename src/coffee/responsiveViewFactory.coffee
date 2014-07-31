@@ -15,7 +15,7 @@ define(["view/diagonalAnimatedView", "view/fulltextBelowAnimatedView", "view/col
     # specify size as a breakpoint. Anything <= a given size falls into that bucket. Final element catches everything regardless
     @BREAKPOINTS = [
       { size: 539, descriptor: "expandable", containerDivClass: "small" },
-      { size: 899, descriptor: "fullTextBelow", containerDivClass: "medium" }
+      { size: 859, descriptor: "fullTextBelow", containerDivClass: "medium" }
       { descriptor: "diagonal", containerDivClass: "large" }
     ]
       

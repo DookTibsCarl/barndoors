@@ -6,6 +6,10 @@ define([], () ->
       # necessary to ensure that @side is legal?
       @imgUrls = {}
 
+      lastSpace = @details.lastIndexOf(" ")
+      if (lastSpace != -1)
+        @details = @details.substr(0, lastSpace) + "&nbsp;" + @details.substr(lastSpace+1)
+
       for imgKey, imgVal of urlData
         @imgUrls[imgKey] = imgVal
 
