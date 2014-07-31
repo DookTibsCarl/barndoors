@@ -29,7 +29,7 @@ define(["view/animatedview", "view/fullTextBelowAnimatedView"], (AnimatedView, F
       drawerStyle = {
         position: "absolute"
         # letterSpacing: "1px",
-        font: "12px/12px Arial",
+        # font: "12px/12px Arial",
         # color: "white"
         width: "100%"
         # "background-color": "orange"
