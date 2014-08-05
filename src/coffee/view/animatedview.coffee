@@ -92,9 +92,11 @@ define(["view/baseview"], (BaseView) ->
       if (@browserData.name == "IE" and @browserData.version <= 9.0)
         AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
 
+      ###
       # older ios (iPad 1 for instance, 5.1 Safari) don't render css anim correctly.
       if (@browserData.isLikelyMobile and @browserData.name == "Safari" && @browserData.version <= 6.0)
         AnimatedView.ANIMATION_TECHNIQUE = AnimatedView.USE_JQUERY_FOR_ANIMATION
+      ###
 
       # Safari 5 on the desktop is also borked
       if (@browserData.name == "Safari" and @browserData.version < 6.0)
