@@ -23,7 +23,8 @@ Run "npm install" at the command line. This fetches the dependencies defined in 
 If you intend to use the "deploy" Grunt task, you'll need to edit gruntProperties.json to point to an appropriate location on your filesystem. If you just want to test locally you can skip this.
 
 ## WEBSERVER SETUP
-If you plan to run the preview in a webserver, add an alias "/barndoor" that points at the installation directory. For instance if using Apache and you cloned the repo into directory "/Users/joetest/barndoor/" you might add entries like:
+If you plan to run the preview in a webserver, add an alias "/barndoor" that points at the installation directory. For instance if using Apache and you cloned the repo into directory "/Users/joetest/barndoor/" you might add entries like this to your httpd.conf:
+```
 <Directory "/Users/joetest/barndoor">
         AllowOverride None
         Options None
@@ -31,6 +32,7 @@ If you plan to run the preview in a webserver, add an alias "/barndoor" that poi
         Allow from all
 </Directory>
 Alias /barndoor /Users/joetest/barndoor/
+```
 
 You could change this to require a different alias without very much work; there are just some test images in index.html that point here and possibly some other hardcoded paths you'd need to track down. If you access the preview as a local file instead of through a webserver, there will be busted images on the previous/next/play/pause UI, but everything will function.
 
